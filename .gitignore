@@ -1,0 +1,5 @@
+data/sources/
+out/*.jsonl
+__pycache__/
+*.pyc
+.venv/
