@@ -34,6 +34,22 @@ def test_graeser_scarto_26_anni_resta_la_stessa_persona():
     assert r.grade(m["sim"], m["verdict"]) == "contestato"
 
 
+def test_campione_esteso_contiene_negative_confermate():
+    """Il criterio di accettazione del punto 1 della sezione 4: il campione deve
+    contenere casi di persone diverse con prova positiva di distinzione, non solo
+    coppie positive. Senza negative la precisione non e' misurabile sui casi
+    difficili e qualunque misura tende al 100% per costruzione."""
+    import gold
+    ids = gold.add_moma_column(
+        gold.load_identities(),
+        gold.ROOT / "data" / "sources" / "moma-exhibitions" / "MoMAExhibitions1929to1989.csv")
+    quint = [(m["subject"]["id"], m["object"]["id"], r.grade(m["sim"], m["verdict"]),
+              m["subject"]["name"], m["object"]["name"]) for m in links.values()]
+    h = gold.score_hard(quint, ids)
+    assert h["conteggi"]["diversa"] > 0, "nessuna negativa solida: campione inutile"
+    assert h["sup"] < 100.0, "la precisione non puo' tornare a essere 100% per costruzione"
+
+
 if __name__ == "__main__":
     for name, f in list(globals().items()):
         if name.startswith("test_"):

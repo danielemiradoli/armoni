@@ -325,7 +325,58 @@ def _gold_section(assertions) -> str:
         f"Quanto questo conti si vede abbassando SIM_MIN da 85 a 75: la parte giudicata\n"
         f"dall'oro guadagna 7 asserzioni e la metrica migliora, mentre 174 asserzioni\n"
         f"compaiono dove l'oro tace, con una su quattro in conflitto sulle date.\n"
-        f"La soglia e' rimasta a 85 per questo.\n")
+        f"La soglia e' rimasta a 85 per questo.\n\n"
+        + _hard_section(assertions, gold))
+
+
+def _hard_section(assertions, gold) -> str:
+    """Il campione esteso, che giudica anche i casi difficili."""
+    try:
+        ids = gold.add_moma_column(
+            gold.load_identities(),
+            ROOT / "data" / "sources" / "moma-exhibitions" / "MoMAExhibitions1929to1989.csv")
+        quint = [(x["subject"]["id"], x["object"]["id"], x["certainty"],
+                  x["subject"]["name"], x["object"]["name"]) for x in assertions]
+        h = gold.score_hard(quint, ids)
+    except Exception as e:
+        return f"Campione esteso non calcolato: {e}\n"
+    c, per = h["conteggi"], h["per_grado"]
+    righe = [
+        "### Campione esteso: anche i casi difficili\n",
+        "Il campione sopra contiene solo coppie positive: dice quando due record sono",
+        "la stessa persona, mai quando sono persone diverse. Le negative si ricavano",
+        "dalla distinzione a livello di item su Wikidata (ID MoMA su un item, ID Tate",
+        "su un altro = due persone diverse affermate, non dedotte da un silenzio).\n",
+        "| esito | n. |", "| --- | ---: |",
+        f"| stessa persona | {c['stessa']} |",
+        f"| persona diversa, solida | {c['diversa']} |",
+        f"| persona diversa, duplicato Wikidata non escludibile | {c['diversa-incerta']} |",
+        f"| granularita' diversa (duo contro individuo) | {c['diversa-duo']} |",
+        f"| nessun item su almeno un lato | {c['muto']} |",
+        "",
+        f"**Precisione fra {h['inf']:.1f}% e {h['sup']:.1f}%.** Non un numero ma un intervallo:",
+        "contando tutte le negative si ha il limite inferiore, contando solo quelle",
+        "solide il superiore. Il campione positivo da solo direbbe 100,0%, che era il",
+        "limite superiore di un intervallo di cui non mostrava l'altro capo.\n",
+        "Questo campione ha due modi propri di sbagliare, entrambi dichiarati: i duo",
+        "d'artisti, che la Tate registra come scheda unica e il MoMA come persone",
+        "(granularita', non errore di abbinamento); e i duplicati Wikidata non fusi,",
+        "escludibili solo quando i due item portano un ULAN o un VIAF.\n",
+        "| grado | stessa | diversa | incerta | duo | muto |",
+        "| --- | ---: | ---: | ---: | ---: | ---: |",
+    ]
+    for gr in ("certo", "probabile", "possibile", "contestato"):
+        p = per[gr]
+        if sum(p.values()):
+            righe.append(f"| {gr} | {p['stessa']} | {p['diversa']} | "
+                         f"{p['diversa-incerta']} | {p['diversa-duo']} | {p['muto']} |")
+    righe += [
+        "",
+        "I quattro gradi si separano nettamente, ed e' la conferma piu' utile: `certo`",
+        "regge, `contestato` e' davvero una coppia contesa, e `possibile` non contiene",
+        "nemmeno un caso confermato come stessa persona. Quel grado va riesaminato.\n",
+    ]
+    return "\n".join(righe)
 
 
 # ---------------------------------------------------------------- esecuzione

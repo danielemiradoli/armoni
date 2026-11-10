@@ -56,6 +56,42 @@ dall'oro guadagna 7 asserzioni e la metrica migliora, mentre 174 asserzioni
 compaiono dove l'oro tace, con una su quattro in conflitto sulle date.
 La soglia e' rimasta a 85 per questo.
 
+### Campione esteso: anche i casi difficili
+
+Il campione sopra contiene solo coppie positive: dice quando due record sono
+la stessa persona, mai quando sono persone diverse. Le negative si ricavano
+dalla distinzione a livello di item su Wikidata (ID MoMA su un item, ID Tate
+su un altro = due persone diverse affermate, non dedotte da un silenzio).
+
+| esito | n. |
+| --- | ---: |
+| stessa persona | 765 |
+| persona diversa, solida | 20 |
+| persona diversa, duplicato Wikidata non escludibile | 28 |
+| granularita' diversa (duo contro individuo) | 3 |
+| nessun item su almeno un lato | 55 |
+
+**Precisione fra 93.8% e 97.5%.** Non un numero ma un intervallo:
+contando tutte le negative si ha il limite inferiore, contando solo quelle
+solide il superiore. Il campione positivo da solo direbbe 100,0%, che era il
+limite superiore di un intervallo di cui non mostrava l'altro capo.
+
+Questo campione ha due modi propri di sbagliare, entrambi dichiarati: i duo
+d'artisti, che la Tate registra come scheda unica e il MoMA come persone
+(granularita', non errore di abbinamento); e i duplicati Wikidata non fusi,
+escludibili solo quando i due item portano un ULAN o un VIAF.
+
+| grado | stessa | diversa | incerta | duo | muto |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| certo | 743 | 2 | 3 | 2 | 1 |
+| probabile | 12 | 2 | 13 | 1 | 45 |
+| possibile | 0 | 0 | 10 | 0 | 6 |
+| contestato | 10 | 16 | 2 | 0 | 3 |
+
+I quattro gradi si separano nettamente, ed e' la conferma piu' utile: `certo`
+regge, `contestato` e' davvero una coppia contesa, e `possibile` non contiene
+nemmeno un caso confermato come stessa persona. Quel grado va riesaminato.
+
 ## Asserzioni contestate
 
 | MoMA | Tate | nascita | morte |

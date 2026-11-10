@@ -149,6 +149,113 @@ def tune(moma, tate, ev, names, r, sims, tols):
     return sorted(righe, reverse=True)
 
 
+# ---------------------------------------------------------------- campione esteso
+# Il campione d'oro di sopra contiene solo coppie POSITIVE: dice quando due record
+# sono la stessa persona, mai quando sono persone diverse. Per questo non puo'
+# misurare la precisione sui casi difficili, e per questo la misura precedente
+# saliva al 100% proprio dove il problema diventa duro.
+#
+# Le negative si ricavano dalla distinzione a livello di item: se l'ID MoMA sta
+# sull'item Q_a e l'ID Tate sull'item Q_b con Q_a != Q_b, Wikidata sta affermando
+# che sono due persone diverse. E' un'affermazione, non un silenzio.
+#
+# DUE MODI IN CUI QUESTO CAMPIONE SBAGLIA, da dichiarare ogni volta che lo si usa:
+#
+# 1. Duo e collettivi. La Tate registra 'Boyd and Evans, Fionnuala and Leslie'
+#    come una scheda sola, il MoMA registra Fionnuala Boyd come persona. Gli item
+#    sono legittimamente diversi, ma non e' un errore di abbinamento: e' un
+#    disaccordo sulla granularita'. Si marcano e si contano a parte.
+#
+# 2. Duplicati Wikidata non fusi. Due item per la stessa persona danno un falso
+#    negativo. Si escludono quelli in cui i due item condividono un ULAN o un
+#    VIAF; dove manca l'identificativo su un lato, il dubbio resta e si dichiara.
+#
+# Il risultato non e' quindi un numero ma un INTERVALLO: contando tutte le
+# negative la precisione e' il limite inferiore, contando solo quelle solide e'
+# il limite superiore. La verita' sta in mezzo. Il vecchio campione dava 100%,
+# che era il limite superiore di un intervallo di cui non mostrava l'altro capo.
+
+DUO = re.compile(r"\band\b|&", re.I)
+
+
+def load_identities():
+    """momaId e tateId -> {item, ulan, viaf}, da Wikidata e dalla colonna
+    WikidataID del CSV MoMA (che copre 230 artisti che la query P2174 non vede).
+    """
+    out = {}
+    for fn, col, src, is_tate in (("wikidata_moma.csv", "momaId", "moma", False),
+                                  ("wikidata_tate.csv", "tateId", "tate", True)):
+        m = collections.defaultdict(lambda: {"item": set(), "ulan": set(), "viaf": set()})
+        path = RAW / fn
+        if path.exists():
+            with open(path, encoding="utf-8") as f:
+                for row in csv.DictReader(f):
+                    k = row[col].strip()
+                    if is_tate:
+                        g = TATE_NUM.search(k)
+                        k = g.group(1) if g else ""
+                    if not k:
+                        continue
+                    m[k]["item"].add(row["item"].strip())
+                    for field in ("ulan", "viaf"):
+                        if row[field].strip():
+                            m[k][field].add(row[field].strip())
+        out[src] = dict(m)
+    return out
+
+
+def add_moma_column(ids, moma_csv):
+    """La colonna WikidataID del CSV MoMA, non usata dalla pipeline."""
+    import pandas as pd
+    d = pd.read_csv(moma_csv, encoding="windows-1252", low_memory=False)
+    d = d[(d.ExhibitionRole == "Artist") & (d.ConstituentType == "Individual")]
+    d = d.dropna(subset=["ConstituentID"]).drop_duplicates("ConstituentID")
+    for row in d.itertuples():
+        if pd.notna(row.WikidataID):
+            cid = str(int(row.ConstituentID))
+            ids["moma"].setdefault(cid, {"item": set(), "ulan": set(), "viaf": set()})
+            ids["moma"][cid]["item"].add(str(row.WikidataID).strip())
+    return ids
+
+
+def hard_verdict(a_id, b_id, a_name, b_name, ids):
+    """-> 'stessa' | 'diversa' | 'diversa-duo' | 'diversa-incerta' | 'muto'.
+
+    'diversa-incerta': item diversi ma almeno un lato senza ULAN ne' VIAF, quindi
+    un duplicato Wikidata non si puo' escludere.
+    """
+    A, B = ids["moma"].get(a_id), ids["tate"].get(b_id)
+    if not A or not B:
+        return "muto"
+    if A["item"] & B["item"]:
+        return "stessa"
+    if (A["ulan"] & B["ulan"]) or (A["viaf"] & B["viaf"]):
+        return "muto"          # stesso identificativo su item diversi: duplicato
+    if DUO.search(a_name or "") or DUO.search(b_name or ""):
+        return "diversa-duo"
+    if not ((A["ulan"] or A["viaf"]) and (B["ulan"] or B["viaf"])):
+        return "diversa-incerta"
+    return "diversa"
+
+
+def score_hard(assertions, ids):
+    """assertions: iterabile di (momaId, tateId, grado, nomeA, nomeB).
+
+    Restituisce i conteggi e l'intervallo di precisione.
+    """
+    c = collections.Counter()
+    per = collections.defaultdict(lambda: collections.Counter())
+    for a, b, grado, na, nb in assertions:
+        v = hard_verdict(a, b, na, nb, ids)
+        c[v] += 1
+        per[grado][v] += 1
+    pos = c["stessa"]
+    neg_tutte = c["diversa"] + c["diversa-incerta"] + c["diversa-duo"]
+    inf = 100.0 * pos / (pos + neg_tutte) if pos + neg_tutte else float("nan")
+    sup = 100.0 * pos / (pos + c["diversa"]) if pos + c["diversa"] else float("nan")
+    return {"conteggi": c, "per_grado": per, "inf": inf, "sup": sup}
+
+
 if __name__ == "__main__":
     import sys
     sys.path.insert(0, str(ROOT / "src"))
@@ -168,5 +275,24 @@ if __name__ == "__main__":
 
     asserts = [(m["subject"]["id"], m["object"]["id"], r.grade(m["sim"], m["verdict"]))
                for m in r.reconcile(moma, tate)]
-    report(score(asserts, ev), "=== TUTTO IL CAMPIONE ===")
-    report(score(asserts, ev, "riporto", names), "=== SOLA META' DI RIPORTO ===")
+    report(score(asserts, ev), "=== CAMPIONE POSITIVO, TUTTO ===")
+    report(score(asserts, ev, "riporto", names), "=== CAMPIONE POSITIVO, META' DI RIPORTO ===")
+
+    ids = add_moma_column(load_identities(),
+                          ROOT / "data" / "sources" / "moma-exhibitions"
+                          / "MoMAExhibitions1929to1989.csv")
+    ms = r.reconcile(moma, tate)
+    quint = [(m["subject"]["id"], m["object"]["id"], r.grade(m["sim"], m["verdict"]),
+              m["subject"]["name"], m["object"]["name"]) for m in ms]
+    h = score_hard(quint, ids)
+    print("\n=== CAMPIONE ESTESO (giudica anche i casi difficili) ===")
+    for k in ("stessa", "diversa", "diversa-incerta", "diversa-duo", "muto"):
+        print(f"  {k:<16} {h['conteggi'][k]}")
+    print(f"  PRECISIONE fra {h['inf']:.1f}% e {h['sup']:.1f}%"
+          f"   (il campione positivo da solo direbbe 100,0%)")
+    print(f"\n  {'grado':<12} {'stessa':>7} {'diversa':>8} {'incerta':>8} {'duo':>5} {'muto':>6}")
+    for gr in ("certo", "probabile", "possibile", "contestato"):
+        p = h["per_grado"][gr]
+        if sum(p.values()):
+            print(f"  {gr:<12} {p['stessa']:>7} {p['diversa']:>8} "
+                  f"{p['diversa-incerta']:>8} {p['diversa-duo']:>5} {p['muto']:>6}")
