@@ -13,8 +13,33 @@ VERSION = "0.1.0"
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC, OUT = ROOT / "data" / "sources", ROOT / "out"
 RAW = ROOT / "data" / "raw"
-TOL = 3           # anni di tolleranza fra due date che dovrebbero coincidere
+# Soglie TARATE e lasciate dove erano. La taratura e' stata fatta davvero: griglia
+# su meta' A-L del campione d'oro, verifica su meta' M-Z mai usata per tararla.
+# Il criterio del piano e' soddisfatto da (75, 3), che sulla meta' di riporto da'
+# richiamo 98,5% contro 97,3% a parita' di precisione. Non lo si adotta, perche'
+# un controllo indipendente dal campione lo smentisce:
+#
+#   SIM  asserzioni  nella parte che l'oro giudica  fuori    contestate fuori
+#    85        871              765                  106          19,8%
+#    75       1052              772                  280          27,5%
+#
+# La parte giudicata dall'oro e' satura: da 85 a 75 guadagna 7 asserzioni e il
+# tasso di contestazione non si muove di un decimo. Tutto il resto del guadagno,
+# 174 asserzioni, cade dove l'oro tace, e li' una su quattro e' in conflitto sulle
+# date. A vista: 'Henry Churchill = Churchill, Sir Winston', 'Ann Weaver =
+# Weaver, Thomas', 'Sir Charles Barry = Barry, James'.
+#
+# La metrica migliora perche' misura solo la meta' facile del problema. Abbassare
+# la soglia per inseguirla sarebbe una conclusione netta tratta da un campione
+# sbilanciato. SIM_MIN resta 85 finche' non esiste un campione che giudichi anche
+# i casi difficili.
 SIM_MIN = 85      # similarita' minima del nome per considerare una coppia
+# TOL non e' tarabile sui dati: fra 2 e 20 anni precisione e richiamo non si
+# muovono di un decimo, perche' la tolleranza non decide QUALI coppie emettere ma
+# solo come graduarle (da 91 a 65 asserzioni 'contestato'). Resta a 3 perche'
+# nessuna misura giustifica spostarlo. Stessa logica di D2: nessuna soglia a
+# priori fra 'contesa' e 'incompatibile'.
+TOL = 3           # anni di tolleranza fra due date che dovrebbero coincidere
 STOP = {"jr", "sir", "dame", "the", "of", "and", "om", "ch"}
 # Particelle nobiliari e preposizioni: MoMA e Tate le collocano in posizioni diverse
 # ("Willem de Kooning" / "Kooning, Willem de"), quindi non possono fare da chiave.
@@ -101,6 +126,8 @@ def load_tate() -> pd.DataFrame:
 # ---------------------------------------------------------------- identificativi esterni
 TATE_NUM = re.compile(r"(\d+)$")
 
+_EXT_CACHE = {}
+
 def load_external_ids() -> dict:
     """ULAN (P245) e VIAF (P214) per ogni ID MoMA e ogni ID Tate, da Wikidata.
 
@@ -109,6 +136,8 @@ def load_external_ids() -> dict:
     avere piu' valori per la stessa proprieta', e si tengono tutti: la domanda da
     porre e' se i due insiemi si sovrappongono, non se coincidono.
     """
+    if _EXT_CACHE:
+        return _EXT_CACHE
     out = collections.defaultdict(lambda: {"ulan": set(), "viaf": set()})
     for fn, col, src in (("wikidata_moma.csv", "momaId", "moma"),
                          ("wikidata_tate.csv", "tateId", "tate")):
@@ -127,7 +156,8 @@ def load_external_ids() -> dict:
                     v = row[field].strip()
                     if v:
                         out[(src, raw)][field].add(v)
-    return dict(out)
+    _EXT_CACHE.update(out)
+    return _EXT_CACHE
 
 
 def external_verdict(a, b, ids):
@@ -211,7 +241,7 @@ def reconcile(left: pd.DataFrame, right: pd.DataFrame, mutual: bool = True,
             sim = 100 if a["key"] == b["key"] else fuzz.token_set_ratio(a["key"], b["key"])
             if sim < SIM_MIN:
                 continue
-            verdict, ev = adjudicate(a, b)
+            verdict, ev = adjudicate(a, b, TOL)
             ev, judge = {"dates": ev}, "date"
             if verdict == "non verificabile" and ids:
                 # solo sul secchio cieco: dove le date parlano, decidono loro
@@ -257,6 +287,47 @@ def to_assertion(i, m):
         "generated_by": {"tool": "armoni-reconcile", "version": VERSION},
     }
 
+def _gold_section(assertions) -> str:
+    """Precisione e richiamo contro i collegamenti MoMA<->Tate fatti a mano su
+    Wikidata, con la riserva che li rende leggibili."""
+    import sys
+    sys.path.insert(0, str(ROOT / "src"))
+    try:
+        import gold
+        moma, tate = load_moma(), load_tate()
+        ev = gold.evaluable(gold.load_pairs(), set(moma.id), set(tate.id))
+        names = dict(zip(tate.id, tate.name))
+    except Exception as e:
+        return f"Non calcolata: {e}\n"
+    triple = [(x["subject"]["id"], x["object"]["id"], x["certainty"]) for x in assertions]
+    tutto = gold.score(triple, ev)
+    rip = gold.score(triple, ev, "riporto", names)
+    return (
+        f"Campione: i collegamenti MoMA<->Tate fatti a mano su Wikidata.\n\n"
+        f"| | tutto il campione | sola meta' di riporto |\n"
+        f"| --- | ---: | ---: |\n"
+        f"| coppie d'oro valutabili | {tutto['oro']} | {rip['oro']} |\n"
+        f"| asserzioni su cui l'oro ha un verdetto | {tutto['giudicate']} | {rip['giudicate']} |\n"
+        f"| sbagliate | {tutto['giudicate']-tutto['corrette']} | {rip['giudicate']-rip['corrette']} |\n"
+        f"| **precisione** | **{tutto['precisione']:.1f}%** | **{rip['precisione']:.1f}%** |\n"
+        f"| **richiamo** | **{tutto['richiamo']:.1f}%** | **{rip['richiamo']:.1f}%** |\n\n"
+        f"La colonna di destra e' quella da citare: la meta' M-Z del campione non e'\n"
+        f"stata usata per tarare nulla. La taratura e' avvenuta sulla meta' A-L.\n\n"
+        f"**Questa precisione non e' la precisione del sistema.** Il campione d'oro\n"
+        f"giudica gli artisti che qualcuno su Wikidata ha avuto motivo di collegare:\n"
+        f"i famosi, i facili. Su {len(assertions)} asserzioni emesse ne giudica\n"
+        f"{tutto['giudicate']}, cioe' il {100*tutto['giudicate']/max(len(assertions),1):.0f}%; "
+        f"sul resto nessuna fonte indipendente si pronuncia.\n"
+        f"Meta' delle coppie d'oro riguarda inoltre artisti MoMA mai esposti nella\n"
+        f"finestra 1929-1989, ed e' esclusa dal conteggio. La formulazione corretta e':\n"
+        f"*{tutto['precisione']:.0f}% di precisione sulla parte del problema che Wikidata\n"
+        f"e' in grado di giudicare.*\n\n"
+        f"Quanto questo conti si vede abbassando SIM_MIN da 85 a 75: la parte giudicata\n"
+        f"dall'oro guadagna 7 asserzioni e la metrica migliora, mentre 174 asserzioni\n"
+        f"compaiono dove l'oro tace, con una su quattro in conflitto sulle date.\n"
+        f"La soglia e' rimasta a 85 per questo.\n")
+
+
 # ---------------------------------------------------------------- esecuzione
 def main():
     OUT.mkdir(exist_ok=True)
@@ -300,6 +371,8 @@ def main():
         "altre sono la stessa persona su cui le due istituzioni non concordano "
         "(Milton Avery, 1885 per il MoMA e 1893 per la Tate). Distinguerle è lavoro "
         "editoriale umano, non una soglia da tarare.\n",
+        "## Misura contro il campione di riferimento\n",
+        _gold_section(assertions),
         "## Asserzioni contestate\n",
         "| MoMA | Tate | nascita | morte |", "| --- | --- | --- | --- |",
     ]

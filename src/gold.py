@@ -126,6 +126,29 @@ def report(s, titolo):
         print(f"    {g:<11} {ok}/{n}")
 
 
+def tune(moma, tate, ev, names, r, sims, tols):
+    """Griglia su SIM_MIN e TOL. Si tara sulla meta' A-L e si pubblicano i numeri
+    della meta' M-Z: un valore scelto e riportato sullo stesso campione misura
+    quanto bene si e' tarato, non quanto bene funziona.
+
+    Criterio: F1 sulla meta' di taratura. Precisione e richiamo da soli si
+    massimizzano banalmente (nessuna asserzione, o tutte).
+    """
+    s0, t0 = r.SIM_MIN, r.TOL
+    righe = []
+    for sim in sims:
+        for tol in tols:
+            r.SIM_MIN, r.TOL = sim, tol
+            a = [(m["subject"]["id"], m["object"]["id"], r.grade(m["sim"], m["verdict"]))
+                 for m in r.reconcile(moma, tate)]
+            x = score(a, ev, "taratura", names)
+            f1 = (0.0 if not (x["precisione"] and x["richiamo"])
+                  else 2 * x["precisione"] * x["richiamo"] / (x["precisione"] + x["richiamo"]))
+            righe.append((f1, sim, tol, x["precisione"], x["richiamo"]))
+    r.SIM_MIN, r.TOL = s0, t0
+    return sorted(righe, reverse=True)
+
+
 if __name__ == "__main__":
     import sys
     sys.path.insert(0, str(ROOT / "src"))
