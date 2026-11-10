@@ -25,7 +25,27 @@ Impronte sha256 dei file letti dalla pipeline (le ristampa `src/fetch.py`):
 | Fonte | Che cosa serve | Licenza | Stato |
 | --- | --- | --- | --- |
 | Getty ULAN | ID, nome preferito, varianti, nascita, morte, nazionalità. Non il dump integrale | ODC-By 1.0 (attribuzione obbligatoria) | da depositare |
-| Wikidata | artisti con ULAN o VIAF, date, nazionalità — esito di una query SPARQL esportato in CSV | CC0 1.0 | da depositare |
 | DoME (Univ. Vienna) | mostre europee 1905–1915 | da verificare | opzionale |
 
 Limite GitHub: 100 MB per file. Depositare sottoinsiemi compressi, mai dump integrali.
+
+## Fonti depositate in `data/raw/` (Wikidata)
+
+Prelievo del 10 novembre 2026 con `src/fetch_wikidata.py`, licenza CC0 1.0.
+Lo script pagina le query e **verifica ogni file contro un `COUNT(DISTINCT)`
+indipendente**: senza questo controllo un prelievo parziale passa inosservato.
+
+| File | Item attesi e ottenuti | Righe | sha256 |
+| --- | ---: | ---: | --- |
+| `wikidata_gold.csv` — item con entrambi gli ID (P2174 e P2741) | 1.668 | 1.863 | `a05cd418a5b0ae43995607c88d8f8ea8539511373218ea3f4dc2fa1180c88662` |
+| `wikidata_moma.csv` — item con ID MoMA (P2174) | 20.350 | 22.032 | `732df9b450a0be6076ea63cf8673fdde86d6f00240bfaf25e36e92c4c7d9df56` |
+| `wikidata_tate.csv` — item con ID Tate (P2741) | 4.299 | 4.868 | `1cd60deac103adcd4c3c65d80c9d8b9200e0da37153b41cf8eb95d541654e9ec` |
+
+Le righe superano gli item perche' ULAN e VIAF possono avere piu' valori per item.
+
+**Avvertenza sul prelievo precedente.** Un prelievo non paginato dello stesso
+giorno aveva reso 12.270 item per `wikidata_moma.csv` (12.919 in una esecuzione
+ancora precedente) e sembrava riuscito: con `SERVICE wikibase:label` il servizio
+SPARQL supera il tempo massimo mentre scrive la risposta e restituisce un CSV
+valido e tronco, senza codice di errore. Le cifre sugli item MoMA anteriori a
+questo manifest sono quindi sottostimate. Gold e Tate non erano interessati.
