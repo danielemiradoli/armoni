@@ -6,7 +6,7 @@ viene emesso come asserzione 'contestata'. Caso di riferimento: Milton Avery, na
 per il MoMA e 1893 per la Tate.
 """
 from __future__ import annotations
-import pandas as pd, numpy as np, unicodedata, re, json, pathlib, collections, datetime
+import pandas as pd, unicodedata, re, json, pathlib, collections, datetime
 from rapidfuzz import fuzz
 
 VERSION = "0.1.0"
@@ -14,7 +14,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC, OUT = ROOT / "data" / "sources", ROOT / "out"
 TOL = 3           # anni di tolleranza fra due date che dovrebbero coincidere
 SIM_MIN = 85      # similarita' minima del nome per considerare una coppia
-STOP = {"jr", "sir", "dame", "the", "of", "and", "om", "ch", "rа"}
+STOP = {"jr", "sir", "dame", "the", "of", "and", "om", "ch"}
 
 # ---------------------------------------------------------------- normalizzazione
 def tokens(s: str) -> list[str]:
@@ -46,7 +46,6 @@ def load_moma() -> pd.DataFrame:
         "block": [block_key(x, True) for x in d.AlphaSort],
         "birth": pd.to_numeric(d.ConstituentBeginDate, errors="coerce").values,
         "death": pd.to_numeric(d.ConstituentEndDate, errors="coerce").values,
-        "wikidata": d.WikidataID.values, "ulan": d.ULANID.values, "viaf": d.VIAFID.values,
     }).query("key != ''").reset_index(drop=True)
 
 def load_tate() -> pd.DataFrame:
@@ -57,7 +56,6 @@ def load_tate() -> pd.DataFrame:
         "key": [name_key(x) for x in nm], "block": [block_key(x, True) for x in d.name.astype(str)],
         "birth": pd.to_numeric(d.yearOfBirth, errors="coerce").values,
         "death": pd.to_numeric(d.yearOfDeath, errors="coerce").values,
-        "wikidata": np.nan, "ulan": np.nan, "viaf": np.nan,
     }).query("key != ''").reset_index(drop=True)
 
 # ---------------------------------------------------------------- arbitrato sulle date
@@ -155,8 +153,9 @@ def main():
         f"- in conflitto su una data: **{v['conflitto']}**",
         f"- non verificabili (una delle due fonti non ha date): **{v['non verificabile']}**",
         f"\nTasso di conflitto sulle coppie verificabili: **{err:.1f}%**. "
-        "È una stima per difetto del tasso di errore: gli omonimi privi di date non "
-        "vengono intercettati.\n",
+        "Non è un tasso di errore: mescola omonimi veri e casi in cui le due "
+        "istituzioni registrano date diverse per la stessa persona. Gli omonimi privi "
+        "di date, inoltre, non vengono intercettati affatto.\n",
         "## Nessun legame viene scartato in silenzio\n",
         "Le coppie con date in conflitto restano nel file come asserzioni `contestato`. "
         "Alcune sono omonimi veri (la Tate ha due Henry Moore, 1831–1895 e 1898–1986); "

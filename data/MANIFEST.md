@@ -15,6 +15,11 @@ GitHub (Getty, Wikidata, DoME) vanno depositate a mano in `data/raw/` e registra
 | MoMA, storia espositiva 1929–1989 | 1.727 mostre, 11.257 nomi, ruoli, date, ID Wikidata/ULAN/VIAF parziali | `MuseumofModernArt/exhibitions` | `5e1ce97416613068832255bdc4ddccc0fec7c508` | CC0 1.0 | 2026-11-09 |
 | Tate, collezione | 69.201 opere, 3.532 artisti, anni di nascita e morte, anno di acquisizione | `tategallery/collection` | `a51d8afc988ed083557e2950f4d0b644e7719f4a` | CC0 1.0 | 2026-11-09 |
 
+Impronte sha256 dei file letti dalla pipeline (le ristampa `src/fetch.py`):
+
+- `MoMAExhibitions1929to1989.csv` — `d9e86c86fa5c379dd1aba588dfc35378a1276181c7334aa94c37d8c6fc12040e`
+- `artist_data.csv` (Tate) — `b4a3cb051fe6ee93073e8a57ab600c449c37f64d9ea8135efb15d56e76299be2`
+
 ## Fonti da depositare a mano in `data/raw/`
 
 | Fonte | Che cosa serve | Licenza | Stato |

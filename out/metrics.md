@@ -1,6 +1,6 @@
 # Metriche di riconciliazione
 
-Generato il 2026-11-09 da `armoni-reconcile` 0.1.0 sulle fonti fissate in `data/MANIFEST.md`.
+Generato il 2026-11-10 da `armoni-reconcile` 0.1.0 sulle fonti fissate in `data/MANIFEST.md`.
 
 - artisti MoMA: **9387** (anno di nascita noto: 49%)
 - artisti Tate: **3530** (anno di nascita noto: 98%)
@@ -21,7 +21,7 @@ Generato il 2026-11-09 da `armoni-reconcile` 0.1.0 sulle fonti fissate in `data/
 - in conflitto su una data: **24**
 - non verificabili (una delle due fonti non ha date): **95**
 
-Tasso di conflitto sulle coppie verificabili: **3.4%**. È una stima per difetto del tasso di errore: gli omonimi privi di date non vengono intercettati.
+Tasso di conflitto sulle coppie verificabili: **3.4%**. Non è un tasso di errore: mescola omonimi veri e casi in cui le due istituzioni registrano date diverse per la stessa persona. Gli omonimi privi di date, inoltre, non vengono intercettati affatto.
 
 ## Nessun legame viene scartato in silenzio
 

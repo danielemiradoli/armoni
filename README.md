@@ -23,11 +23,17 @@ correnti in [`out/metrics.md`](out/metrics.md), dati in `out/identity_assertions
 | --- | ---: | --- |
 | certo | 82,9% | nomi identici e almeno una data concorde |
 | probabile | 11,8% | nomi molto simili e date concordi, oppure nomi identici senza date verificabili |
-| possibile | 2,3% | nomi simili, nessuna prova indipendente |
+| possibile | 2,3% | nomi simili ma non identici: date concordi con similarità sotto 90, oppure nessuna data verificabile |
 | contestato | 3,0% | le due fonti sono in disaccordo su una data |
 
-Il **3,4% delle coppie verificabili è in conflitto sulle date**. È una stima per
-difetto del tasso di errore: gli omonimi privi di date non vengono intercettati.
+Il **3,4% delle coppie verificabili è in conflitto sulle date** (24 coppie). Non è un
+tasso di errore: in 9 casi una data concorda e l'altra no, il che fa pensare alla stessa
+persona registrata diversamente dalle due istituzioni; gli altri sono con ogni
+probabilità omonimi. Gli omonimi privi di date non vengono intercettati affatto.
+
+Limiti noti: le soglie (similarità 85, tolleranza 3 anni) sono state scelte a occhio e
+non ancora tarate su un campione di riferimento; 9 artisti Tate risultano collegati a
+due artisti MoMA diversi, e almeno alcuni di questi doppi legami sono errori.
 
 ## Il metodo
 
@@ -65,12 +71,13 @@ stato. MoMA e Tate rilasciano i propri dati in CC0.
 ## Da dove viene
 
 Armoni nasce come contrazione di *Art Monitor*, per un progetto che prevedeva un modulo
-osservativo con funzioni predittive. Quel modulo è stato abbandonato: un test in cieco
-ha mostrato che il segnale su cui si reggeva — la posizione nella rete delle
-co-esposizioni — prevede bene le decisioni del MoMA sul MoMA stesso, ma non sopravvive
-al passaggio a un'altra istituzione. Era endogeno.
+osservativo con funzioni predittive. Quel modulo è stato accantonato: nei primi test
+la posizione di un artista nella rete delle co-esposizioni del MoMA aggiunge poco a ciò
+che già dice il suo semplice profilo espositivo, sia nel prevedere le personali del MoMA
+sia le acquisizioni della Tate. Un contributo piccolo c'è, ma non abbastanza da
+giustificare un modulo.
 
-Quello che è rimasto in piedi, e che si è rivelato il vero collo di bottiglia, è
+Quello che i test hanno invece reso evidente è il vero collo di bottiglia:
 l'armonizzazione delle identità. Il nome è rimasto perché ci piace e perché funziona.
 
 ## Cosa non è
