@@ -84,7 +84,55 @@ def test_contestato_resta_sameAs():
     assert m["relation"] == "sameAs" and m["certainty"] == "contestato"
 
 
+def test_nome_in_cirillico_non_deve_sparire():
+    """CRITERIO DI VERIFICA SCRITTO PRIMA DELLA MODIFICA. Oggi FALLISCE apposta.
+
+    `tokens()` passa per `encode("ascii", "ignore")` e poi filtra `[^a-z ]`.
+    Un nome in scrittura non latina si riduce a stringa vuota, `name_key`
+    restituisce "", e `load_moma`/`load_tate` eliminano la riga con
+    `.query("key != '\'')`. L'artista sparisce dal roster: non compare fra le
+    asserzioni, non compare fra gli errori, e non entra nemmeno nel
+    denominatore del richiamo. Non e' un abbinamento mancato, e' un record che
+    per la pipeline non e' mai esistito.
+
+    Oggi non si manifesta perche' MoMA e Tate traslitterano gia' alla fonte.
+    Il contatore in `out/metrics.md` segna zero. Si aprirebbe al primo catalogo
+    che non traslittera.
+
+    Il test resta rosso di proposito: il multilingua non e' il collo di
+    bottiglia attuale, che e' il campione sui casi difficili. Quando si
+    affrontera', questo e' il criterio da soddisfare, e la riga sotto deve
+    diventare verde senza essere riscritta.
+    """
+    assert r.name_key("Казимир Малевич"), \
+        "name_key perde i nomi in cirillico e il record sparisce dal roster"
+
+
+test_nome_in_cirillico_non_deve_sparire.atteso_fallire = True
+
+
 if __name__ == "__main__":
+    rossi = []
     for name, f in list(globals().items()):
-        if name.startswith("test_"):
-            f(); print("ok", name)
+        if not name.startswith("test_"):
+            continue
+        atteso = getattr(f, "atteso_fallire", False)
+        try:
+            f()
+        except AssertionError as e:
+            if atteso:
+                print(f"ROSSO ATTESO  {name}\n              {e}")
+            else:
+                rossi.append(name)
+                print(f"FALLITO       {name}\n              {e}")
+        else:
+            if atteso:
+                rossi.append(name)
+                print(f"VERDE INATTESO {name} — se e' stato risolto, togliere "
+                      f"atteso_fallire e aggiornare out/metrics.md")
+            else:
+                print("ok", name)
+    # Un rosso atteso non fa fallire la serie: e' un criterio di verifica gia'
+    # scritto per un lavoro non ancora fatto. Un rosso inatteso si', e anche un
+    # verde inatteso, perche' vuol dire che il criterio non e' piu' aggiornato.
+    raise SystemExit(1 if rossi else 0)

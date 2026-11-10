@@ -97,11 +97,34 @@ def block_keys(s: str, comma_form: bool) -> frozenset[str]:
     return frozenset(t[-1:]) if t else frozenset()
 
 # ---------------------------------------------------------------- caricamento
+# Nomi scartati in silenzio dai due caricatori. tokens() passa per
+# encode("ascii", "ignore") e poi filtra [^a-z ]: un nome in scrittura non latina
+# si riduce a stringa vuota, name_key restituisce "" e .query("key != ''") elimina
+# la riga. L'artista sparisce dal roster senza comparire ne' fra le asserzioni ne'
+# fra gli errori: non e' un abbinamento mancato, e' un record che non e' mai
+# esistito per la pipeline, e nessuna misura di richiamo lo nota.
+# Oggi il contatore e' a zero perche' MoMA e Tate traslitterano gia'. Il difetto
+# e' latente e si aprirebbe al primo catalogo che non lo fa; il contatore serve a
+# farlo vedere quel giorno invece di lasciarlo scoprire a valle.
+DROPPED = {"moma": {"non_latino": [], "senza_nome": []},
+           "tate": {"non_latino": [], "senza_nome": []}}
+
+
+def _record_dropped(src: str, names) -> None:
+    DROPPED[src] = {"non_latino": [], "senza_nome": []}
+    for n in names:
+        s = "" if n is None else str(n)
+        if name_key(s):
+            continue
+        key = "non_latino" if s.strip() and s.strip().lower() != "nan" else "senza_nome"
+        DROPPED[src][key].append(s)
+
 def load_moma() -> pd.DataFrame:
     d = pd.read_csv(SRC / "moma-exhibitions" / "MoMAExhibitions1929to1989.csv",
                     encoding="windows-1252", low_memory=False)
     d = d[(d.ExhibitionRole == "Artist") & (d.ConstituentType == "Individual")]
     d = d.dropna(subset=["ConstituentID"]).drop_duplicates("ConstituentID")
+    _record_dropped("moma", d.DisplayName)
     return pd.DataFrame({
         "src": "moma",
         "id": d.ConstituentID.astype(int).astype(str).values,
@@ -115,6 +138,7 @@ def load_moma() -> pd.DataFrame:
 def load_tate() -> pd.DataFrame:
     d = pd.read_csv(SRC / "tate-collection" / "artist_data.csv", low_memory=False)
     nm = d.name.astype(str).str.replace(",", " ", regex=False)
+    _record_dropped("tate", nm)
     return pd.DataFrame({
         "src": "tate", "id": d.id.astype(str).values, "name": d.name.values,
         "key": [name_key(x) for x in nm],
@@ -439,6 +463,37 @@ def to_assertion(i, m):
         "generated_by": {"tool": "armoni-reconcile", "version": VERSION},
     }
 
+def _dropped_section() -> str:
+    """Nomi scartati in silenzio dai caricatori, dichiarati come il troncamento."""
+    nl = sum(len(DROPPED[s]["non_latino"]) for s in DROPPED)
+    sn = sum(len(DROPPED[s]["senza_nome"]) for s in DROPPED)
+    righe = [
+        "## Nomi scartati prima della riconciliazione\n",
+        f"| roster | scrittura non latina | nome assente |",
+        "| --- | ---: | ---: |",
+    ]
+    for s in ("moma", "tate"):
+        righe.append(f"| {s} | {len(DROPPED[s]['non_latino'])} "
+                     f"| {len(DROPPED[s]['senza_nome'])} |")
+    righe += [
+        "",
+        f"**Oggi: {nl} nomi persi per la scrittura, {sn} per assenza di nome.**",
+        "",
+        "La cifra e' dichiarata anche quando e' zero, perche' il modo di fallire e'",
+        "silenzioso. `tokens()` passa per `encode(\"ascii\", \"ignore\")` e poi filtra",
+        "`[^a-z ]`: un nome in scrittura non latina si riduce a stringa vuota, e i due",
+        "caricatori eliminano la riga con `.query(\"key != ''\")`. L'artista non compare",
+        "ne' fra le asserzioni ne' fra gli errori: per la pipeline non e' mai esistito,",
+        "e nessuna misura di richiamo lo nota, perche' manca anche dal denominatore.",
+        "",
+        "Zero perche' MoMA e Tate traslitterano gia' alla fonte, non perche' il",
+        "problema sia risolto: `name_key('Казимир Малевич')` restituisce stringa vuota.",
+        "Il difetto si aprirebbe al primo catalogo che non traslittera. Il criterio di",
+        "verifica e' scritto in `tests/test_casi.py` e oggi fallisce apposta.\n",
+    ]
+    return "\n".join(righe)
+
+
 def _gold_section(assertions) -> str:
     """Precisione e richiamo contro i collegamenti MoMA<->Tate fatti a mano su
     Wikidata, con la riserva che li rende leggibili."""
@@ -557,6 +612,7 @@ def main():
         f"- asserzioni `sameAs`: **{len(same)}** "
         f"({100*len(same)/len(tate):.1f}% del roster Tate)",
         f"- asserzioni `differentFrom`: **{len(diff)}** (vedi in fondo)\n",
+        _dropped_section(),
         "## Grado di certezza delle `sameAs`\n",
         "| grado | n. | quota |", "| --- | ---: | ---: |",
     ]

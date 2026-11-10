@@ -7,6 +7,27 @@ Generato il 2026-11-10 da `armoni-reconcile` 0.1.0 sulle fonti fissate in `data/
 - asserzioni `sameAs`: **842** (23.8% del roster Tate)
 - asserzioni `differentFrom`: **29** (vedi in fondo)
 
+## Nomi scartati prima della riconciliazione
+
+| roster | scrittura non latina | nome assente |
+| --- | ---: | ---: |
+| moma | 0 | 0 |
+| tate | 0 | 0 |
+
+**Oggi: 0 nomi persi per la scrittura, 0 per assenza di nome.**
+
+La cifra e' dichiarata anche quando e' zero, perche' il modo di fallire e'
+silenzioso. `tokens()` passa per `encode("ascii", "ignore")` e poi filtra
+`[^a-z ]`: un nome in scrittura non latina si riduce a stringa vuota, e i due
+caricatori eliminano la riga con `.query("key != ''")`. L'artista non compare
+ne' fra le asserzioni ne' fra gli errori: per la pipeline non e' mai esistito,
+e nessuna misura di richiamo lo nota, perche' manca anche dal denominatore.
+
+Zero perche' MoMA e Tate traslitterano gia' alla fonte, non perche' il
+problema sia risolto: `name_key('Казимир Малевич')` restituisce stringa vuota.
+Il difetto si aprirebbe al primo catalogo che non traslittera. Il criterio di
+verifica e' scritto in `tests/test_casi.py` e oggi fallisce apposta.
+
 ## Grado di certezza delle `sameAs`
 
 | grado | n. | quota |
