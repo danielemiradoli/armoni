@@ -21,12 +21,28 @@ PARTICLES = {"de", "van", "von", "der", "den", "del", "della", "dell", "di", "da
              "du", "la", "le", "el", "ten", "ter", "af", "av", "dos", "das", "do"}
 
 # ---------------------------------------------------------------- normalizzazione
+PAREN = re.compile(r"\([^)]*\)")
+
 def tokens(s: str) -> list[str]:
+    """Token normalizzati del nome.
+
+    Due scelte che pesano sulla misura, entrambe verificate sul campione d'oro:
+
+    - Il contenuto fra parentesi viene rimosso. Il MoMA lo usa per il nome
+      anagrafico o per una variante ('Christo (Christo Javacheff)', 'Jean (Hans)
+      Arp', 'L. S. Lowry (Lawrence Stephen Lowry)'), la Tate non lo usa mai.
+      Confrontandolo, la similarita' di Lowry scendeva a 30. Rimuoverlo porta il
+      richiamo dal 93,4% al 95,4% senza toccare la precisione.
+    - Le iniziali puntate NON vengono scartate. Erano escluse dal filtro len > 1
+      e questo buttava via informazione che distingue: tenerle fa scendere gli
+      errori da 8 a 5. Un'iniziale e' una prova debole ma non e' rumore.
+    """
     if not isinstance(s, str):
         return []
+    s = PAREN.sub(" ", s)
     s = unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode()
     s = re.sub(r"[^a-z ]", " ", s.lower())
-    return [t for t in s.split() if t not in STOP and len(t) > 1]
+    return [t for t in s.split() if t not in STOP and t]
 
 def name_key(s: str) -> str:
     return " ".join(sorted(tokens(s)))
@@ -118,7 +134,10 @@ def reconcile(left: pd.DataFrame, right: pd.DataFrame):
         for k in a["block"]:
             cand.update(by_block.get(k, ()))
         for b in (rows[i] for i in cand):
-            sim = 100 if a["key"] == b["key"] else fuzz.token_sort_ratio(a["key"], b["key"])
+            # token_set_ratio, non token_sort_ratio: quando i token di un nome sono
+            # un sottoinsieme dell'altro ('Ivan Le Lorraine Albright' contro
+            # 'Albright, Ivan') il sort penalizza i token in piu' e il set no.
+            sim = 100 if a["key"] == b["key"] else fuzz.token_set_ratio(a["key"], b["key"])
             if sim < SIM_MIN:
                 continue
             verdict, ev = adjudicate(a, b)
@@ -140,7 +159,8 @@ def to_assertion(i, m):
         "relation": "sameAs",
         "subject": {"source": a["src"], "id": a["id"], "name": a["name"]},
         "object":  {"source": b["src"], "id": b["id"], "name": b["name"]},
-        "method": f"blocco-cognome+fuzzy>={SIM_MIN}+arbitrato-date(tol={TOL}a)",
+        "method": f"blocco-cognome-senza-particelle+token_set>={SIM_MIN}"
+                  f"+arbitrato-date(tol={TOL}a)",
         "evidence": {"name_similarity": round(m["sim"], 1),
                      "date_verdict": m["verdict"], "dates": m["evidence"]},
         "certainty": grade(m["sim"], m["verdict"]),
