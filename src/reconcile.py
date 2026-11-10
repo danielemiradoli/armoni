@@ -6,12 +6,13 @@ viene emesso come asserzione 'contestata'. Caso di riferimento: Milton Avery, na
 per il MoMA e 1893 per la Tate.
 """
 from __future__ import annotations
-import pandas as pd, unicodedata, re, json, pathlib, collections, datetime
+import pandas as pd, unicodedata, re, csv, json, pathlib, collections, datetime
 from rapidfuzz import fuzz
 
 VERSION = "0.1.0"
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC, OUT = ROOT / "data" / "sources", ROOT / "out"
+RAW = ROOT / "data" / "raw"
 TOL = 3           # anni di tolleranza fra due date che dovrebbero coincidere
 SIM_MIN = 85      # similarita' minima del nome per considerare una coppia
 STOP = {"jr", "sir", "dame", "the", "of", "and", "om", "ch"}
@@ -97,6 +98,64 @@ def load_tate() -> pd.DataFrame:
         "death": pd.to_numeric(d.yearOfDeath, errors="coerce").values,
     }).query("key != ''").reset_index(drop=True)
 
+# ---------------------------------------------------------------- identificativi esterni
+TATE_NUM = re.compile(r"(\d+)$")
+
+def load_external_ids() -> dict:
+    """ULAN (P245) e VIAF (P214) per ogni ID MoMA e ogni ID Tate, da Wikidata.
+
+    Chiavi ('moma', id) e ('tate', id). L'ID Tate su Wikidata e' uno slug
+    ('berthe-morisot-1663'): la chiave di join e' il numero finale. Un item puo'
+    avere piu' valori per la stessa proprieta', e si tengono tutti: la domanda da
+    porre e' se i due insiemi si sovrappongono, non se coincidono.
+    """
+    out = collections.defaultdict(lambda: {"ulan": set(), "viaf": set()})
+    for fn, col, src in (("wikidata_moma.csv", "momaId", "moma"),
+                         ("wikidata_tate.csv", "tateId", "tate")):
+        path = RAW / fn
+        if not path.exists():
+            continue
+        with open(path, encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                raw = row[col].strip()
+                if src == "tate":
+                    m = TATE_NUM.search(raw)
+                    raw = m.group(1) if m else ""
+                if not raw:
+                    continue
+                for field in ("ulan", "viaf"):
+                    v = row[field].strip()
+                    if v:
+                        out[(src, raw)][field].add(v)
+    return dict(out)
+
+
+def external_verdict(a, b, ids):
+    """Terzo giudice, indipendente sia dal nome sia dalle date.
+
+    Serve al secchio cieco: le coppie in cui almeno una delle due istituzioni non
+    registra date e l'arbitrato non puo' pronunciarsi. ULAN e VIAF illuminano circa
+    un terzo di quel secchio; sul resto nessuna fonte si pronuncia e lo si dichiara,
+    invece di colmarlo con una stima.
+    """
+    ka, kb = ids.get((a["src"], a["id"])), ids.get((b["src"], b["id"]))
+    if not ka or not kb:
+        return "non verificabile", {}
+    ev, agree, clash = {}, 0, 0
+    for field in ("ulan", "viaf"):
+        xa, xb = ka[field], kb[field]
+        if xa and xb:
+            same = bool(xa & xb)
+            ev[field] = {a["src"]: sorted(xa), b["src"]: sorted(xb), "concordi": same}
+            agree += same
+            clash += not same
+    if clash:
+        return "conflitto", ev
+    if agree:
+        return "corroborato", ev
+    return "non verificabile", ev
+
+
 # ---------------------------------------------------------------- arbitrato sulle date
 def adjudicate(a, b, tol=TOL):
     """-> (esito, prove). esito: 'corroborato' | 'conflitto' | 'non verificabile'."""
@@ -121,7 +180,8 @@ def grade(sim, verdict):
     return "possibile"
 
 # ---------------------------------------------------------------- riconciliazione
-def reconcile(left: pd.DataFrame, right: pd.DataFrame, mutual: bool = True):
+def reconcile(left: pd.DataFrame, right: pd.DataFrame, mutual: bool = True,
+              external: bool = True):
     """Abbina i due roster.
 
     mutual=True impone la RECIPROCITA': una coppia sopravvive solo se ciascuno dei
@@ -138,6 +198,7 @@ def reconcile(left: pd.DataFrame, right: pd.DataFrame, mutual: bool = True):
         for k in r["block"]:
             by_block[k].append(i)
 
+    ids = load_external_ids() if external else {}
     scored = []
     for a in left.to_dict("records"):
         cand = set()
@@ -151,23 +212,30 @@ def reconcile(left: pd.DataFrame, right: pd.DataFrame, mutual: bool = True):
             if sim < SIM_MIN:
                 continue
             verdict, ev = adjudicate(a, b)
+            ev, judge = {"dates": ev}, "date"
+            if verdict == "non verificabile" and ids:
+                # solo sul secchio cieco: dove le date parlano, decidono loro
+                verdict, xev = external_verdict(a, b, ids)
+                ev["external"] = xev
+                judge = "identificativi" if verdict != "non verificabile" else "nessuno"
             # un conflitto non elimina la coppia: la declassa
             rank = (sim + (10 if verdict == "corroborato" else 0)
                         - (40 if verdict == "conflitto" else 0))
-            scored.append((rank, a, b, sim, verdict, ev))
+            scored.append((rank, a, b, sim, verdict, ev, judge))
 
     best_l, best_r = {}, {}
-    for rank, a, b, sim, verdict, ev in scored:
+    for rank, a, b, sim, verdict, ev, judge in scored:
         if best_l.get(a["id"], (-1,))[0] < rank:
-            best_l[a["id"]] = (rank, a, b, sim, verdict, ev)
+            best_l[a["id"]] = (rank, a, b, sim, verdict, ev, judge)
         if best_r.get(b["id"], (-1,))[0] < rank:
-            best_r[b["id"]] = (rank, a, b, sim, verdict, ev)
+            best_r[b["id"]] = (rank, a, b, sim, verdict, ev, judge)
 
     out = []
-    for aid, (rank, a, b, sim, verdict, ev) in best_l.items():
+    for aid, (rank, a, b, sim, verdict, ev, judge) in best_l.items():
         if mutual and best_r[b["id"]][1]["id"] != aid:
             continue
-        out.append(dict(subject=a, object=b, sim=sim, verdict=verdict, evidence=ev))
+        out.append(dict(subject=a, object=b, sim=sim, verdict=verdict,
+                        evidence=ev, judge=judge))
     return out
 
 def to_assertion(i, m):
@@ -181,7 +249,9 @@ def to_assertion(i, m):
         "method": f"blocco-cognome-senza-particelle+token_set>={SIM_MIN}"
                   f"+arbitrato-date(tol={TOL}a)+reciprocita",
         "evidence": {"name_similarity": round(m["sim"], 1),
-                     "date_verdict": m["verdict"], "dates": m["evidence"]},
+                     "verdict": m["verdict"], "judge": m["judge"],
+                     "dates": m["evidence"]["dates"],
+                     "external_ids": m["evidence"].get("external", {})},
         "certainty": grade(m["sim"], m["verdict"]),
         "status": "proposto",
         "generated_by": {"tool": "armoni-reconcile", "version": VERSION},
@@ -198,7 +268,8 @@ def main():
             f.write(json.dumps(x, ensure_ascii=False) + "\n")
 
     c = collections.Counter(x["certainty"] for x in assertions)
-    v = collections.Counter(x["evidence"]["date_verdict"] for x in assertions)
+    v = collections.Counter(x["evidence"]["verdict"] for x in assertions)
+    j = collections.Counter(x["evidence"]["judge"] for x in assertions)
     checkable = v["corroborato"] + v["conflitto"]
     err = 100 * v["conflitto"] / max(checkable, 1)
     rep = [
