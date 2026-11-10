@@ -121,15 +121,25 @@ def grade(sim, verdict):
     return "possibile"
 
 # ---------------------------------------------------------------- riconciliazione
-def reconcile(left: pd.DataFrame, right: pd.DataFrame):
+def reconcile(left: pd.DataFrame, right: pd.DataFrame, mutual: bool = True):
+    """Abbina i due roster.
+
+    mutual=True impone la RECIPROCITA': una coppia sopravvive solo se ciascuno dei
+    due e' il miglior candidato dell'altro. Senza questo vincolo il confronto e'
+    unilaterale e il pretendente giusto non viene mai messo a confronto con quello
+    sbagliato: 'Don Walker' si prendeva 'Walker, John' perche' nessuno chiedeva a
+    'Walker, John' chi preferisse, e la risposta era 'John Walker'. Sette degli
+    otto errori trovati dal campione d'oro sono di questa forma, piu' i 9 artisti
+    Tate legati a due artisti MoMA diversi.
+    """
     by_block = collections.defaultdict(list)
-    for i, r in enumerate(right.to_dict("records")):
+    rows = right.to_dict("records")
+    for i, r in enumerate(rows):
         for k in r["block"]:
             by_block[k].append(i)
-    rows = right.to_dict("records")
-    out = []
+
+    scored = []
     for a in left.to_dict("records"):
-        best = None
         cand = set()
         for k in a["block"]:
             cand.update(by_block.get(k, ()))
@@ -144,11 +154,20 @@ def reconcile(left: pd.DataFrame, right: pd.DataFrame):
             # un conflitto non elimina la coppia: la declassa
             rank = (sim + (10 if verdict == "corroborato" else 0)
                         - (40 if verdict == "conflitto" else 0))
-            if best is None or rank > best[0]:
-                best = (rank, b, sim, verdict, ev)
-        if best:
-            _, b, sim, verdict, ev = best
-            out.append(dict(subject=a, object=b, sim=sim, verdict=verdict, evidence=ev))
+            scored.append((rank, a, b, sim, verdict, ev))
+
+    best_l, best_r = {}, {}
+    for rank, a, b, sim, verdict, ev in scored:
+        if best_l.get(a["id"], (-1,))[0] < rank:
+            best_l[a["id"]] = (rank, a, b, sim, verdict, ev)
+        if best_r.get(b["id"], (-1,))[0] < rank:
+            best_r[b["id"]] = (rank, a, b, sim, verdict, ev)
+
+    out = []
+    for aid, (rank, a, b, sim, verdict, ev) in best_l.items():
+        if mutual and best_r[b["id"]][1]["id"] != aid:
+            continue
+        out.append(dict(subject=a, object=b, sim=sim, verdict=verdict, evidence=ev))
     return out
 
 def to_assertion(i, m):
@@ -160,7 +179,7 @@ def to_assertion(i, m):
         "subject": {"source": a["src"], "id": a["id"], "name": a["name"]},
         "object":  {"source": b["src"], "id": b["id"], "name": b["name"]},
         "method": f"blocco-cognome-senza-particelle+token_set>={SIM_MIN}"
-                  f"+arbitrato-date(tol={TOL}a)",
+                  f"+arbitrato-date(tol={TOL}a)+reciprocita",
         "evidence": {"name_similarity": round(m["sim"], 1),
                      "date_verdict": m["verdict"], "dates": m["evidence"]},
         "certainty": grade(m["sim"], m["verdict"]),
