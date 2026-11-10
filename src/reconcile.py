@@ -15,6 +15,10 @@ SRC, OUT = ROOT / "data" / "sources", ROOT / "out"
 TOL = 3           # anni di tolleranza fra due date che dovrebbero coincidere
 SIM_MIN = 85      # similarita' minima del nome per considerare una coppia
 STOP = {"jr", "sir", "dame", "the", "of", "and", "om", "ch"}
+# Particelle nobiliari e preposizioni: MoMA e Tate le collocano in posizioni diverse
+# ("Willem de Kooning" / "Kooning, Willem de"), quindi non possono fare da chiave.
+PARTICLES = {"de", "van", "von", "der", "den", "del", "della", "dell", "di", "da",
+             "du", "la", "le", "el", "ten", "ter", "af", "av", "dos", "das", "do"}
 
 # ---------------------------------------------------------------- normalizzazione
 def tokens(s: str) -> list[str]:
@@ -27,10 +31,28 @@ def tokens(s: str) -> list[str]:
 def name_key(s: str) -> str:
     return " ".join(sorted(tokens(s)))
 
-def block_key(s: str, comma_form: bool) -> str:
-    """Chiave di blocco: il cognome. comma_form=True per 'Cognome, Nome'."""
-    t = tokens(s)
-    return "" if not t else (t[0] if comma_form else t[-1])
+def block_keys(s: str, comma_form: bool) -> frozenset[str]:
+    """Chiavi di blocco: il cognome, al netto delle particelle.
+
+    Un'unica chiave fissa non funziona. La Tate scrive 'Cognome, Nome' e mette la
+    particella dentro il cognome ('Kooning, Willem de'); il MoMA scrive il nome per
+    esteso ('Willem de Kooning'). Prendendo il primo token si ottiene 'de' da un lato
+    e 'kooning' dall'altro, e le due liste non si incontrano mai: 15 coppie del
+    campione d'oro con similarita' gia' 100 non venivano nemmeno confrontate.
+
+    Nella forma con virgola si tengono TUTTI i token non-particella del cognome,
+    perche' i due musei dissentono su dove cominci: 'Dunoyer de Segonzac' per la
+    Tate, 'Segonzac' per il MoMA. Nella forma estesa basta l'ultimo token.
+
+    Allargare oltre questo -- per esempio bloccando anche sui nomi di battesimo --
+    e' stato misurato e scartato: recupera 11 coppie e ne sbaglia 29 in piu'.
+    """
+    if comma_form and "," in str(s):
+        sur = [x for x in tokens(str(s).split(",")[0]) if x not in PARTICLES]
+        if sur:
+            return frozenset(sur)
+    t = [x for x in tokens(s) if x not in PARTICLES] or tokens(s)
+    return frozenset(t[-1:]) if t else frozenset()
 
 # ---------------------------------------------------------------- caricamento
 def load_moma() -> pd.DataFrame:
@@ -43,7 +65,7 @@ def load_moma() -> pd.DataFrame:
         "id": d.ConstituentID.astype(int).astype(str).values,
         "name": d.DisplayName.values,
         "key": [name_key(x) for x in d.DisplayName],
-        "block": [block_key(x, True) for x in d.AlphaSort],
+        "block": [block_keys(x, False) for x in d.DisplayName],
         "birth": pd.to_numeric(d.ConstituentBeginDate, errors="coerce").values,
         "death": pd.to_numeric(d.ConstituentEndDate, errors="coerce").values,
     }).query("key != ''").reset_index(drop=True)
@@ -53,7 +75,8 @@ def load_tate() -> pd.DataFrame:
     nm = d.name.astype(str).str.replace(",", " ", regex=False)
     return pd.DataFrame({
         "src": "tate", "id": d.id.astype(str).values, "name": d.name.values,
-        "key": [name_key(x) for x in nm], "block": [block_key(x, True) for x in d.name.astype(str)],
+        "key": [name_key(x) for x in nm],
+        "block": [block_keys(x, True) for x in d.name.astype(str)],
         "birth": pd.to_numeric(d.yearOfBirth, errors="coerce").values,
         "death": pd.to_numeric(d.yearOfDeath, errors="coerce").values,
     }).query("key != ''").reset_index(drop=True)
@@ -84,12 +107,17 @@ def grade(sim, verdict):
 # ---------------------------------------------------------------- riconciliazione
 def reconcile(left: pd.DataFrame, right: pd.DataFrame):
     by_block = collections.defaultdict(list)
-    for r in right.to_dict("records"):
-        by_block[r["block"]].append(r)
+    for i, r in enumerate(right.to_dict("records")):
+        for k in r["block"]:
+            by_block[k].append(i)
+    rows = right.to_dict("records")
     out = []
     for a in left.to_dict("records"):
         best = None
-        for b in by_block.get(a["block"], ()):
+        cand = set()
+        for k in a["block"]:
+            cand.update(by_block.get(k, ()))
+        for b in (rows[i] for i in cand):
             sim = 100 if a["key"] == b["key"] else fuzz.token_sort_ratio(a["key"], b["key"])
             if sim < SIM_MIN:
                 continue
