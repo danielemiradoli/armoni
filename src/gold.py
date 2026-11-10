@@ -273,23 +273,32 @@ if __name__ == "__main__":
     c = collections.Counter(half(p, names) for p in ev)
     print(f"  meta' taratura / riporto .... {c['taratura']} / {c['riporto']}")
 
-    asserts = [(m["subject"]["id"], m["object"]["id"], r.grade(m["sim"], m["verdict"]))
-               for m in r.reconcile(moma, tate)]
+    tutte = r.reconcile(moma, tate)
+    # Si misura la PRECISIONE DELLE AFFERMAZIONI DI IDENTITA'. Le 'differentFrom'
+    # non affermano un'identita': contarle fra gli errori misurerebbe il contrario
+    # di cio' che dicono.
+    ms_same = [m for m in tutte if m.get("relation", "sameAs") == "sameAs"]
+    ms_diff = [m for m in tutte if m.get("relation") == "differentFrom"]
+    asserts = [(m["subject"]["id"], m["object"]["id"], m["certainty"]) for m in ms_same]
     report(score(asserts, ev), "=== CAMPIONE POSITIVO, TUTTO ===")
     report(score(asserts, ev, "riporto", names), "=== CAMPIONE POSITIVO, META' DI RIPORTO ===")
 
     ids = add_moma_column(load_identities(),
                           ROOT / "data" / "sources" / "moma-exhibitions"
                           / "MoMAExhibitions1929to1989.csv")
-    ms = r.reconcile(moma, tate)
-    quint = [(m["subject"]["id"], m["object"]["id"], r.grade(m["sim"], m["verdict"]),
-              m["subject"]["name"], m["object"]["name"]) for m in ms]
+    quint = [(m["subject"]["id"], m["object"]["id"], m["certainty"],
+              m["subject"]["name"], m["object"]["name"]) for m in ms_same]
     h = score_hard(quint, ids)
     print("\n=== CAMPIONE ESTESO (giudica anche i casi difficili) ===")
     for k in ("stessa", "diversa", "diversa-incerta", "diversa-duo", "muto"):
         print(f"  {k:<16} {h['conteggi'][k]}")
-    print(f"  PRECISIONE fra {h['inf']:.1f}% e {h['sup']:.1f}%"
-          f"   (il campione positivo da solo direbbe 100,0%)")
+    print(f"  PRECISIONE delle sameAs fra {h['inf']:.1f}% e {h['sup']:.1f}%")
+    hd = score_hard([(m["subject"]["id"], m["object"]["id"], m["certainty"],
+                      m["subject"]["name"], m["object"]["name"]) for m in ms_diff], ids)
+    cd = hd["conteggi"]
+    print(f"\n  differentFrom emesse: {len(ms_diff)}"
+          f"  -> confermate diverse {cd['diversa']+cd['diversa-incerta']+cd['diversa-duo']},"
+          f" smentite (stessa persona) {cd['stessa']}, non giudicate {cd['muto']}")
     print(f"\n  {'grado':<12} {'stessa':>7} {'diversa':>8} {'incerta':>8} {'duo':>5} {'muto':>6}")
     for gr in ("certo", "probabile", "possibile", "contestato"):
         p = h["per_grado"][gr]

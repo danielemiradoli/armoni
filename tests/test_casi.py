@@ -3,7 +3,9 @@ import sys, pathlib
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / "src"))
 import reconcile as r
 
-links = {m["subject"]["name"]: m for m in r.reconcile(r.load_moma(), r.load_tate())}
+_tutte = r.reconcile(r.load_moma(), r.load_tate())
+links = {m["subject"]["name"]: m for m in _tutte}
+_diff = [m for m in _tutte if m["relation"] == "differentFrom"]
 
 def test_henry_moore_e_lo_scultore():
     assert links["Henry Moore"]["object"]["birth"] == 1898
@@ -48,6 +50,38 @@ def test_campione_esteso_contiene_negative_confermate():
     h = gold.score_hard(quint, ids)
     assert h["conteggi"]["diversa"] > 0, "nessuna negativa solida: campione inutile"
     assert h["sup"] < 100.0, "la precisione non puo' tornare a essere 100% per costruzione"
+
+
+def test_differentfrom_solo_con_prova_positiva():
+    """D1 come approvata: una non-identita' si emette solo con prova positiva.
+    Ogni differentFrom deve portare o la smentita esplicita del campione d'oro
+    o identificativi esterni/item distinti. Nessuna puo' poggiare sul silenzio."""
+    assert _diff, "nessuna differentFrom emessa"
+    for m in _diff:
+        d = m["evidence"].get("distinctness")
+        assert d, f"{m['subject']['name']} senza prova"
+        assert "oro" in d or "item" in d, f"{m['subject']['name']}: prova vuota"
+
+
+def test_differentfrom_non_tocca_duo_e_duplicati():
+    """I due modi in cui la prova di distinzione sbaglia, tenuti fuori.
+
+    Bernd Becher contro 'Becher, Prof. Bernd': l'item Tate e' il duo
+    'Bernd and Hilla Becher', quindi e' un disaccordo sulla granularita'.
+    Ryszard Otreba: due item, stessa persona, stessa nascita, duplicato non fuso.
+    Dire differentFrom su questi direbbe che una persona non e' se stessa."""
+    emessi = {m["subject"]["name"] for m in _diff}
+    for nome in ("Bernd Becher", "Ryszard K. Otreba", "Anne Poirier", "Fionnuala Boyd"):
+        assert nome not in emessi, f"{nome} non doveva uscire come differentFrom"
+
+
+def test_contestato_resta_sameAs():
+    """Il grado 'contestato' continua a significare 'coppia contesa', non
+    'coppia sbagliata': chi ha una prova di distinzione esce come differentFrom,
+    chi non ce l'ha resta sameAs contestato. Milton Avery e' il caso di
+    riferimento: date discordi, stessa persona, nessuna prova del contrario."""
+    m = links["Milton Avery"]
+    assert m["relation"] == "sameAs" and m["certainty"] == "contestato"
 
 
 if __name__ == "__main__":

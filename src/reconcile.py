@@ -138,7 +138,8 @@ def load_external_ids() -> dict:
     """
     if _EXT_CACHE:
         return _EXT_CACHE
-    out = collections.defaultdict(lambda: {"ulan": set(), "viaf": set()})
+    out = collections.defaultdict(
+        lambda: {"item": set(), "label": set(), "ulan": set(), "viaf": set()})
     for fn, col, src in (("wikidata_moma.csv", "momaId", "moma"),
                          ("wikidata_tate.csv", "tateId", "tate")):
         path = RAW / fn
@@ -152,10 +153,24 @@ def load_external_ids() -> dict:
                     raw = m.group(1) if m else ""
                 if not raw:
                     continue
+                out[(src, raw)]["item"].add(row["item"].strip())
+                if row.get("itemLabel", "").strip():
+                    out[(src, raw)]["label"].add(row["itemLabel"].strip())
                 for field in ("ulan", "viaf"):
                     v = row[field].strip()
                     if v:
                         out[(src, raw)][field].add(v)
+    # La colonna WikidataID del CSV MoMA copre 230 artisti che la query P2174 non
+    # vede. Porta solo l'item, non ULAN ne' VIAF: dove quelli esistono coincidono
+    # al 100% con Wikidata, quindi come giudice non aggiungerebbero nulla.
+    src_csv = SRC / "moma-exhibitions" / "MoMAExhibitions1929to1989.csv"
+    if src_csv.exists():
+        d = pd.read_csv(src_csv, encoding="windows-1252", low_memory=False)
+        d = d[(d.ExhibitionRole == "Artist") & (d.ConstituentType == "Individual")]
+        d = d.dropna(subset=["ConstituentID"]).drop_duplicates("ConstituentID")
+        for row in d.itertuples():
+            if pd.notna(row.WikidataID):
+                out[("moma", str(int(row.ConstituentID)))]["item"].add(str(row.WikidataID).strip())
     _EXT_CACHE.update(out)
     return _EXT_CACHE
 
@@ -186,6 +201,126 @@ def external_verdict(a, b, ids):
     return "non verificabile", ev
 
 
+
+
+# ---------------------------------------------------------------- non-identita'
+DUO = re.compile(r"\band\b|&", re.I)
+
+def is_duo(rec, ids_entry) -> bool:
+    """Il record designa un duo o un collettivo?
+
+    Si guarda il nome di catalogo E l'etichetta Wikidata, perche' spesso solo la
+    seconda lo dice: la Tate scrive 'Becher, Prof. Bernd', ma l'item e'
+    'Bernd and Hilla Becher'. Con il solo nome di catalogo si emetteva una
+    non-identita' fra Bernd Becher e il duo che lo comprende.
+
+    L'euristica e' deliberatamente troppo larga: 'Bob and Roberta Smith' e' lo
+    pseudonimo di una persona sola, e viene escluso lo stesso. Astenersi su un
+    caso in piu' costa meno che affermare una non-identita' falsa.
+    """
+    if DUO.search(rec.get("name") or ""):
+        return True
+    return any(DUO.search(x) for x in (ids_entry or {}).get("label", ()))
+
+
+def looks_like_duplicate(a, b) -> bool:
+    """Firma del duplicato Wikidata non fuso: stesso nome e stessa data di nascita.
+
+    Ryszard K. Otreba e Ryszard Otreba stanno su due item distinti, entrambi con
+    identificativo esterno, entrambi nati nel 1932. Non sono due persone: sono due
+    schede della stessa. Omonimi veri con lo stesso anno di nascita esistono, ma
+    sono rari, e qui si tratta di affermare una NON-identita': davanti a questa
+    firma conviene tacere.
+    """
+    if a.get("key") and a["key"] == b.get("key"):
+        pass
+    elif fuzz.token_set_ratio(a.get("key") or "", b.get("key") or "") < 95:
+        return False
+    x, y = a.get("birth"), b.get("birth")
+    return pd.notna(x) and pd.notna(y) and abs(x - y) <= TOL
+
+
+def distinctness(a, b, ids):
+    """Prova POSITIVA che i due record sono persone diverse -> (grado, prove).
+
+    Restituisce None quando la prova non c'e'. Il silenzio non e' una prova: una
+    coppia su cui nessuna fonte si pronuncia resta 'sameAs' contestato, non
+    diventa 'differentFrom'. Questa e' la decisione D1 come approvata.
+
+    Due forme di prova, entrambe richiedono un identificativo esterno su ENTRAMBI
+    i lati:
+      certo     - ULAN o VIAF presenti su entrambi i lati e disgiunti. Due archivi
+                  di autorita' assegnano identita' diverse.
+      probabile - item Wikidata distinti, senza conflitto diretto di
+                  identificativo ma con un ancoraggio esterno su entrambi i lati.
+
+    Tre esclusioni, tutte sostanziali:
+      - item distinti ma identificativo esterno CONDIVISO: e' un duplicato
+        Wikidata non fuso, non due persone;
+      - identificativo esterno assente su un lato: il duplicato non si puo'
+        escludere, e asserire sarebbe di nuovo asserire sul silenzio;
+      - duo e collettivi: la Tate cataloga 'Poirier, Anne and Patrick' come
+        scheda unica e il MoMA Anne Poirier come persona. Dire 'differentFrom'
+        direbbe che Anne Poirier non e' Anne Poirier. E' un disaccordo sulla
+        granularita' e va trattato con una relazione sua, non con una
+        non-identita'.
+    """
+    ka, kb = ids.get((a["src"], a["id"])), ids.get((b["src"], b["id"]))
+    if not ka or not kb or not ka["item"] or not kb["item"]:
+        return None
+    if ka["item"] & kb["item"]:
+        return None                                   # stesso item: stessa persona
+    if (ka["ulan"] & kb["ulan"]) or (ka["viaf"] & kb["viaf"]):
+        return None                                   # duplicato Wikidata non fuso
+    if is_duo(a, ka) or is_duo(b, kb):
+        return None                                   # granularita', non identita'
+    if not ((ka["ulan"] or ka["viaf"]) and (kb["ulan"] or kb["viaf"])):
+        return None                                   # nessun ancoraggio esterno
+    if looks_like_duplicate(a, b):
+        return None                                   # firma da duplicato non fuso
+
+    ev = {"item": {a["src"]: sorted(ka["item"]), b["src"]: sorted(kb["item"])}}
+    grado = "probabile"
+    for field in ("ulan", "viaf"):
+        if ka[field] and kb[field]:
+            ev[field] = {a["src"]: sorted(ka[field]), b["src"]: sorted(kb[field])}
+            grado = "certo"
+    return grado, ev
+
+
+def load_gold_pairs() -> dict:
+    """Le coppie (momaId, tateId) del campione d'oro, indicizzate nei due versi."""
+    per_m, per_t = collections.defaultdict(set), collections.defaultdict(set)
+    path = RAW / "wikidata_gold.csv"
+    if path.exists():
+        with open(path, encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                mo, slug = row["momaId"].strip(), row["tateId"].strip()
+                g = TATE_NUM.search(slug)
+                if mo and g:
+                    per_m[mo].add(g.group(1))
+                    per_t[g.group(1)].add(mo)
+    return {"per_moma": dict(per_m), "per_tate": dict(per_t)}
+
+
+def gold_contradiction(a, b, gold_pairs):
+    """L'oro assegna esplicitamente uno dei due a un partner diverso.
+
+    Oggi questo insieme e' VUOTO: le 8 coppie che l'oro smentiva sono quelle che
+    il vincolo di reciprocita' ha eliminato. Il criterio resta codificato come
+    guardia: se una modifica futura le fa rientrare, escono come 'differentFrom'
+    e non tornano silenziosamente 'sameAs'.
+    """
+    if not gold_pairs:
+        return None
+    by_m = gold_pairs.get("per_moma", {})
+    by_t = gold_pairs.get("per_tate", {})
+    if a["id"] in by_m and b["id"] not in by_m[a["id"]]:
+        return {"oro": {"moma": a["id"], "partner_atteso": sorted(by_m[a["id"]])}}
+    if b["id"] in by_t and a["id"] not in by_t[b["id"]]:
+        return {"oro": {"tate": b["id"], "partner_atteso": sorted(by_t[b["id"]])}}
+    return None
+
 # ---------------------------------------------------------------- arbitrato sulle date
 def adjudicate(a, b, tol=TOL):
     """-> (esito, prove). esito: 'corroborato' | 'conflitto' | 'non verificabile'."""
@@ -211,7 +346,7 @@ def grade(sim, verdict):
 
 # ---------------------------------------------------------------- riconciliazione
 def reconcile(left: pd.DataFrame, right: pd.DataFrame, mutual: bool = True,
-              external: bool = True):
+              external: bool = True, distinct: bool = True):
     """Abbina i due roster.
 
     mutual=True impone la RECIPROCITA': una coppia sopravvive solo se ciascuno dei
@@ -260,12 +395,28 @@ def reconcile(left: pd.DataFrame, right: pd.DataFrame, mutual: bool = True,
         if best_r.get(b["id"], (-1,))[0] < rank:
             best_r[b["id"]] = (rank, a, b, sim, verdict, ev, judge)
 
+    gold_pairs = load_gold_pairs() if distinct else {}
     out = []
     for aid, (rank, a, b, sim, verdict, ev, judge) in best_l.items():
         if mutual and best_r[b["id"]][1]["id"] != aid:
             continue
+        relation, certainty = "sameAs", grade(sim, verdict)
+        if distinct and ids:
+            # D1: si emette una non-identita' SOLO con prova positiva.
+            # L'assenza di prova lascia l'asserzione com'e'.
+            duo = is_duo(a, ids.get((a["src"], a["id"]))) or \
+                  is_duo(b, ids.get((b["src"], b["id"])))
+            contra = None if duo else gold_contradiction(a, b, gold_pairs)
+            proof = distinctness(a, b, ids)
+            if contra:
+                relation, certainty = "differentFrom", "certo"
+                ev["distinctness"] = contra
+            elif proof:
+                relation, certainty = "differentFrom", proof[0]
+                ev["distinctness"] = proof[1]
         out.append(dict(subject=a, object=b, sim=sim, verdict=verdict,
-                        evidence=ev, judge=judge))
+                        evidence=ev, judge=judge,
+                        relation=relation, certainty=certainty))
     return out
 
 def to_assertion(i, m):
@@ -273,7 +424,7 @@ def to_assertion(i, m):
     return {
         "id": f"armoni:idlink/{i:06d}",
         "type": "IdentityAssertion",
-        "relation": "sameAs",
+        "relation": m.get("relation", "sameAs"),
         "subject": {"source": a["src"], "id": a["id"], "name": a["name"]},
         "object":  {"source": b["src"], "id": b["id"], "name": b["name"]},
         "method": f"blocco-cognome-senza-particelle+token_set>={SIM_MIN}"
@@ -281,8 +432,9 @@ def to_assertion(i, m):
         "evidence": {"name_similarity": round(m["sim"], 1),
                      "verdict": m["verdict"], "judge": m["judge"],
                      "dates": m["evidence"]["dates"],
-                     "external_ids": m["evidence"].get("external", {})},
-        "certainty": grade(m["sim"], m["verdict"]),
+                     "external_ids": m["evidence"].get("external", {}),
+                     "distinctness": m["evidence"].get("distinctness", {})},
+        "certainty": m.get("certainty") or grade(m["sim"], m["verdict"]),
         "status": "proposto",
         "generated_by": {"tool": "armoni-reconcile", "version": VERSION},
     }
@@ -389,9 +541,11 @@ def main():
         for x in assertions:
             f.write(json.dumps(x, ensure_ascii=False) + "\n")
 
-    c = collections.Counter(x["certainty"] for x in assertions)
-    v = collections.Counter(x["evidence"]["verdict"] for x in assertions)
-    j = collections.Counter(x["evidence"]["judge"] for x in assertions)
+    same = [x for x in assertions if x["relation"] == "sameAs"]
+    diff = [x for x in assertions if x["relation"] == "differentFrom"]
+    c = collections.Counter(x["certainty"] for x in same)
+    v = collections.Counter(x["evidence"]["verdict"] for x in same)
+    j = collections.Counter(x["evidence"]["judge"] for x in same)
     checkable = v["corroborato"] + v["conflitto"]
     err = 100 * v["conflitto"] / max(checkable, 1)
     rep = [
@@ -400,13 +554,14 @@ def main():
         f"sulle fonti fissate in `data/MANIFEST.md`.\n",
         f"- artisti MoMA: **{len(moma)}** (anno di nascita noto: {100*pd.notna(moma.birth).mean():.0f}%)",
         f"- artisti Tate: **{len(tate)}** (anno di nascita noto: {100*pd.notna(tate.birth).mean():.0f}%)",
-        f"- asserzioni di identita' emesse: **{len(assertions)}** "
-        f"({100*len(assertions)/len(tate):.1f}% del roster Tate)\n",
-        "## Grado di certezza\n",
+        f"- asserzioni `sameAs`: **{len(same)}** "
+        f"({100*len(same)/len(tate):.1f}% del roster Tate)",
+        f"- asserzioni `differentFrom`: **{len(diff)}** (vedi in fondo)\n",
+        "## Grado di certezza delle `sameAs`\n",
         "| grado | n. | quota |", "| --- | ---: | ---: |",
     ]
     for g in ("certo", "probabile", "possibile", "contestato"):
-        rep.append(f"| {g} | {c[g]} | {100*c[g]/max(len(assertions),1):.1f}% |")
+        rep.append(f"| {g} | {c[g]} | {100*c[g]/max(len(same),1):.1f}% |")
     rep += [
         "\n## Arbitrato sulle date (giudice indipendente dal nome)\n",
         f"- corroborate da almeno una data concorde: **{v['corroborato']}**",
@@ -423,16 +578,42 @@ def main():
         "(Milton Avery, 1885 per il MoMA e 1893 per la Tate). Distinguerle è lavoro "
         "editoriale umano, non una soglia da tarare.\n",
         "## Misura contro il campione di riferimento\n",
-        _gold_section(assertions),
+        _gold_section(same),
         "## Asserzioni contestate\n",
         "| MoMA | Tate | nascita | morte |", "| --- | --- | --- | --- |",
     ]
-    for x in assertions:
+    for x in same:
         if x["certainty"] != "contestato":
             continue
         d = x["evidence"]["dates"]
         fm = lambda k: (f"{d[k]['moma']} / {d[k]['tate']}" if k in d else "—")
         rep.append(f"| {x['subject']['name']} | {x['object']['name']} | {fm('birth')} | {fm('death')} |")
+    rep += [
+        "\n## Non-identita' (`differentFrom`)\n",
+        "Decisione D1, approvata il 10/11/2026. Si emette una non-identita' **solo",
+        "con prova positiva di distinzione**: il silenzio di una fonte non e' una",
+        "prova, e una coppia su cui nessuno si pronuncia resta `sameAs` contestata.",
+        "Due forme di prova:\n",
+        "- il campione d'oro assegna esplicitamente uno dei due record a un partner",
+        "  diverso (grado `certo`);",
+        "- gli item Wikidata sono distinti e ULAN o VIAF sono presenti e disgiunti",
+        "  su entrambi i lati (`certo`), oppure i soli item sono distinti con un",
+        "  ancoraggio esterno su entrambi i lati (`probabile`).\n",
+        "Tre casi in cui ci si astiene, tutti sostanziali: identificativo esterno",
+        "condiviso fra item distinti (duplicato Wikidata non fuso); identificativo",
+        "assente su un lato (il duplicato non si puo' escludere); duo e collettivi,",
+        "riconosciuti anche dall'etichetta Wikidata e non solo dal nome di catalogo",
+        "('Becher, Prof. Bernd' per la Tate, ma l'item e' 'Bernd and Hilla Becher').",
+        "Si tace inoltre davanti alla firma del duplicato non fuso: stesso nome e",
+        "stessa data di nascita su item diversi, come i due Ryszard Otreba.\n",
+        "| MoMA | Tate | grado | prova |", "| --- | --- | --- | --- |",
+    ]
+    for x in diff:
+        d = x["evidence"]["distinctness"]
+        prova = ("oro" if "oro" in d
+                 else "+".join(k for k in ("ulan", "viaf") if k in d) or "item")
+        rep.append(f"| {x['subject']['name']} | {x['object']['name']} "
+                   f"| {x['certainty']} | {prova} |")
     (OUT / "metrics.md").write_text("\n".join(rep) + "\n")
     print("\n".join(rep[:22]))
     print(f"\n-> out/identity_assertions.jsonl ({len(assertions)} asserzioni)\n-> out/metrics.md")
