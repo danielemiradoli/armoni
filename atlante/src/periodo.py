@@ -64,7 +64,22 @@ def main():
             lingua = (p.get('languageTag') or p.get('language', '').rsplit('/', 1)[-1] or '?')[:2]
             for r in regs:
                 periodi.append({'r': r, 'n': p.get('label', '')[:80], 'a': s, 'b': e, 'au': aid, 'lg': lingua, 'id': pid})
-    out = {'fonte': 'PeriodO, n2t.net/ark:/99152/p0d (pubblico dominio)', 'autorita': aut, 'periodi': periodi}
+    # Japan Search: epoche definite in giapponese dal portale nazionale (data/query/jps_epoche.rq).
+    # Anche questo e' un punto di vista: la Cina e la Corea viste dal Giappone, con i suoi nomi.
+    import csv, re
+    aut['jps'] = {'titolo': 'Japan Search, entità «HistoricalEra»', 'anno': '2026', 'chi': 'Biblioteca nazionale della Dieta (Giappone)'}
+    visti = set()
+    for r in csv.DictReader(open(ROOT / 'data/jps_epoche.csv', encoding='utf-8')):
+        m = re.search(r'/time/(-?\d+)-(\d+)$', r['span'] or '')
+        if not m or r['e'] in visti:
+            continue
+        visti.add(r['e'])
+        s, e = int(m.group(1)), int(m.group(2))
+        if e < T0 or s > T1 or not DURATA[0] <= e - s <= DURATA[1]:
+            continue
+        reg = 'Cina' if r['nome'].startswith('中国') else 'Corea' if r['nome'].startswith('朝鮮') else 'Giappone'
+        periodi.append({'r': reg, 'n': r['nome'], 'a': s, 'b': e, 'au': 'jps', 'lg': 'ja', 'id': r['e']})
+    out = {'fonte': 'PeriodO (pubblico dominio) e Japan Search', 'autorita': aut, 'periodi': periodi}
     (ROOT / 'web/periodo.json').write_text(json.dumps(out, ensure_ascii=False), encoding='utf-8')
 
     righe = ['# PeriodO — chi definisce i periodi delle regioni dell\'atlante (700–2000)', '',

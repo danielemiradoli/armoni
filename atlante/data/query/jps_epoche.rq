@@ -1,0 +1,7 @@
+# Epoche storiche definite da Japan Search (jpsearch.go.jp/rdf/sparql): nome, intervallo, epoca madre, equivalente Wikidata
+SELECT DISTINCT ?e ?nome ?span ?madre ?wd WHERE {
+  ?e a <https://jpsearch.go.jp/term/type/HistoricalEra> ; <http://www.w3.org/2000/01/rdf-schema#label> ?nome .
+  OPTIONAL { ?e <http://www.w3.org/2004/02/skos/core#closeMatch> ?span . FILTER(REGEX(STR(?span), "/time/-?[0-9]+-[0-9]+$")) }
+  OPTIONAL { ?e <http://schema.org/isPartOf> ?madre }
+  OPTIONAL { ?e <http://www.w3.org/2002/07/owl#sameAs> ?wd . FILTER(STRSTARTS(STR(?wd), "http://www.wikidata.org/")) }
+}

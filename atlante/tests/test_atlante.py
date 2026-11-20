@@ -124,3 +124,11 @@ def test_periodo_regioni_e_autorita():
     assert 'Corea' in regioni  # PeriodO la chiama 'Korean Peninsula'
     assert all(p['au'] in po['autorita'] for p in po['periodi'])
     assert all(10 <= p['b'] - p['a'] <= 800 for p in po['periodi'])
+
+
+def test_japan_search_epoche():
+    po = json.load(open(ROOT / 'web/periodo.json', encoding='utf-8'))
+    jps = {p['n']: (p['a'], p['b'], p['r']) for p in po['periodi'] if p['au'] == 'jps'}
+    assert jps['中世'] == (1192, 1600, 'Giappone')
+    assert jps['中国・明時代'] == (1368, 1644, 'Cina')   # prefisso 中国・ -> Cina, non Giappone
+    assert jps['朝鮮・李氏朝鮮時代'][2] == 'Corea'

@@ -6,14 +6,14 @@ Rigenerato da `src/periodo.py`. Lingua = lingua dell'etichetta del periodo nella
 | --- | ---: | ---: | --- |
 | Europa | 547 | 23 | en 444, fr 61, nl 24 |
 | Anatolia e Mediterraneo | 160 | 13 | en 137, tr 23 |
-| Cina | 140 | 6 | en 140 |
+| Cina | 150 | 7 | en 140, ja 10 |
+| Giappone | 103 | 6 | en 67, ja 36 |
 | Iran e Asia centrale | 93 | 7 | en 93 |
-| Giappone | 85 | 5 | en 67, ja 18 |
 | Africa | 50 | 9 | en 48, fr 2 |
 | Sud-est asiatico | 49 | 3 | en 49 |
 | Asia meridionale | 39 | 5 | en 39 |
 | Americhe | 32 | 5 | en 32 |
-| Corea | 9 | 3 | en 9 |
+| Corea | 14 | 4 | en 9, ja 5 |
 
 Periodi 700–2000 senza copertura spaziale, quindi non assegnabili a una regione: 93.
 

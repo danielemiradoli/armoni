@@ -7,7 +7,7 @@ Atlante storico e geografico della storia dell'arte globale, costruito sul model
 | strato | contenuto | file |
 | --- | --- | --- |
 | 0 · spazio-tempo | confini storici per istantanee (700–1945), terre emerse | `web/confini/`, `web/terre.json` |
-| 1 · periodi | **PeriodO**: 1.204 definizioni di periodo per 10 regioni, ognuna con l'autorità che la definisce e la lingua del nome; in alternativa le dinastie di Wikidata | `data/p0d.json`, `web/periodo.json`, `data/periodi.csv` |
+| 1 · periodi | **PeriodO** più le epoche di **Japan Search** (in giapponese): 1.237 definizioni di periodo per 10 regioni, ognuna con l'autorità che la definisce e la lingua del nome; in alternativa le dinastie di Wikidata | `data/p0d.json`, `web/periodo.json`, `data/periodi.csv` |
 | 2 · luoghi | centri di produzione, paesi, zone, sedi; ognuno con QID, **precisione** e metodo di risoluzione | `data/luoghi.csv` |
 | 3 · entità | 2.024 pezzi con data da Met e Cleveland, più 101 da Wikidata conservati fuori dagli Stati Uniti (39 con data): origine, sede attuale, mercato dichiarato, intervallo | `web/opere.json` |
 | 4 · relazioni | origine → sede (spostamento), origine → mercato (solo se il catalogo scrive «for … market») | calcolate nella pagina |
@@ -19,7 +19,7 @@ Ogni pezzo porta il **grado d'inclusione** (`documentato`: il record nomina il b
 ## Due interfacce
 
 - `#ricerca` — strati, filtri, contesto per luogo e per pezzo, Tavolo per accostare pezzi diversi (tenuto solo nel browser).
-- `#percorso` — otto tappe guidate. I testi sono redazionali e **da verificare con la bibliografia**; i numeri di ogni tappa sono calcolati sui dati.
+- `#percorso` — nove tappe guidate. I testi sono redazionali e **da verificare con la bibliografia**; i numeri di ogni tappa sono calcolati sui dati.
 
 ## Riprodurre
 
@@ -28,7 +28,7 @@ Ogni pezzo porta il **grado d'inclusione** (`documentato`: il record nomina il b
 sh src/confini.sh          # richiede mapshaper
 python3 src/build.py       # scrive web/*.json e out/metrics.md
 python3 src/fetch_vam.py && python3 src/densita_vam.py   # V&A: solo conteggi; cancellare data/raw/vam.csv entro 4 settimane
-python3 -m pytest tests    # 18 guardie
+python3 -m pytest tests    # 19 guardie
 cd web && python3 -m http.server
 ```
 
@@ -44,6 +44,7 @@ cd web && python3 -m http.server
 
 - Fra 700 e 2000 PeriodO ha 140 periodi per la Cina, **tutti in inglese**; 93 per l'Iran, tutti in inglese; 85 per il Giappone, 18 in giapponese (un dizionario del 2014). Nessuno in cinese, persiano, coreano, vietnamita.
 - Le autorità sono soprattutto il British Museum e la Library of Congress; per alcune regioni compaiono tavole europee del Sette-Ottocento (Priestley 1769, Willard 1835): nel 1700 le Americhe si chiamano «Spanish Mexico», «Portuguese Brasil».
+- Japan Search aggiunge 33 epoche definite in giapponese, anche per Cina e Corea: un altro punto di vista, non neutro (usa «李氏朝鮮» per la Corea Joseon, elenca il Manciukuò come epoca cinese). Il suo 中世 finisce nel 1600; il «Middle Ages» di Emerton (1918) nel 1300, il «Medieval» di Historic England nel 1540.
 - 93 periodi esistono ma non dicono a quale luogo si applicano (es. «Koryo Dynasty»).
 
 ## Errori trovati e corretti in costruzione (ora sono test)
