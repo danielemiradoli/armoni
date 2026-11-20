@@ -92,3 +92,34 @@ Vietnam,Vietnam,Q881,16.0,108.0,paese,"etichetta, max sitelinks (luoghi.rq)"
 Wales,Galles,Q25,52.35,-3.6333,paese,"etichetta, max sitelinks (luoghi.rq)"
 Staffordshire,Staffordshire,Q23105,52.8069,-2.1161,regione,"etichetta, max sitelinks (luoghi.rq)"
 Europe,Europa,Q46,53.5,15.5,zona,QID diretto (zone.rq)
+Hong Kong,Hong Kong,Q8646,22.2783,114.1586,citta,etichetta + paese (luoghi_vam.rq)
+Copenhagen,Copenaghen,Q1748,55.6761,12.5689,citta,etichetta + paese (luoghi_vam.rq)
+Kolkata,Calcutta (Kolkata),Q1348,22.5675,88.37,citta,etichetta + paese (luoghi_vam.rq)
+Naples,Napoli,Q2634,40.8358,14.2486,citta,etichetta + paese (luoghi_vam.rq)
+Glasgow,Glasgow,Q4093,55.8611,-4.25,citta,etichetta + paese (luoghi_vam.rq)
+Yokohama,Yokohama,Q38283,35.4503,139.6342,citta,etichetta + paese (luoghi_vam.rq)
+Leeds,Leeds,Q39121,53.7975,-1.5436,citta,etichetta + paese (luoghi_vam.rq)
+Fujian,Fujian,Q41705,25.9,118.3,regione,etichetta + paese (luoghi_vam.rq)
+Gansu,Gansu,Q42392,38.0,102.0,regione,etichetta + paese (luoghi_vam.rq)
+Fez,Fès,Q80985,34.0433,-5.0033,citta,etichetta + paese (luoghi_vam.rq)
+Sindh,Sindh,Q37211,24.87,67.05,regione,etichetta + paese (luoghi_vam.rq)
+Plymouth,Plymouth,Q43382,50.3714,-4.1422,citta,etichetta + paese (luoghi_vam.rq)
+Forlì,Forlì,Q13367,44.2228,12.0414,citta,etichetta + paese (luoghi_vam.rq)
+Stoke-on-Trent,Stoke-on-Trent,Q134902,53.0,-2.1833,citta,etichetta + paese (luoghi_vam.rq)
+Shropshire,Shropshire,Q23103,52.6167,-2.7167,regione,etichetta + paese (luoghi_vam.rq)
+Tournai,Tournai,Q173219,50.6056,3.3881,citta,etichetta + paese (luoghi_vam.rq)
+Sèvres,Sèvres,Q206493,48.8231,2.2108,citta,etichetta + paese (luoghi_vam.rq)
+Sesto Fiorentino,Doccia (Sesto Fiorentino),Q82865,43.8333,11.2,citta,etichetta + paese (luoghi_vam.rq)
+Imari,Imari,Q857266,33.2647,129.8808,citta,etichetta + paese (luoghi_vam.rq)
+Vauxhall,Vauxhall (Londra),Q146747,51.4903,-0.1193,citta,etichetta + paese (luoghi_vam.rq)
+Dehua County,Dehua,Q1183080,25.4949,118.2361,citta,etichetta + paese (luoghi_vam.rq)
+Burslem,Burslem,Q1857589,53.0426,-2.1879,citta,etichetta + paese (luoghi_vam.rq)
+Hanley,Hanley,Q1575653,53.0246,-2.1729,citta,etichetta + paese (luoghi_vam.rq)
+Barlaston,Barlaston,Q2353329,52.9457,-2.1583,citta,etichetta + paese (luoghi_vam.rq)
+Etruria,Etruria (Stoke-on-Trent),Q2915922,53.0189,-2.1994,citta,etichetta + paese (luoghi_vam.rq)
+Caughley,Caughley,Q119443436,52.5999,-2.446,citta,etichetta + paese (luoghi_vam.rq)
+Norway,Norvegia,Q20,59.9333,10.6833,paese,"QID diretto (luoghi_vam.rq, in coda)"
+United Kingdom,Regno Unito / Gran Bretagna,Q145,54.6,-2.0,paese,"QID diretto (luoghi_vam.rq, in coda)"
+Azerbaijan,Azerbaigian,Q227,40.3,47.7,paese,"QID diretto (luoghi_vam.rq, in coda)"
+Nigeria,Nigeria,Q1033,9.0,8.0,paese,"QID diretto (luoghi_vam.rq, in coda)"
+Central Asia,Asia centrale,Q27275,45.3,63.9,zona,"QID diretto (luoghi_vam.rq, in coda)"

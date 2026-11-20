@@ -108,6 +108,15 @@
 "metodo": "etichetta, max sitelinks (luoghi.rq)"
 },
 {
+"id": "Fujian",
+"nome": "Fujian",
+"qid": "Q41705",
+"lat": "25.9",
+"lon": "118.3",
+"precisione": "regione",
+"metodo": "etichetta + paese (luoghi_vam.rq)"
+},
+{
 "id": "Germany",
 "nome": "Germania",
 "qid": "Q183",
@@ -529,6 +538,15 @@
 "lon": "38.5833",
 "precisione": "paese",
 "metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Sèvres",
+"nome": "Sèvres",
+"qid": "Q206493",
+"lat": "48.8231",
+"lon": "2.2108",
+"precisione": "citta",
+"metodo": "etichetta + paese (luoghi_vam.rq)"
 },
 {
 "id": "Tabriz",

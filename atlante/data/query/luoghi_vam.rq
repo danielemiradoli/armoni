@@ -1,0 +1,15 @@
+# Centri nominati dal V&A, vincolati al paese (P17) per evitare omonimi; si sceglie l'elemento con piu' sitelinks nel paese.
+SELECT ?lab ?item ?coord ?sl WHERE {
+  VALUES (?lab ?c) { ("Caughley"@en wd:Q145) ("Etruria"@en wd:Q145) ("Forlì"@en wd:Q38) ("Barlaston"@en wd:Q145)
+    ("Stoke-on-Trent"@en wd:Q145) ("Shropshire"@en wd:Q145) ("Hong Kong"@en wd:Q148) ("Kolkata"@en wd:Q668)
+    ("Tournai"@en wd:Q31) ("Plymouth"@en wd:Q145) ("Copenhagen"@en wd:Q35) ("Fez"@en wd:Q1028) ("Naples"@en wd:Q38)
+    ("Vauxhall"@en wd:Q145) ("Glasgow"@en wd:Q145) ("Burslem"@en wd:Q145) ("Hanley"@en wd:Q145)
+    ("Sindh"@en wd:Q843) ("Imari"@en wd:Q17) ("Leeds"@en wd:Q145) ("Dehua County"@en wd:Q148)
+    ("Gansu"@en wd:Q148) ("Fujian"@en wd:Q148) ("Sesto Fiorentino"@en wd:Q38) ("Sèvres"@en wd:Q142) ("Yokohama"@en wd:Q17)
+    ("Nagasaki"@en wd:Q17) }
+  ?item rdfs:label ?lab ; wdt:P625 ?coord ; wikibase:sitelinks ?sl .
+  ?item wdt:P17 ?c .
+}
+
+# Paesi e zone per QID diretto (luoghi_vam_paesi):
+# SELECT ?item ?coord WHERE { VALUES ?item { wd:Q1033 wd:Q20 wd:Q227 wd:Q145 wd:Q27275 } ?item wdt:P625 ?coord }

@@ -11,6 +11,7 @@ Licenza registrata **per campo**, non per fonte (vedi `claude/integrazione_visio
 | `data/luoghi.csv` | Wikidata, query in `data/query/luoghi*.rq`, `zone.rq` | nel repository | coordinate P625, QID | CC0 | — |
 | `data/periodi.csv` | Wikidata, `data/query/periodi.rq` | nel repository | P571/P576 o P580/P582 | CC0 | — |
 | `wikidata_ceramiche.csv` | Wikidata, `data/query/wikidata_ceramiche.rq` (oggetti in porcellana o ceramica con collezione fuori dagli Stati Uniti; 3.688 item, uguale al `COUNT` indipendente) | `02f799d3d8831b03…` | etichette, descrizioni, P571 con precisione, P495, P1071, P195 | CC0 | — |
+| `vam.csv` | `api.vam.ac.uk/v2/objects/search`, frasi esatte «underglaze blue» e «blue and white» (`src/fetch_vam.py`; 10.036 oggetti, conteggi uguali a quelli dichiarati dall'API) | `d55de65d84f191d6…` | luogo, data, materiale, tipo, titolo (solo per riconoscere il luogo) | **condizioni V&A §9: uso non commerciale; vietato conservare i contenuti oltre 4 settimane** — il file non entra nel repository e va cancellato entro il 18/12/2026; nella pagina solo `web/densita_vam.json`, conteggi per luogo e decennio | non usate |
 | `web/confini/*.json` | `aourednik/historical-basemaps`, `geojson/world_<anno>.geojson`, semplificati al 4% con mapshaper | sotto | NAME, geometrie | **GPL-3.0** | — |
 | `web/terre.json` | npm `world-atlas@2.0.2`, `land-110m.json` (Natural Earth) | — | geometrie | pacchetto ISC, dati Natural Earth di pubblico dominio | — |
 

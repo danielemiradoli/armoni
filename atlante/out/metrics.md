@@ -15,10 +15,10 @@ Pezzi: **2125** — Met 1643, Cleveland 381, Wikidata fuori dagli Stati Uniti 10
 
 | precisione | pezzi |
 | --- | ---: |
-| paese | 1518 (71.4%) |
-| citta | 520 (24.5%) |
+| paese | 1516 (71.3%) |
+| citta | 521 (24.5%) |
 | nessun luogo | 81 (3.8%) |
-| regione | 5 (0.2%) |
+| regione | 6 (0.3%) |
 | zona | 1 (0.0%) |
 
 Attribuzione del luogo dichiarata incerta dal catalogo: 32 (1.5%).
@@ -27,7 +27,7 @@ Attribuzione del luogo dichiarata incerta dal catalogo: 32 (1.5%).
 
 | luogo | pezzi |
 | --- | ---: |
-| Cina | 679 |
+| Cina | 678 |
 | Giappone | 614 |
 | Delft | 201 |
 | Iznik | 107 |

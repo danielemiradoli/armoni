@@ -11,6 +11,7 @@ Atlante storico e geografico della storia dell'arte globale, costruito sul model
 | 2 · luoghi | centri di produzione, paesi, zone, sedi; ognuno con QID, **precisione** e metodo di risoluzione | `data/luoghi.csv` |
 | 3 · entità | 2.024 pezzi con data da Met e Cleveland, più 101 da Wikidata conservati fuori dagli Stati Uniti (39 con data): origine, sede attuale, mercato dichiarato, intervallo | `web/opere.json` |
 | 4 · relazioni | origine → sede (spostamento), origine → mercato (solo se il catalogo scrive «for … market») | calcolate nella pagina |
+| 3b · densità V&A | 6.396 ceramiche del V&A ridotte a conteggi per luogo e decennio, senza schede (condizioni d'uso del museo) | `web/densita_vam.json` |
 | 5 · analisi | densità per decennio, silenzio delle fonti (precisione, ipotesi, assenze) | calcolate nella pagina |
 
 Ogni pezzo porta il **grado d'inclusione** (`documentato`: il record nomina il blu; `ipotetico`: manifattura nota per il blu, record muto sul colore) e il **criterio** con cui è entrato.
@@ -26,13 +27,15 @@ Ogni pezzo porta il **grado d'inclusione** (`documentato`: il record nomina il b
 # scaricare i due CSV in data/raw/ (URL in MANIFEST.md)
 sh src/confini.sh          # richiede mapshaper
 python3 src/build.py       # scrive web/*.json e out/metrics.md
-python3 -m pytest tests    # 11 guardie
+python3 src/fetch_vam.py && python3 src/densita_vam.py   # V&A: solo conteggi; cancellare data/raw/vam.csv entro 4 settimane
+python3 -m pytest tests    # 13 guardie
 cd web && python3 -m http.server
 ```
 
 ## Cosa i dati dicono già (out/metrics.md)
 
 - **Il 75% dei pezzi è localizzato solo per paese.** Jingdezhen è nominata in 59 schede: «Cina» in 679.
+- Il V&A, anche se solo in forma di conteggi, ribalta la precisione: **il 68% dei suoi pezzi collocati è localizzato per città**, contro il 25% delle altre fonti; Jingdezhen vi compare 1.339 volte. Ma è un museo inglese, e la sua densità si concentra in Inghilterra.
 - Il 95% dei pezzi è conservato in **due musei degli Stati Uniti**. La terza fonte (Wikidata, collezioni fuori dagli USA) aggiunge São Paulo, Tokyo, Taipei, Macao, ma porta solo 101 pezzi, 68 dei quali azulejos del Museu Paulista senza data: entrano nei dati e non nel tempo.
 - Per Iznik, Delft e Puebla il catalogo spesso non nomina il colore: il 20% del campione è ipotetico.
 
@@ -47,6 +50,6 @@ cd web && python3 -m http.server
 
 ## Limiti dichiarati
 
-- Tre fonti, ma il peso è quasi tutto statunitense; nessuna immagine. Le API di V&A, Europeana, Rijksmuseum, SMK, ColBase, Te Papa non sono raggiungibili da questo ambiente.
+- Tre fonti, ma il peso è quasi tutto statunitense; nessuna immagine. V&A e ColBase raggiungibili dal 20/11; ColBase non ha API pubblica: i suoi dati (CC BY) passano da Japan Search, in attesa di accesso. Europeana, Rijksmuseum, SMK, Te Papa non raggiungibili.
 - Periodi da Wikidata: sono dinastie e stati, non periodizzazioni storico-artistiche. Lo strato giusto è PeriodO (CC0), non raggiungibile da questo ambiente.
 - I confini di historical-basemaps sono GPL-3.0 e approssimati; le istantanee non coprono ogni anno.

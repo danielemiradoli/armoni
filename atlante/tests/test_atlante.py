@@ -69,3 +69,20 @@ def test_secolo_ambiguo_tiene_entrambe_le_letture():
     import sys; sys.path.insert(0, str(ROOT / 'src'))
     from build import intervallo_wd
     assert intervallo_wd('+1800-00-00T00:00:00Z', '7', '', '') [:2] == (1701, 1900)
+
+
+def test_date_vam():
+    import sys; sys.path.insert(0, str(ROOT / 'src'))
+    from densita_vam import intervallo
+    assert intervallo('ca. 1760-65') == (1755, 1770)
+    assert intervallo('mid 18th century') == (1733, 1766)
+    assert intervallo('17th-18th century') == (1600, 1799)
+    assert intervallo('200 BC') is None
+
+
+def test_vam_solo_conteggi():
+    # condizioni V&A: nessuna scheda, titolo o numero d'inventario nella pagina pubblicata
+    v = json.load(open(ROOT / 'web/densita_vam.json', encoding='utf-8'))
+    assert set(v['celle'][0]) == {'l', 'd', 'n'}
+    testo = json.dumps(v)
+    assert 'systemNumber' not in testo and 'accessionNumber' not in testo and 'primaryTitle' not in testo

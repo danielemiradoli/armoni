@@ -43,7 +43,16 @@ CENTRI = [('Jingdezhen', r'jingdezhen'), ('İznik', r'iznik'), ('Kütahya', r'k[
           ('Rouen', r'rouen'), ('Nevers', r'nevers'), ('Paris', r'\bparis\b'), ('Meissen', r'meissen'),
           ('Hanau', r'hanau'), ('Frankfurt', r'frankfurt'), ('Florence', r'florence|medici'),
           ('Venice', r'venice|venetian'), ('Lisbon', r'lisbon'), ('Seville', r'seville'), ('Antwerp', r'antwerp'),
-          ('Warsaw', r'warsaw'), ('Philadelphia', r'philadelphia'), ('Mexico City', r'mexico city')]
+          ('Warsaw', r'warsaw'), ('Philadelphia', r'philadelphia'), ('Mexico City', r'mexico city'),
+          # aggiunti per il V&A (luoghi_vam.rq); Hyderabad resta non risolto: Sindh o India
+          ('Caughley', r'caughley'), ('Etruria', r'etruria'), ('Barlaston', r'barlaston'), ('Burslem', r'burslem'),
+          ('Hanley', r'hanley'), ('Stoke-on-Trent', r'stoke-on-trent'), ('Shropshire', r'shropshire'),
+          ('Forlì', r'forl[iì]'), ('Sesto Fiorentino', r'doccia'), ('Naples', r'naples|capo ?di ?monte'),
+          ('Tournai', r'tournai'), ('Sèvres', r's[eè]vres'), ('Copenhagen', r'copenhagen'), ('Plymouth', r'plymouth'),
+          ('Vauxhall', r'vauxhall'), ('Glasgow', r'glasgow'), ('Leeds', r'\bleeds\b'), ('Kolkata', r'kolkata|calcutta'),
+          ('Fez', r'\bfe[sz]\b'), ('Nagasaki', r'nagasaki'), ('Yokohama', r'yokohama'),
+          ('Hong Kong', r'hong kong'), ('Dehua County', r'dehua'), ('Fujian', r'fujian'), ('Gansu', r'gansu'),
+          ('Sindh', r'sindh')]
 PAESI = [('China', r'chin'), ('Japan', r'japan'), ('Vietnam', r'vietnam'), ('Korea', r'korea'),
          ('Iran', r'iran|persia'), ('Turkey', r'turk|ottoman|anatolia'), ('Netherlands', r'dutch|netherland'),
          ('Mexico', r'mexic'), ('Egypt', r'egypt'), ('Syria', r'syria'), ('Portugal', r'portug'),
@@ -55,7 +64,8 @@ PAESI = [('China', r'chin'), ('Japan', r'japan'), ('Vietnam', r'vietnam'), ('Kor
          ('Czech Republic', r'bohemia|czech'), ('Scotland', r'scot'), ('Ireland', r'irish|ireland'),
          ('Wales', r'welsh|wales'), ('Afghanistan', r'afghan'), ('Morocco', r'morocc'), ('Tunisia', r'tunisia'),
          ('Myanmar', r'burm|myanmar'), ('Indonesia', r'indonesia|java'), ('Philippines', r'philippin'),
-         ('United States', r'american|united states')]
+         ('United States', r'american|united states|\busa\b'), ('United Kingdom', r'great britain|\bbritain\b|united kingdom'),
+         ('Norway', r'norw'), ('Azerbaijan', r'azerbaijan'), ('Nigeria', r'nigeria'), ('Central Asia', r'central asia')]
 MERCATI = [('Portugal', r'portug'), ('Netherlands', r'dutch'), ('Japan', r'japan'), ('England', r'english|british'),
            ('United States', r'american'), ('Iran', r'persian|iran'), ('Turkey', r'ottoman|turkish'),
            ('Europe', r'europ')]
