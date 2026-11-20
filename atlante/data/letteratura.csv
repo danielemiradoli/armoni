@@ -1,1 +1,12 @@
-sito_id,inizio,fine,tipo,frammenti,percentuale,base,fonte_id,pagina,nota
+sito_id,inizio,fine,tipo,misura,frammenti,percentuale,base,fonte_id,pagina,nota
+Shanga,760,900,"ceramica Changsha (fornaci di Tongguan, Hunan)",conteggio,19,,,zhao2015,"§17, n. 27","datazione C14 di Horton; riesame di archeologi cinesi (Qin 2015): produzioni del IX-X secolo"
+Manda Island,900,950,"porcellana bianca, fornaci di Fanchang (Anhui)",conteggio,1,,,zhao2015,"§17, n. 28","unico frammento di ciotola, prima metà del X secolo"
+Shanga,800,1510,"ceramica dell'Estremo Oriente (Cina e Sud-est asiatico)",percentuale,,0.12,sul totale dei frammenti del sito,zhao2015,"§31, n. 69","dato originale: Horton, Brown, Mudida 1996, tab. 9 e 14; periodo non specificato nella nota: si usa l'ambito dell'articolo (IX-XVI sec.)"
+Gedi,800,1510,"ceramica dell'Estremo Oriente (Cina e Sud-est asiatico)",percentuale,,0.9,sul totale dei frammenti del sito,zhao2015,"§31, n. 69","dato originale: scavi di S. Pradines (Pradines 2010, p. 312); periodo non specificato nella nota"
+Gedi,1430,1510,"ceramiche del Sud-est asiatico (blu e bianco vietnamita, gres thailandese, ceramiche birmane)",presenza,,,,zhao2015,"§25, n. 47","fase IV, in cui domina il blu e bianco di Jingdezhen"
+Manda Island,1430,1510,"ceramiche del Sud-est asiatico (blu e bianco vietnamita, gres thailandese, ceramiche birmane)",presenza,,,,zhao2015,"§25, n. 48","fase IV, in cui domina il blu e bianco di Jingdezhen"
+Kilwa Kisiwani,1430,1510,"ceramiche del Sud-est asiatico (blu e bianco vietnamita, gres thailandese, ceramiche birmane)",presenza,,,,zhao2015,"§25, n. 49","fase IV, in cui domina il blu e bianco di Jingdezhen"
+Songo Mnara,1430,1510,"ceramiche del Sud-est asiatico (blu e bianco vietnamita, gres thailandese, ceramiche birmane)",presenza,,,,zhao2015,"§25, n. 50","fase IV, in cui domina il blu e bianco di Jingdezhen"
+Sanje ya Kati,1430,1510,"ceramiche del Sud-est asiatico",presenza,,,,zhao2015,"§25, n. 50","n. 50 rinvia a Zhao 2012, p. 57, per Sanje ya Kati e Songo Mnara"
+Songo Mnara,1200,1330,"ciotole vietnamite dipinte in bruno di ferro sotto coperta",presenza,,,,zhao2015,"§24, n. 44","XIII - inizio XIV secolo"
+Mombasa,1200,1330,"ciotole vietnamite dipinte in bruno di ferro sotto coperta",presenza,,,,zhao2015,"§24, n. 44","XIII - inizio XIV secolo"

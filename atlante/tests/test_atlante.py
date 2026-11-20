@@ -138,8 +138,10 @@ def test_letteratura_rifiuta_numeri_senza_provenienza():
     import sys; sys.path.insert(0, str(ROOT / 'src'))
     from letteratura import valida
     siti, fonti = {'Songo Mnara': {}}, {'zhao2012': {}}
-    buona = dict(sito_id='Songo Mnara', inizio='1300', fine='1500', tipo='qingbai', frammenti='10', percentuale='', base='', fonte_id='zhao2012', pagina='tab. 2', nota='')
+    buona = dict(sito_id='Songo Mnara', inizio='1300', fine='1500', tipo='qingbai', misura='conteggio', frammenti='10', percentuale='', base='', fonte_id='zhao2012', pagina='tab. 2', nota='')
     assert valida([buona], siti, fonti) == []
     assert valida([{**buona, 'pagina': ''}], siti, fonti)           # senza pagina
     assert valida([{**buona, 'fonte_id': 'boh'}], siti, fonti)      # fonte sconosciuta
     assert valida([{**buona, 'inizio': '1600'}], siti, fonti)       # anni invertiti
+    assert valida([{**buona, 'misura': 'presenza'}], siti, fonti)    # presenza con un numero
+    assert valida([{**buona, 'misura': 'presenza', 'frammenti': ''}], siti, fonti) == []

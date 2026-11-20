@@ -21,7 +21,11 @@ def valida(righe, siti, fonti):
         if r['sito_id'] not in siti: errori.append(f'riga {i}: sito sconosciuto «{r["sito_id"]}»')
         if r['fonte_id'] not in fonti: errori.append(f'riga {i}: fonte sconosciuta «{r["fonte_id"]}»')
         if not r['pagina'].strip(): errori.append(f'riga {i}: manca pagina o tabella')
-        if not (r['frammenti'].strip() or r['percentuale'].strip()): errori.append(f'riga {i}: né frammenti né percentuale')
+        m = r.get('misura', '')
+        if m not in ('conteggio', 'percentuale', 'presenza'): errori.append(f'riga {i}: misura «{m}» non ammessa')
+        if m == 'conteggio' and not r['frammenti'].strip(): errori.append(f'riga {i}: conteggio senza frammenti')
+        if m == 'percentuale' and not r['percentuale'].strip(): errori.append(f'riga {i}: percentuale vuota')
+        if m == 'presenza' and (r['frammenti'].strip() or r['percentuale'].strip()): errori.append(f'riga {i}: presenza con numeri: usare conteggio o percentuale')
         try:
             if int(r['inizio']) > int(r['fine']): errori.append(f'riga {i}: anni invertiti')
         except ValueError:

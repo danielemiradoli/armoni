@@ -48,6 +48,13 @@ cd web && python3 -m http.server
 - Japan Search aggiunge 33 epoche definite in giapponese, anche per Cina e Corea: un altro punto di vista, non neutro (usa «李氏朝鮮» per la Corea Joseon, elenca il Manciukuò come epoca cinese). Il suo 中世 finisce nel 1600; il «Middle Ages» di Emerton (1918) nel 1300, il «Medieval» di Historic England nel 1540.
 - 93 periodi esistono ma non dicono a quale luogo si applicano (es. «Koryo Dynasty»).
 
+## Il consumo, dalla letteratura (data/letteratura.csv)
+
+- 11 asserzioni da Zhao Bing 2015 (*Afriques* 06, accesso aperto), letto per intero dal browser di Daniele: 7 siti fra Kenya e Tanzania. Ogni riga porta paragrafo e nota.
+- Percentuali di ceramica dell'Estremo Oriente sul totale dei frammenti: 0,12% a Shanga, 0,9% a Gedi. Il blu e bianco qui è un bene raro, di élite.
+- Tre tipi di misura: conteggio, percentuale, presenza. Una presenza non porta numeri.
+- Zhao 2012 (*Journal of World History*) non è ad accesso aperto: su HAL c'è solo la scheda.
+
 ## Errori trovati e corretti in costruzione (ora sono test)
 
 - `Tile` prendeva `Textiles`: 11 tessili entrati in silenzio come ceramica.

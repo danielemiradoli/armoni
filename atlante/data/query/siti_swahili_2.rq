@@ -1,0 +1,1 @@
+SELECT ?lab ?item ?coord WHERE { VALUES ?lab { "Gedi Ruins"@en "Gede Ruins"@en "Gedi"@en "Mombasa"@en } ?item rdfs:label ?lab ; wdt:P17 wd:Q114 ; wdt:P625 ?coord . }
