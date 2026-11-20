@@ -126,6 +126,15 @@
 "metodo": "etichetta, max sitelinks (luoghi.rq)"
 },
 {
+"id": "Hirado",
+"nome": "Hirado",
+"qid": "Q328601",
+"lat": "33.3158",
+"lon": "129.4869",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
 "id": "Hải Dương",
 "nome": "Hải Dương",
 "qid": "Q36729",
@@ -214,6 +223,33 @@
 "lon": "127.2333",
 "precisione": "paese",
 "metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Kyoto",
+"nome": "Kyoto",
+"qid": "Q34600",
+"lat": "35.0116",
+"lon": "135.7681",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Kyoto National Museum",
+"nome": "Museo nazionale di Kyoto",
+"qid": "Q147286",
+"lat": "34.99",
+"lon": "135.7731",
+"precisione": "istituzione",
+"metodo": "etichetta + paese (colbase_sedi_periodi.rq)"
+},
+{
+"id": "Kyushu National Museum",
+"nome": "Museo nazionale del Kyushu",
+"qid": "Q148543",
+"lat": "33.5184",
+"lon": "130.5383",
+"precisione": "istituzione",
+"metodo": "etichetta + paese (colbase_sedi_periodi.rq)"
 },
 {
 "id": "Kütahya",
@@ -477,15 +513,6 @@
 "metodo": "P625 della collezione o della sua sede"
 },
 {
-"id": "Q653433",
-"nome": "Museu Nacional de Tóquio",
-"qid": "Q653433",
-"lat": 35.7189,
-"lon": 139.7764,
-"precisione": "istituzione",
-"metodo": "P625 della collezione o della sua sede"
-},
-{
 "id": "Q9903",
 "nome": "Ming dynasty",
 "qid": "Q9903",
@@ -509,6 +536,15 @@
 "qid": "Q189153",
 "lat": "48.8464",
 "lon": "2.2153",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Seto",
+"nome": "Seto",
+"qid": "Q499493",
+"lat": "35.224",
+"lon": "137.084",
 "precisione": "citta",
 "metodo": "etichetta, max sitelinks (luoghi.rq)"
 },
@@ -567,6 +603,24 @@
 "metodo": "etichetta, max sitelinks (luoghi.rq)"
 },
 {
+"id": "Tokyo National Museum",
+"nome": "Museo nazionale di Tokyo",
+"qid": "Q653433",
+"lat": "35.7189",
+"lon": "139.7764",
+"precisione": "istituzione",
+"metodo": "etichetta + paese (colbase_sedi_periodi.rq)"
+},
+{
+"id": "United Kingdom",
+"nome": "Regno Unito / Gran Bretagna",
+"qid": "Q145",
+"lat": "54.6",
+"lon": "-2.0",
+"precisione": "paese",
+"metodo": "QID diretto (luoghi_vam.rq, in coda)"
+},
+{
 "id": "United States",
 "nome": "Stati Uniti",
 "qid": "Q30",
@@ -619,6 +673,15 @@
 "lon": "-2.2206",
 "precisione": "citta",
 "metodo": "etichetta + paese (luoghi_vincolati.rq)"
+},
+{
+"id": "Zhangzhou",
+"nome": "Zhangzhou",
+"qid": "Q68814",
+"lat": "24.5093",
+"lon": "117.6612",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
 },
 {
 "id": "İznik",

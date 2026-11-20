@@ -23,7 +23,8 @@ def test_luoghi_omonimi_nel_paese_giusto():
 
 def test_documentato_solo_con_blu_nel_testo():
     for o in OPERE:
-        assert (o['grado'] == 'documentato') == o['criterio'].startswith('blu dichiarato'), o['id']
+        if o['fonte'] != 'colbase':
+            assert (o['grado'] == 'documentato') == o['criterio'].startswith('blu dichiarato'), o['id']
 
 
 def test_intervalli_validi():
@@ -86,3 +87,32 @@ def test_vam_solo_conteggi():
     assert set(v['celle'][0]) == {'l', 'd', 'n'}
     testo = json.dumps(v)
     assert 'systemNumber' not in testo and 'accessionNumber' not in testo and 'primaryTitle' not in testo
+
+
+CB = [o for o in OPERE if o['fonte'] == 'colbase']
+
+
+def test_museo_non_e_luogo_d_origine():
+    # 'Kyoto National Museum' fra i contributori faceva risultare Kyoto origine di 464 pezzi
+    assert sum(o['origine'] == 'Kyoto' for o in CB) < 50
+
+
+def test_donatore_non_e_paese():
+    # 'Gift of Dr. Hirano Kosuke' conteneva 'iran'
+    assert not [o for o in OPERE if o['origine'] == 'Iran' and 'hirano' in o['cultura'].lower()]
+    import sys; sys.path.insert(0, str(ROOT / 'src'))
+    from build import trova, PAESI
+    assert trova(PAESI, 'Hirano') is None and trova(PAESI, 'capital') is None
+
+
+def test_meiji_non_e_ming():
+    import sys; sys.path.insert(0, str(ROOT / 'src'))
+    from build import intervallo_cb
+    per = {'Periodo Meiji': (1868, 1912), 'Dinastia Ming': (1368, 1644)}
+    assert intervallo_cb(['明治時代'], per)[:2] == (1868, 1912)
+    assert intervallo_cb(['明時代・17世紀'], per)[:2] == (1600, 1644)
+
+
+def test_colbase_documentato_solo_dal_titolo():
+    for o in CB:
+        assert (o['grado'] == 'documentato') == o['criterio'].startswith('blu nel titolo'), o['id']

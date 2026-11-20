@@ -8,7 +8,7 @@ const PREC = {citta: 'città', paese: 'solo paese', regione: 'regione', zona: 'z
 const T0 = 700, T1 = 2000;
 
 const S = {year: 1640, win: 25, proj: 'globo', rot: [-40, -28], k: 1, sel: null, place: null, q: '',
-  L: {confini: 1, origini: 1, sedi: 1, spostamenti: 0, mercati: 1, silenzio: 0, ipotetici: 1, vam: 1}, F: {met: 1, cma: 1, wd: 1},
+  L: {confini: 1, origini: 1, sedi: 1, spostamenti: 0, mercati: 1, silenzio: 0, ipotetici: 1, vam: 1}, F: {met: 1, cma: 1, wd: 1, colbase: 1},
   tav: [], mode: 'ricerca', tappa: 0};
 let VAM = null, vagg = [], NOD = [], O = [], LU = {}, PER = [], ANNI = [], TERRE = null, CONF = {}, act = [], agg = [];
 
@@ -28,7 +28,7 @@ const TAPPE = [
  {t: 'Il galeone di Manila e Puebla', y: 1710, w: 40, rot: [100, -18], L: {}, hi: ['Puebla City', 'Mexico'],
   p: 'Attraverso il Pacifico la porcellana cinese arriva nella Nuova Spagna; a Puebla i vasai dipingono in blu una maiolica che risponde a quella e alla Talavera spagnola. Tutti i pezzi di Puebla in questi dati sono ipotetici: nessun record nomina il blu.'},
  {t: 'Ciò che questi dati non mostrano', y: 1600, w: 400, rot: [-40, 2], L: {silenzio: 1, sedi: 1, spostamenti: 1}, hi: [],
-  p: 'Quasi tutti i pezzi di questo atlante sono conservati in due musei degli Stati Uniti; la terza fonte, Wikidata, aggiunge poche sedi in Brasile e in Asia orientale, e molti dei suoi pezzi non hanno data. La costa swahili, dove la porcellana cinese fu murata in moschee e tombe, il Sud-est asiatico insulare, i luoghi del consumo nelle Americhe: qui sono vuoti delle fonti, non vuoti della storia.'}
+  p: 'Con ColBase metà delle schede è conservata in Giappone, ma quasi metà dei pezzi giapponesi non ha luogo d\'origine nel record, e molti non hanno data. Wikidata aggiunge poche sedi in Brasile e a Macao. La costa swahili, dove la porcellana cinese fu murata in moschee e tombe, il Sud-est asiatico insulare, i luoghi del consumo nelle Americhe: qui sono vuoti delle fonti, non vuoti della storia.'}
 ];
 
 /* ---------- dati ---------- */
@@ -123,7 +123,7 @@ function draw() {
 function chip(anno) {
   const n = act.length, paese = act.filter(x => x.o && x.o.precisione !== 'citta').length, ipo = act.filter(x => x.grado === 'ipotetico').length;
   let h = `<b>${n}</b> pezzi attivi · confini del ${fmtY(anno)}`;
-  if (S.L.silenzio && n) { const us = act.filter(x => x.fonte !== 'wd').length, sedi = new Set(act.map(x => x.sede).filter(Boolean)).size, pu = 100 * us / n;
+  if (S.L.silenzio && n) { const us = act.filter(x => x.fonte === 'met' || x.fonte === 'cma').length, sedi = new Set(act.map(x => x.sede).filter(Boolean)).size, pu = 100 * us / n;
     if (VAM && S.L.vam) { const tv = vagg.reduce((a, g) => a + g.n, 0), cv = vagg.filter(g => g.l.precisione === 'citta').reduce((a, g) => a + g.n, 0); h += `<br>V&A (rombi, tutti conservati a Londra): ~${Math.round(tv)} pezzi, ${tv ? Math.round(100 * cv / tv) : 0}% localizzati per città`; }
     h += `<br>${Math.round(100 * paese / n)}% localizzati solo per paese · ${ipo} ipotetici · ${act.filter(x => !x.o).length} senza luogo<br>${sedi} sedi di conservazione · ${pu > 99 && pu < 100 ? pu.toFixed(1) : Math.round(pu)}% delle schede negli Stati Uniti<br>${NOD.filter(x => S.F[x.fonte]).length} pezzi senza data: esistono nei dati, non nel tempo`; }
   $('#chip').innerHTML = h;
@@ -285,7 +285,7 @@ function applyTappa() {
   update();
   const inHi = act.filter(x => t.hi.includes(x.origine)), ipo = inHi.filter(x => x.grado === 'ipotetico').length;
   const dati = t.hi.length ? `Fra ${fmtY(t.y - t.w)} e ${fmtY(t.y + t.w)} i dati contengono <b>${act.length}</b> pezzi; <b>${inHi.length}</b> vengono dai luoghi evidenziati${ipo ? `, di cui ${ipo} ipotetici` : ''}.`
-    : `<b>${O.length}</b> pezzi con data, ${NOD.length} senza. Il ${Math.round(100 * O.filter(x => x.o && x.o.precisione !== 'citta').length / O.length)}% è localizzato solo per paese; il ${Math.round(100 * O.filter(x => x.fonte !== 'wd').length / O.length)}% è conservato negli Stati Uniti.`;
+    : `<b>${O.length}</b> pezzi con data, ${NOD.length} senza. Il ${Math.round(100 * O.filter(x => x.o && x.o.precisione !== 'citta').length / O.length)}% è localizzato solo per paese; il ${Math.round(100 * O.filter(x => x.fonte === 'met' || x.fonte === 'cma').length / O.length)}% è conservato negli Stati Uniti.`;
   $('#nar').innerHTML = `<div class="step">Tappa ${S.tappa + 1} di ${TAPPE.length} · ${fmtY(t.y)}</div><h2>${esc(t.t)}</h2><p>${t.p}</p><div class="dati">${dati}</div>
   <div class="acts"><button data-go="${Math.max(0, S.tappa - 1)}" ${S.tappa ? '' : 'disabled'}>← Precedente</button><button data-go="${Math.min(TAPPE.length - 1, S.tappa + 1)}" ${S.tappa < TAPPE.length - 1 ? '' : 'disabled'}>Successiva →</button></div>
   <div class="dots">${TAPPE.map((_, i) => `<button data-go="${i}" aria-pressed="${i === S.tappa}" aria-label="Tappa ${i + 1}">${i + 1}</button>`).join('')}</div>

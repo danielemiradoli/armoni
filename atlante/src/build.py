@@ -53,19 +53,20 @@ CENTRI = [('Jingdezhen', r'jingdezhen'), ('İznik', r'iznik'), ('Kütahya', r'k[
           ('Fez', r'\bfe[sz]\b'), ('Nagasaki', r'nagasaki'), ('Yokohama', r'yokohama'),
           ('Hong Kong', r'hong kong'), ('Dehua County', r'dehua'), ('Fujian', r'fujian'), ('Gansu', r'gansu'),
           ('Sindh', r'sindh')]
-PAESI = [('China', r'chin'), ('Japan', r'japan'), ('Vietnam', r'vietnam'), ('Korea', r'korea'),
-         ('Iran', r'iran|persia'), ('Turkey', r'turk|ottoman|anatolia'), ('Netherlands', r'dutch|netherland'),
-         ('Mexico', r'mexic'), ('Egypt', r'egypt'), ('Syria', r'syria'), ('Portugal', r'portug'),
-         ('Spain', r'spain|spanish'), ('England', r'british|english|england'), ('France', r'french|france'),
-         ('Germany', r'german'), ('Italy', r'ital'), ('Iraq', r'iraq'), ('Uzbekistan', r'uzbek'),
-         ('India', r'india'), ('Thailand', r'thai'), ('Poland', r'polish|poland'), ('Austria', r'austria|vienna'),
-         ('Belgium', r'belgi|flemish'), ('Denmark', r'danish|denmark'), ('Russia', r'russia'),
-         ('Sweden', r'swed'), ('Switzerland', r'swiss'), ('Hungary', r'hungar'),
-         ('Czech Republic', r'bohemia|czech'), ('Scotland', r'scot'), ('Ireland', r'irish|ireland'),
-         ('Wales', r'welsh|wales'), ('Afghanistan', r'afghan'), ('Morocco', r'morocc'), ('Tunisia', r'tunisia'),
-         ('Myanmar', r'burm|myanmar'), ('Indonesia', r'indonesia|java'), ('Philippines', r'philippin'),
-         ('United States', r'american|united states|\busa\b'), ('United Kingdom', r'great britain|\bbritain\b|united kingdom'),
-         ('Norway', r'norw'), ('Azerbaijan', r'azerbaijan'), ('Nigeria', r'nigeria'), ('Central Asia', r'central asia')]
+# \b iniziale: senza, 'iran' prendeva 'Hirano', 'ital' 'capital', 'india' 'Indiana'
+PAESI = [('China', r'\b(?:chin)'), ('Japan', r'\b(?:japan)'), ('Vietnam', r'\b(?:vietnam)'), ('Korea', r'\b(?:korea)'),
+         ('Iran', r'\b(?:iran|persia)'), ('Turkey', r'\b(?:turk|ottoman|anatolia)'), ('Netherlands', r'\b(?:dutch|netherland)'),
+         ('Mexico', r'\b(?:mexic)'), ('Egypt', r'\b(?:egypt)'), ('Syria', r'\b(?:syria)'), ('Portugal', r'\b(?:portug)'),
+         ('Spain', r'\b(?:spain|spanish)'), ('England', r'\b(?:british|english|england)'), ('France', r'\b(?:french|france)'),
+         ('Germany', r'\b(?:german)'), ('Italy', r'\b(?:ital)'), ('Iraq', r'\b(?:iraq)'), ('Uzbekistan', r'\b(?:uzbek)'),
+         ('India', r'\b(?:india)'), ('Thailand', r'\b(?:thai)'), ('Poland', r'\b(?:polish|poland)'), ('Austria', r'\b(?:austria|vienna)'),
+         ('Belgium', r'\b(?:belgi|flemish)'), ('Denmark', r'\b(?:danish|denmark)'), ('Russia', r'\b(?:russia)'),
+         ('Sweden', r'\b(?:swed)'), ('Switzerland', r'\b(?:swiss)'), ('Hungary', r'\b(?:hungar)'),
+         ('Czech Republic', r'\b(?:bohemia|czech)'), ('Scotland', r'\b(?:scot)'), ('Ireland', r'\b(?:irish|ireland)'),
+         ('Wales', r'\b(?:welsh|wales)'), ('Afghanistan', r'\b(?:afghan)'), ('Morocco', r'\b(?:morocc)'), ('Tunisia', r'\b(?:tunisia)'),
+         ('Myanmar', r'\b(?:burm|myanmar)'), ('Indonesia', r'\b(?:indonesia|java)'), ('Philippines', r'\b(?:philippin)'),
+         ('United States', r'\b(?:american|united states|usa)'), ('United Kingdom', r'\b(?:great britain|britain|united kingdom)'),
+         ('Norway', r'\b(?:norw)'), ('Azerbaijan', r'\b(?:azerbaijan)'), ('Nigeria', r'\b(?:nigeria)'), ('Central Asia', r'\b(?:central asia)')]
 MERCATI = [('Portugal', r'portug'), ('Netherlands', r'dutch'), ('Japan', r'japan'), ('England', r'english|british'),
            ('United States', r'american'), ('Iran', r'persian|iran'), ('Turkey', r'ottoman|turkish'),
            ('Europe', r'europ')]
@@ -218,6 +219,79 @@ def da_wd(path, luoghi):
                    sede=sede, mercato=None, export_senza_meta=False)
 
 
+# ColBase (Japan Search, CC BY): forno e paese nei contributori, epoca e secolo nel campo temporale.
+CENTRI_JA = [('Jingdezhen', r'景徳鎮'), ('Arita', r'有田|肥前'), ('Zhangzhou', r'漳州'), ('Kyoto', r'京都|京焼'),
+             ('Seto', r'瀬戸'), ('Hirado', r'平戸|三川内'), ('Nagasaki', r'長崎')]
+PAESI_JA = [('China', r'中国'), ('Korea', r'朝鮮|韓国'), ('Vietnam', r'ベトナム|安南'), ('Iran', r'イラン|ペルシア'),
+            ('Netherlands', r'オランダ'), ('Turkey', r'トルコ'), ('Thailand', r'タイ'), ('Japan', r'日本')]
+SEDI_CB = {'tnm': 'Tokyo National Museum', 'kyohaku': 'Kyoto National Museum', 'narahaku': 'Nara National Museum',
+           'kyuhaku': 'Kyushu National Museum'}
+def sede_cb(p):
+    # il campo provider usa a volte il codice ('tnm'), a volte il nome del museo
+    if p in SEDI_CB: return SEDI_CB[p]
+    if re.search(r'京都国立|Kyoto National', p): return 'Kyoto National Museum'
+    if re.search(r'九州国立|Kyushu National', p): return 'Kyushu National Museum'
+    if re.search(r'奈良国立', p): return 'Nara National Museum'
+    if re.search(r'東京国立', p): return 'Tokyo National Museum'
+    return None
+
+
+# 明治 prima di 明: '明治時代' contiene il carattere della dinastia Ming
+EPOCHE = [('Periodo Meiji', r'明治|meiji'), ('Periodo Taishō', r'大正|taish'), ('Periodo Shōwa', r'昭和|sh[oō]wa'),
+          ('Dinastia Ming', r'明|ming'), ('Dinastia Qing', r'清|qing'), ('Dinastia Yuan', r'元時代|yuan'),
+          ('Periodo Edo', r'江戸|edo'), ('Periodo Muromachi', r'室町|muromachi'), ('Joseon', r'朝鮮時代|joseon')]
+
+
+def intervallo_cb(testi, periodi):
+    """Anni espliciti > secolo (con meta') > epoca; secolo ed epoca si intersecano se si sovrappongono."""
+    t = ' '.join(testi)
+    m = re.search(r'(\d{4})\s*[～~–-]\s*(\d{4})', t)
+    if m:
+        return int(m.group(1)), int(m.group(2)), 'anni'
+    sec = None
+    m = re.search(r'(\d{1,2})(?:世紀|st|nd|rd|th)(?:\s*[～~–-]\s*(\d{1,2})(?:世紀|st|nd|rd|th))?', t)
+    if m:
+        c1, c2 = int(m.group(1)), int(m.group(2) or m.group(1))
+        a, b = (c1 - 1) * 100, c2 * 100 - 1
+        if not m.group(2) and re.search(r'前半|first half', t): b = a + 49
+        if not m.group(2) and re.search(r'後半|second half', t): a = a + 50
+        sec = (a, b)
+    ep = next((periodi[n] for n, pat in EPOCHE if re.search(pat, t, re.I) and n in periodi), None)
+    if sec and ep and sec[0] <= ep[1] and ep[0] <= sec[1]:
+        return max(sec[0], ep[0]), min(sec[1], ep[1]), 'secolo ∩ epoca'
+    if sec:
+        return sec[0], sec[1], 'secolo'
+    if ep:
+        return ep[0], ep[1], 'epoca (Wikidata)'
+    return None, None, None
+
+
+def da_colbase(path):
+    periodi = {r['nome']: (int(r['inizio']), int(r['fine'])) for r in csv.DictReader(open(ROOT / 'data/periodi.csv', encoding='utf-8'))}
+    for it in json.load(open(path, encoding='utf-8')):
+        c = it['common']
+        if it.get('cobas-4-s') not in ('陶磁', '東洋陶磁'):
+            continue
+        titolo = c.get('title', '') + ' ' + c.get('titleEn', '')
+        if re.search(r'染付|青花|underglaze[- ]blue|blue[- ]and[- ]white', titolo, re.I):
+            grado, crit = 'documentato', 'blu nel titolo ColBase: «%s»' % re.search(r'染付|青花|underglaze[- ]blue|blue[- ]and[- ]white', titolo, re.I).group(0)
+        else:
+            grado, crit = 'ipotetico', '%s solo nella descrizione o nel marchio: il pezzo puo\' essere policromo' % '/'.join(it['parole'])
+        # i contributori includono il museo che conserva e i donatori: non sono luoghi d'origine
+        contrib = ' | '.join(x for x in c.get('contributor', []) if not re.search(r'博物館|museum|寄贈|gift|財団|foundation|研究所', x, re.I))
+        testo = contrib + ' | ' + titolo
+        o = trova(CENTRI_JA, testo) or trova(CENTRI, testo) or trova(PAESI_JA, contrib) or trova(PAESI, contrib)
+        tempi = c.get('temporal', []) + [it.get('cobas-11-s', '')]
+        ini, fin, prec = intervallo_cb(tempi, periodi)
+        yield dict(id=c['id'], fonte='colbase', titolo=c.get('titleEn') or c.get('title', ''), cultura=contrib[:160],
+                   data_testo=' / '.join(x for x in c.get('temporal', []) if x) + (f' ({prec})' if prec else ''),
+                   inizio=ini, fine=fin, tecnica=(c.get('title', '') + ' · ' + it.get('cobas-12-s', '')).strip(' ·'),
+                   grado=grado, criterio=crit, url=c.get('linkUrl', ''),
+                   licenza='CC BY — fonte: ColBase (国立文化財機構所蔵品統合検索システム)', wikidata='',
+                   origine=o, origine_incerta=bool(re.search(r'伝|推定|attributed|\?', contrib)),
+                   sede=sede_cb(c.get('provider', '')), mercato=None, export_senza_meta=False)
+
+
 def main():
     luoghi = {r['id']: r for r in csv.DictReader(open(ROOT / 'data/luoghi.csv', encoding='utf-8'))}
     opere, scarti = [], Counter()
@@ -230,7 +304,7 @@ def main():
         rec.update(origine=o, origine_incerta=bool(INCERTO.search(rec['cultura'])), sede=SEDI[rec['fonte']],
                    mercato=mk, export_senza_meta=export)
         opere.append(rec)
-    for rec in da_wd(ROOT / 'data/raw/wikidata_ceramiche.csv', luoghi):
+    for rec in list(da_wd(ROOT / 'data/raw/wikidata_ceramiche.csv', luoghi)) + list(da_colbase(ROOT / 'data/raw/colbase.json')):
         if rec['inizio'] is None or rec['fine'] is None or rec['inizio'] > rec['fine']:
             scarti['date assenti o invertite'] += 1
             rec['inizio'] = rec['fine'] = None
@@ -254,7 +328,8 @@ def scrivi_metriche(opere, luoghi, scarti):
     righe = ['# Metriche dell\'atlante — taglio «blu e bianco»', '',
              'Rigenerato da `src/build.py`. Ogni cifra si ricalcola dai file in `data/`.', '',
              f'Pezzi: **{n}** — Met {sum(o["fonte"] == "met" for o in opere)}, Cleveland {sum(o["fonte"] == "cma" for o in opere)}, '
-             f'Wikidata fuori dagli Stati Uniti {sum(o["fonte"] == "wd" for o in opere)}.', '',
+             f'Wikidata fuori dagli Stati Uniti {sum(o["fonte"] == "wd" for o in opere)}, '
+             f'ColBase {sum(o["fonte"] == "colbase" for o in opere)}.', '',
              '## Inclusione', '', '| grado | pezzi |', '| --- | ---: |']
     righe += [f'| {g} | {pct(k)} |' for g, k in Counter(o['grado'] for o in opere).most_common()]
     righe += ['', '## Precisione del luogo d\'origine', '', '| precisione | pezzi |', '| --- | ---: |']

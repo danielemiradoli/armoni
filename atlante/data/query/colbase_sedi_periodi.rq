@@ -1,0 +1,6 @@
+SELECT ?lab ?item ?coord ?s ?e WHERE {
+  VALUES ?lab { "Tokyo National Museum"@en "Kyoto National Museum"@en "Nara National Museum"@en "Kyushu National Museum"@en
+                "Meiji era"@en "Taishō era"@en "Shōwa era"@en }
+  ?item rdfs:label ?lab ; wdt:P17 wd:Q17 .
+  OPTIONAL { ?item wdt:P625 ?coord } OPTIONAL { ?item wdt:P580 ?s } OPTIONAL { ?item wdt:P582 ?e }
+}

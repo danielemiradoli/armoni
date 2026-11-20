@@ -123,3 +123,7 @@ United Kingdom,Regno Unito / Gran Bretagna,Q145,54.6,-2.0,paese,"QID diretto (lu
 Azerbaijan,Azerbaigian,Q227,40.3,47.7,paese,"QID diretto (luoghi_vam.rq, in coda)"
 Nigeria,Nigeria,Q1033,9.0,8.0,paese,"QID diretto (luoghi_vam.rq, in coda)"
 Central Asia,Asia centrale,Q27275,45.3,63.9,zona,"QID diretto (luoghi_vam.rq, in coda)"
+Tokyo National Museum,Museo nazionale di Tokyo,Q653433,35.7189,139.7764,istituzione,etichetta + paese (colbase_sedi_periodi.rq)
+Kyoto National Museum,Museo nazionale di Kyoto,Q147286,34.99,135.7731,istituzione,etichetta + paese (colbase_sedi_periodi.rq)
+Nara National Museum,Museo nazionale di Nara,Q147312,34.6837,135.8364,istituzione,etichetta + paese (colbase_sedi_periodi.rq)
+Kyushu National Museum,Museo nazionale del Kyushu,Q148543,33.5184,130.5383,istituzione,etichetta + paese (colbase_sedi_periodi.rq)
