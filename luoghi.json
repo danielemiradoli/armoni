@@ -117,6 +117,15 @@
 "metodo": "etichetta, max sitelinks (luoghi.rq)"
 },
 {
+"id": "Hải Dương",
+"nome": "Hải Dương",
+"qid": "Q36729",
+"lat": "20.9167",
+"lon": "106.3333",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
 "id": "Iran",
 "nome": "Iran",
 "qid": "Q794",
@@ -295,6 +304,186 @@
 "lon": "-98.2178",
 "precisione": "citta",
 "metodo": "etichetta + paese (luoghi_vincolati.rq)"
+},
+{
+"id": "Q100699893",
+"nome": "Coleção Museu Casa Histórica de Alcântara",
+"qid": "Q100699893",
+"lat": -2.4085,
+"lon": -44.418,
+"precisione": "istituzione",
+"metodo": "P625 della collezione o della sua sede"
+},
+{
+"id": "Q1051293",
+"nome": "Museu de Xangai",
+"qid": "Q1051293",
+"lat": 31.2303,
+"lon": 121.4706,
+"precisione": "istituzione",
+"metodo": "P625 della collezione o della sua sede"
+},
+{
+"id": "Q11499516",
+"nome": "Tsurui Museum of Art",
+"qid": "Q11499516",
+"lat": 37.9144,
+"lon": 139.0596,
+"precisione": "istituzione",
+"metodo": "P625 della collezione o della sua sede"
+},
+{
+"id": "Q11599987",
+"nome": "Museu de Arte Kasama Nichido",
+"qid": "Q11599987",
+"lat": 36.3845,
+"lon": 140.2584,
+"precisione": "istituzione",
+"metodo": "P625 della collezione o della sua sede"
+},
+{
+"id": "Q136482216",
+"nome": "Hoshigaoka Kiln",
+"qid": "Q136482216",
+"lat": 35.3388,
+"lon": 139.5327,
+"precisione": "citta",
+"metodo": "P1071 su Wikidata"
+},
+{
+"id": "Q136486637",
+"nome": "Iroha Sōan",
+"qid": "Q136486637",
+"lat": 36.3028,
+"lon": 136.315,
+"precisione": "istituzione",
+"metodo": "P625 della collezione o della sua sede"
+},
+{
+"id": "Q136734069",
+"nome": "Matsumoto",
+"qid": "Q136734069",
+"lat": 36.5611,
+"lon": 136.6565,
+"precisione": "istituzione",
+"metodo": "P625 della collezione o della sua sede"
+},
+{
+"id": "Q17167651",
+"nome": "Museu do Centro Científico e Cultural de Macau",
+"qid": "Q17167651",
+"lat": 38.7008,
+"lon": -9.1825,
+"precisione": "istituzione",
+"metodo": "P625 della collezione o della sua sede"
+},
+{
+"id": "Q191135",
+"nome": "Vila Nova de Gaia",
+"qid": "Q191135",
+"lat": 41.1333,
+"lon": -8.6167,
+"precisione": "citta",
+"metodo": "P1071 su Wikidata"
+},
+{
+"id": "Q205662",
+"nome": "Tokugawa shogunate",
+"qid": "Q205662",
+"lat": 35.6839,
+"lon": 139.7744,
+"precisione": "paese",
+"metodo": "P495 su Wikidata"
+},
+{
+"id": "Q281903",
+"nome": "Stedelijk Museum Het Prinsenhof",
+"qid": "Q281903",
+"lat": 52.0117,
+"lon": 4.3544,
+"precisione": "istituzione",
+"metodo": "P625 della collezione o della sua sede"
+},
+{
+"id": "Q3892314",
+"nome": "Setagaya Art Museum",
+"qid": "Q3892314",
+"lat": 35.6316,
+"lon": 139.622,
+"precisione": "istituzione",
+"metodo": "P625 della collezione o della sua sede"
+},
+{
+"id": "Q45412",
+"nome": "Coimbra",
+"qid": "Q45412",
+"lat": 40.2111,
+"lon": -8.4289,
+"precisione": "citta",
+"metodo": "P1071 su Wikidata"
+},
+{
+"id": "Q540668",
+"nome": "National Palace Museum",
+"qid": "Q540668",
+"lat": 25.1022,
+"lon": 121.5486,
+"precisione": "istituzione",
+"metodo": "P625 della collezione o della sua sede"
+},
+{
+"id": "Q56677470",
+"nome": "Coleção Museu Paulista",
+"qid": "Q56677470",
+"lat": -23.5854,
+"lon": -46.6097,
+"precisione": "istituzione",
+"metodo": "P625 della collezione o della sua sede"
+},
+{
+"id": "Q56694281",
+"nome": "Museu do Colono",
+"qid": "Q56694281",
+"lat": -20.0987,
+"lon": -40.5269,
+"precisione": "istituzione",
+"metodo": "P625 della collezione o della sua sede"
+},
+{
+"id": "Q63997485",
+"nome": "Coleção Museu de Itaipu",
+"qid": "Q63997485",
+"lat": -22.9715,
+"lon": -43.045,
+"precisione": "istituzione",
+"metodo": "P625 della collezione o della sua sede"
+},
+{
+"id": "Q6452794",
+"nome": "Kyushu Ceramic Museum",
+"qid": "Q6452794",
+"lat": 33.1789,
+"lon": 129.8807,
+"precisione": "istituzione",
+"metodo": "P625 della collezione o della sua sede"
+},
+{
+"id": "Q653433",
+"nome": "Museu Nacional de Tóquio",
+"qid": "Q653433",
+"lat": 35.7189,
+"lon": 139.7764,
+"precisione": "istituzione",
+"metodo": "P625 della collezione o della sua sede"
+},
+{
+"id": "Q9903",
+"nome": "Ming dynasty",
+"qid": "Q9903",
+"lat": 32.8,
+"lon": 103.0833,
+"precisione": "paese",
+"metodo": "P495 su Wikidata"
 },
 {
 "id": "Rouen",
