@@ -57,6 +57,7 @@ header .sp{flex:1}
 #tls{width:100%;height:150px;display:block;touch-action:none;cursor:ew-resize}
 #tavolo{position:fixed;left:0;right:0;bottom:0;height:min(62vh,560px);background:var(--panel);border-top:2px solid var(--co);transform:translateY(105%);transition:transform .28s ease;z-index:20;display:grid;grid-template-rows:auto auto minmax(0,1fr)}
 #tavolo.open{transform:none}
+#tavolo:not(.open){visibility:hidden;transition:transform .28s ease,visibility 0s .28s}
 #tavolo .hd{display:flex;gap:10px;align-items:center;padding:10px 16px;flex-wrap:wrap}
 #tavax{height:54px;width:100%;display:block}
 #board{position:relative;overflow:auto;background:repeating-linear-gradient(0deg,transparent 0 27px,var(--co2) 27px 28px)}
@@ -66,6 +67,17 @@ header .sp{flex:1}
 .card .cb{padding:7px 9px}.card textarea{width:100%;border:1px solid var(--line);border-radius:4px;background:transparent;font-size:13px;min-height:44px;resize:vertical}
 .card .x{margin-left:auto;min-height:28px;padding:0 8px}
 .empty{color:var(--mute);padding:24px 16px;max-width:60ch}
+/* affidabilità */
+#qual{grid-area:qual;display:none;padding:22px max(3vw,16px);overflow:auto}
+body.qualita .app{grid-template:"top" auto "qual" minmax(0,1fr)/minmax(0,1fr)}
+body.qualita #lay,body.qualita #ctx,body.qualita #nar,body.qualita .fig,body.qualita #tl,body.qualita #q,body.qualita #tavbtn{display:none}
+body.qualita #qual{display:block}
+#qual h2{font-size:30px;margin-bottom:6px}#qual p{max-width:75ch}
+.qt{border-collapse:collapse;margin-top:14px;font-size:13px;font-variant-numeric:tabular-nums}
+.qt th,.qt td{border:1px solid var(--line);padding:6px 7px;text-align:right;white-space:nowrap}
+.qt th:first-child,.qt td:first-child{text-align:left;position:sticky;left:0;background:var(--bg)}
+.qt td small{display:block;color:var(--mute);font-size:11px}
+.qsel{display:flex;gap:0;margin-top:12px;flex-wrap:wrap}.qsel button{border-radius:0}.qsel button:first-child{border-radius:6px 0 0 6px}.qsel button:last-child{border-radius:0 6px 6px 0}
 /* percorso */
 body.percorso .app{grid-template:"top top" auto "map nar" minmax(0,1fr) "tl tl" auto/minmax(0,1fr) 400px}
 body.percorso #lay,body.percorso #ctx,body.percorso #q,body.percorso #tavbtn{display:none}
@@ -74,6 +86,7 @@ body.percorso #nar{display:block}
 #nar .step{color:var(--mute);font-size:13px}#nar h2{margin:6px 0 12px;font-size:30px}
 #nar p{font-size:16.5px;max-width:60ch}
 #nar .dati{border-left:3px solid var(--co);padding:6px 12px;margin:16px 0;background:var(--co2);border-radius:0 6px 6px 0}
+#nar .nv{font-size:14.5px;border:1px dashed var(--line);border-radius:6px;padding:8px 12px;color:var(--mute)}
 #nar .nota{font-size:12.5px;color:var(--mute);margin-top:22px}
 .dots{display:flex;gap:6px;margin:14px 0}.dots button{width:30px;min-height:30px;padding:0}
 @media(max-width:900px){
@@ -93,7 +106,7 @@ body.percorso #nar{display:block}
   <span class="sp"></span>
   <input id="q" type="search" placeholder="Cerca titolo, cultura, tecnica" aria-label="Cerca">
   <div class="seg" role="group" aria-label="Modalità">
-   <button id="m-ricerca" aria-pressed="true">Ricerca</button><button id="m-percorso" aria-pressed="false">Percorso</button>
+   <button id="m-ricerca" aria-pressed="true">Ricerca</button><button id="m-percorso" aria-pressed="false">Percorso</button><button id="m-qualita" aria-pressed="false">Affidabilità</button>
   </div>
   <button id="tavbtn">Tavolo <span id="tavn">0</span></button>
  </header>
@@ -124,6 +137,7 @@ body.percorso #nar{display:block}
 
  <aside id="ctx" aria-live="polite"></aside>
  <aside id="nar" aria-live="polite"></aside>
+ <section id="qual" aria-label="Affidabilità"></section>
 
  <section id="tl" aria-label="Tempo">
   <div class="tlbar">
