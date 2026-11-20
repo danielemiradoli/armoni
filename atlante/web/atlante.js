@@ -10,32 +10,42 @@ const T0 = 700, T1 = 2000;
 const S = {corsie: 'wikidata', year: 1640, win: 25, proj: 'globo', rot: [-40, -28], k: 1, sel: null, place: null, q: '',
   L: {confini: 1, origini: 1, sedi: 1, spostamenti: 0, mercati: 1, silenzio: 0, ipotetici: 1, vam: 1, letteratura: 1}, F: {met: 1, cma: 1, wd: 1, colbase: 1},
   tav: [], mode: 'ricerca', tappa: 0};
-let LET = null, lagg = [], PO = null, VAM = null, vagg = [], NOD = [], O = [], LU = {}, PER = [], ANNI = [], TERRE = null, CONF = {}, act = [], agg = [];
+let QU = null, qmet = 'doc', LET = null, lagg = [], PO = null, VAM = null, vagg = [], NOD = [], O = [], LU = {}, PER = [], ANNI = [], TERRE = null, CONF = {}, act = [], agg = [];
 
 const TAPPE = [
  {t: 'Blu su bianco, prima della porcellana', y: 850, w: 60, rot: [-44, -30], L: {}, hi: ['Iraq'],
-  p: 'Nell\'Iraq abbaside del IX secolo i vasai dipingono in blu di cobalto su un\'invetriatura bianca opaca, cercando l\'effetto delle ceramiche bianche cinesi che arrivavano per mare. Il blu e bianco non comincia in Cina: comincia altrove, come imitazione della Cina.'},
- {t: 'Il cobalto viaggia verso est', y: 1340, w: 30, rot: [-90, -32], L: {}, hi: ['China', 'Jingdezhen', 'Iran', 'Kashan'],
-  p: 'Sotto la dinastia Yuan, a Jingdezhen, la porcellana dipinta sotto coperta prende la forma che chiamiamo blu e bianco. La storiografia corrente lega questo passaggio al cobalto importato dall\'Iran e ai grandi piatti destinati ai mercati del mondo islamico.'},
- {t: 'Il Quattrocento, ovunque', y: 1450, w: 25, rot: [-75, -18], L: {}, hi: ['Vietnam', 'China', 'Egypt', 'Syria'],
-  p: 'Nello stesso mezzo secolo il blu e bianco si dipinge in Cina, in Vietnam, in Corea, e si imita in Egitto e in Siria. Un\'ipotesi diffusa collega l\'ascesa delle esportazioni vietnamite alle restrizioni marittime dei Ming.'},
- {t: 'Iznik risponde', y: 1530, w: 30, rot: [-30, -38], L: {}, hi: ['İznik', 'Kütahya'],
-  p: 'Per la corte ottomana le botteghe di Iznik dipingono in blu su un impasto silicico bianco, partendo dai modelli cinesi e trasformandoli. Qui il dato è fragile: per gran parte dei pezzi di Iznik il catalogo non nomina il colore.'},
- {t: 'Dalla porcellana kraak a Delft', y: 1640, w: 25, rot: [-50, -38], L: {mercati: 1}, hi: ['China', 'Netherlands', 'Delft'],
-  p: 'Le navi della Compagnia olandese delle Indie orientali portano in Europa la porcellana cinese detta kraak; le manifatture di Delft la imitano su terracotta smaltata. È un\'imitazione che diventa un linguaggio proprio.'},
- {t: 'Arita dopo la caduta dei Ming', y: 1675, w: 20, rot: [-120, -30], L: {mercati: 1}, hi: ['Japan', 'Arita'],
-  p: 'Con la crisi della produzione cinese nel passaggio dai Ming ai Qing, le fornaci giapponesi di Arita entrano nel commercio di esportazione attraverso Nagasaki. Nei dati, il Giappone cresce proprio in questi decenni.'},
- {t: 'Il galeone di Manila e Puebla', y: 1710, w: 40, rot: [100, -18], L: {}, hi: ['Puebla City', 'Mexico'],
-  p: 'Attraverso il Pacifico la porcellana cinese arriva nella Nuova Spagna; a Puebla i vasai dipingono in blu una maiolica che risponde a quella e alla Talavera spagnola. Tutti i pezzi di Puebla in questi dati sono ipotetici: nessun record nomina il blu.'},
+  p: 'Nel IX secolo, fra le merci cinesi che raggiungono il mondo islamico ci sono anche terracotte e gres dipinti sotto coperta in blu di manganese e cobalto (Zhao 2015, §16). Nell\'Iraq abbaside si dipinge in blu su bianco, e il catalogo del Met intitola uno di questi pezzi «Bowl Emulating Chinese Stoneware»: l\'imitazione la dichiara il museo stesso.',
+  nv: 'Che l\'invetriatura bianca opaca irachena nasca per imitare la ceramica bianca cinese è una lettura corrente, non verificata qui su una fonte.'},
+ {t: 'Il cobalto viaggia verso est', y: 1340, w: 30, rot: [-90, -32], L: {letteratura: 1}, hi: ['China', 'Jingdezhen', 'Iran', 'Kashan'],
+  p: 'Sotto la dinastia Yuan, a Jingdezhen, la porcellana dipinta sotto coperta prende la forma che chiamiamo blu e bianco. Per Ömür Tufan, responsabile delle porcellane di Topkapı, furono maestri ceramisti iraniani a insegnare ai cinesi la tecnica con il cobalto, e mercanti iraniani a portare in Cina il minerale (Tufan 2024, p. 124): è la sua tesi, scritta da Istanbul, e va letta come tale. Ad Ardabil restano 37 pezzi di questo secolo, soprattutto grandi piatti, e a Topkapı 40 (Medley 1986, par. 3; Tufan 2024, p. 125).',
+  nv: 'L\'uso di cobalto importato dall\'Iran è sostenuto da gran parte della storiografia; qui è riportato solo nella versione di Tufan.'},
+ {t: 'Il Quattrocento, ovunque', y: 1450, w: 25, rot: [-60, -12], L: {letteratura: 1}, hi: ['Vietnam', 'China', 'Egypt', 'Syria'],
+  p: 'Nei dati, intorno al 1450, il Vietnam pesa quasi quanto la Cina, e il blu e bianco si imita anche in Egitto. Dal 1370 il blu e bianco vietnamita arriva anche in Africa orientale (Zhao 2015, §24). Ad Ardabil il blu e bianco del primo Quattrocento è il gruppo più grande, oltre 200 pezzi; dopo il 1436, con la fine delle spedizioni marittime cinesi, il commercio cala bruscamente: del tardo Quattrocento restano 25-30 pezzi (Medley 1986, par. 4 e 7).',
+  nv: 'Il legame fra l\'ascesa delle esportazioni vietnamite e le restrizioni marittime dei Ming è un\'ipotesi diffusa, non verificata qui. Corea e Siria, che pure dipingono o imitano il blu e bianco in questo periodo secondo la storiografia, nei dati di questa finestra non compaiono.'},
+ {t: 'Collezioni di corte: Tabriz, Ardabil, Istanbul', y: 1570, w: 50, rot: [-40, -36], L: {letteratura: 1}, hi: [],
+  p: 'Nel 1516 il blu e bianco del Trecento della collezione reale di Tabriz finisce a Istanbul come bottino (Medley 1986, par. 3). Nel 1611 Shah Abbas I installa nel santuario di Ardabil un dono di 1.162 porcellane cinesi, circa 400 blu e bianche (par. 1-3). Topkapı ne conserva oggi circa 12.000, di cui 5.373 blu e bianche in inventario (Tufan 2024, p. 124). Le grandi raccolte di blu e bianco antico non nascono in Europa.'},
+ {t: 'Iznik, il ricambio della corte', y: 1560, w: 30, rot: [-30, -38], L: {letteratura: 1}, hi: ['İznik', 'Kütahya'],
+  p: 'Nel 1582, per la festa di circoncisione del principe Mehmed, le 397 porcellane cinesi prese dal tesoro non bastarono, e si comprarono al bazar 541 piatti di Iznik (Tufan 2024, p. 145, dal cronista Selânikî). Iznik non è soltanto imitazione: è ciò con cui la corte sostituisce la Cina quando la Cina non basta. Per molti pezzi di Iznik, però, il catalogo non nomina il colore: nei dati sono ipotetici.',
+  nv: 'Che le botteghe di Iznik partano da modelli cinesi trasformandoli è una lettura corrente, non verificata qui.'},
+ {t: 'Dalla porcellana kraak a Delft', y: 1640, w: 25, rot: [-50, -38], L: {mercati: 1, vam: 1}, hi: ['China', 'Netherlands', 'Delft'],
+  p: 'Intorno al 1640 il catalogo del Met dichiara due destinazioni: porcellana cinese per il mercato giapponese e porcellana giapponese per quello europeo (le linee rosse tratteggiate). Il mercato europeo, nei cataloghi, si legge più nei luoghi di conservazione che nelle destinazioni dichiarate. I rombi del V&A mostrano dove si concentra la sua raccolta di questi decenni.',
+  nv: 'Il ruolo della Compagnia olandese delle Indie orientali nel portare la porcellana kraak in Europa e la nascita di Delft come sua imitazione sono letture correnti, non verificate qui su una fonte.'},
+ {t: 'Arita dopo la caduta dei Ming', y: 1675, w: 20, rot: [-120, -30], L: {mercati: 1, vam: 1}, hi: ['Japan', 'Arita'],
+  p: 'Nei dati il Giappone cresce proprio in questi decenni: i pezzi giapponesi che iniziano fra il 1650 e il 1699 sono 127, contro gli 87 del cinquantennio precedente, e nei conteggi del V&A passano da circa 44 a circa 98.',
+  nv: 'Che le fornaci di Arita entrino nell\'esportazione per supplire alla crisi della produzione cinese fra Ming e Qing, attraverso Nagasaki, è una lettura corrente, non verificata qui.'},
+ {t: 'Il galeone di Manila', y: 1640, w: 70, rot: [120, -22], L: {letteratura: 1}, hi: ['Puebla City', 'Mexico'],
+  p: 'Sulla costa della Baja California un galeone di Manila diretto verso est lascia un carico di porcellana kraak, datato 1575-1577; a Drakes Bay restano le porcellane di Francis Drake (1579) e del naufragio del San Agustín (1595) (Von der Porten 2015). I Miwok della baia ne trasformarono i frammenti in gioielli (Zhao 2015, §30). A Puebla, nei dati, tutti i pezzi sono ipotetici: nessun record nomina il blu.',
+  nv: 'Che la maiolica blu di Puebla risponda alla porcellana arrivata con il galeone e alla Talavera spagnola è una lettura corrente, non verificata qui.'},
  {t: 'Chi divide il tempo', y: 1500, w: 25, rot: [-60, -30], L: {}, hi: [], po: true,
-  p: 'Lo stesso «medioevo» finisce nel 1300 per Ephraim Emerton (1918), nel 1540 per Historic England, nel 1600 per la storiografia giapponese che Japan Search registra come 中世. Le corsie del tempo non sono un orologio comune: sono asserzioni di qualcuno, in una lingua. Per la Cina le sole definizioni in una lingua dell\'Asia orientale vengono dal Giappone, e portano il suo sguardo.'},
- {t: 'Ciò che questi dati non mostrano', y: 1600, w: 400, rot: [-40, 2], L: {silenzio: 1, sedi: 1, spostamenti: 1}, hi: [],
-  p: 'Con ColBase metà delle schede è conservata in Giappone, ma quasi metà dei pezzi giapponesi non ha luogo d\'origine nel record, e molti non hanno data. Wikidata aggiunge poche sedi in Brasile e a Macao. La costa swahili, dove la porcellana cinese fu murata in moschee e tombe, il Sud-est asiatico insulare, i luoghi del consumo nelle Americhe: qui sono vuoti delle fonti, non vuoti della storia.'}
+  p: 'Lo stesso «medioevo» finisce nel 1300 per Ephraim Emerton (1918), nel 1540 per Historic England, nel 1600 per la storiografia giapponese che Japan Search registra come 中世 (PeriodO; Japan Search). Le corsie del tempo non sono un orologio comune: sono asserzioni di qualcuno, in una lingua. Per la Cina le sole definizioni in una lingua dell\'Asia orientale vengono dal Giappone, e portano il suo sguardo.'},
+ {t: 'Ciò che questi dati mostrano a fatica', y: 1450, w: 400, rot: [-40, 2], L: {silenzio: 1, sedi: 1, spostamenti: 1, letteratura: 1}, hi: [],
+  p: 'Sulla costa swahili gli scavi trovano porcellana cinese, ma quasi ovunque sotto l\'1% dei frammenti: 0,12% a Shanga, 0,9% a Gedi (Zhao 2015, §31, n. 69); dalla fine del Duecento compare nelle moschee e nelle nicchie delle case (§29). I musei raccontano soprattutto la produzione e il collezionismo; il consumo si legge negli scavi e negli inventari, che non sono dataset. Mancano ancora l\'India, il Sud-est asiatico insulare, le città dell\'America spagnola.'}
 ];
 
 /* ---------- dati ---------- */
 const j = u => fetch(u).then(r => { if (!r.ok) throw new Error(u); return r.json(); });
-Promise.all([j('opere.json'), j('luoghi.json'), j('periodi.json'), j('confini/anni.json'), j('terre.json'), j('densita_vam.json').catch(() => null), j('periodo.json').catch(() => null), j('letteratura.json').catch(() => null)]).then(([o, l, p, a, t, v, po, le]) => {
+Promise.all([j('opere.json'), j('luoghi.json'), j('periodi.json'), j('confini/anni.json'), j('terre.json'), j('densita_vam.json').catch(() => null), j('periodo.json').catch(() => null), j('letteratura.json').catch(() => null), j('qualita.json').catch(() => null)]).then(([o, l, p, a, t, v, po, le, qu]) => {
+  QU = qu;
   LET = le; if (LET) for (const x of LET.siti) LU['sito:' + x.id] = {...x, lat: +x.lat, lon: +x.lon};
   PO = po; if (PO) S.corsie = 'periodo';
   for (const x of l) LU[x.id] = {...x, lat: +x.lat, lon: +x.lon};
@@ -170,7 +180,8 @@ cv.addEventListener('pointerleave', () => { $('#tip').style.display = 'none'; })
 cv.addEventListener('wheel', e => { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 1 / 1.15); }, {passive: false});
 const zoom = f => { S.k = Math.max(.7, Math.min(8, S.k * f)); draw(); };
 $('#zin').onclick = () => zoom(1.3); $('#zout').onclick = () => zoom(1 / 1.3);
-const roMap = new ResizeObserver(() => { const d = devicePixelRatio || 1; W = fig.clientWidth; H = fig.clientHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); draw(); });
+const misura = () => { const d = devicePixelRatio || 1; W = fig.clientWidth; H = fig.clientHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); draw(); };
+const roMap = new ResizeObserver(misura);
 roMap.observe(fig);
 
 /* ---------- tempo ---------- */
@@ -332,27 +343,53 @@ let Lr = null;
 function applyTappa() {
   const t = TAPPE[S.tappa]; if (!Lr) Lr = {...S.L};
   S.year = t.y; S.win = t.w; S.rot = [...t.rot]; S.k = 1; S.place = null; S.sel = null;
-  S.L = {confini: 1, origini: 1, sedi: 0, spostamenti: 0, mercati: 0, silenzio: 0, ipotetici: 1, ...t.L};
+  S.L = {confini: 1, origini: 1, sedi: 0, spostamenti: 0, mercati: 0, silenzio: 0, ipotetici: 1, vam: 0, letteratura: 0, ...t.L};
   update();
   const inHi = act.filter(x => t.hi.includes(x.origine)), ipo = inHi.filter(x => x.grado === 'ipotetico').length;
   const poDati = () => { if (!PO) return 'PeriodO non caricato.'; return 'Nel ' + fmtY(t.y) + ': ' + REG_PO.map(r => { const ps = PO.periodi.filter(p => p.r === r && p.a <= t.y && p.b >= t.y); if (!ps.length) return ''; const lg = {}; for (const p of ps) lg[p.lg] = (lg[p.lg] || 0) + 1;
     return `<b>${esc(r)}</b> ${ps.length} (${Object.entries(lg).map(([l, n]) => (LINGUE[l] || l) + ' ' + n).join(', ')})`; }).filter(Boolean).join(' · ') + '.'; };
   const dati = t.po ? poDati() : t.hi.length ? `Fra ${fmtY(t.y - t.w)} e ${fmtY(t.y + t.w)} i dati contengono <b>${act.length}</b> pezzi; <b>${inHi.length}</b> vengono dai luoghi evidenziati${ipo ? `, di cui ${ipo} ipotetici` : ''}.`
     : `<b>${O.length}</b> pezzi con data, ${NOD.length} senza. Il ${Math.round(100 * O.filter(x => x.o && x.o.precisione !== 'citta').length / O.length)}% è localizzato solo per paese; il ${Math.round(100 * O.filter(x => x.fonte === 'met' || x.fonte === 'cma').length / O.length)}% è conservato negli Stati Uniti.`;
-  $('#nar').innerHTML = `<div class="step">Tappa ${S.tappa + 1} di ${TAPPE.length} · ${fmtY(t.y)}</div><h2>${esc(t.t)}</h2><p>${t.p}</p><div class="dati">${dati}</div>
+  $('#nar').innerHTML = `<div class="step">Tappa ${S.tappa + 1} di ${TAPPE.length} · ${fmtY(t.y)}</div><h2>${esc(t.t)}</h2><p>${esc(t.p)}</p>${t.nv ? `<p class="nv"><b>Da verificare.</b> ${esc(t.nv)}</p>` : ''}<div class="dati">${dati}</div>
   <div class="acts"><button data-go="${Math.max(0, S.tappa - 1)}" ${S.tappa ? '' : 'disabled'}>← Precedente</button><button data-go="${Math.min(TAPPE.length - 1, S.tappa + 1)}" ${S.tappa < TAPPE.length - 1 ? '' : 'disabled'}>Successiva →</button></div>
   <div class="dots">${TAPPE.map((_, i) => `<button data-go="${i}" aria-pressed="${i === S.tappa}" aria-label="Tappa ${i + 1}">${i + 1}</button>`).join('')}</div>
-  <p class="nota">Testi redazionali scritti da Claude e da verificare con la bibliografia: indicano direzioni note della storiografia, non sono fonti. I numeri sono calcolati sui dati.</p>`;
+  <p class="nota">Testi scritti da Claude. Le frasi con un riferimento tra parentesi rimandano a pagina o paragrafo della fonte, letta per intero; quanto sta in «Da verificare» non ha ancora una fonte. I numeri sono calcolati sui dati. Fonti: Zhao 2015, <i>Afriques</i> 06; Medley 1986, <i>Encyclopaedia Iranica</i>; Tufan 2024, <i>Millî Saraylar</i> 26; Von der Porten 2015, SHA; PeriodO; Japan Search.</p>`;
+}
+function renderQual() {
+  if (!QU) { $('#qual').innerHTML = '<p>Riepilogo non disponibile.</p>'; return; }
+  const M = {doc: ['% documentati', c => c.doc / c.n, 'il record nomina il blu'], citta: ['% localizzati per città', c => c.citta / c.n, 'il luogo d\'origine è una città, non un paese'],
+    n: ['pezzi', c => c.n, 'quanti pezzi con luogo e data'], vam: ['V&A (conteggi)', c => c.vam, 'pezzi del V&A, solo conteggi']};
+  const [nome, f, spiega] = M[qmet], cel = new Map(QU.celle.filter(c => c.n || c.vam >= .5).map(c => [c.r + c.s, c]));
+  const mx = qmet === 'n' || qmet === 'vam' ? Math.max(...QU.celle.map(f), 1) : 1;
+  const col = v => `color-mix(in srgb, var(--co) ${Math.round(100 * Math.sqrt(v / mx))}%, transparent)`;
+  $('#qual').innerHTML = `<h2>Dove l'atlante regge, e dove no</h2>
+  <p>Per regione d'origine e secolo (punto medio della datazione). Lo schema che emerge: in Asia il colore è quasi sempre dichiarato ma il luogo raramente è una città; in Europa e Anatolia il contrario. Asia meridionale e Africa sono vuote nei cataloghi museali: l'Africa compare solo grazie alle ${QU.letteratura} asserzioni bibliografiche.</p>
+  <div class="qsel" role="group" aria-label="Misura">${Object.entries(M).map(([k, m]) => `<button data-qm="${k}" aria-pressed="${k === qmet}">${m[0]}</button>`).join('')}</div>
+  <p class="sub" style="margin-top:6px">Colore della cella: ${esc(spiega)}. Testo piccolo: pezzi della cella.</p>
+  <div class="scroll"><table class="qt"><thead><tr><th>regione</th>${QU.secoli.map(s => `<th>${s}</th>`).join('')}</tr></thead><tbody>
+  ${QU.regioni.map(r => `<tr><td>${esc(r)}</td>${QU.secoli.map(s => { const c = cel.get(r + s); if (!c || !(c.n || c.vam)) return '<td>—</td>';
+    const v = c.n ? f(c) : (qmet === 'vam' ? c.vam : null); if (v == null) return `<td><small>V&A ~${Math.round(c.vam)}</small></td>`;
+    const txt = qmet === 'n' ? c.n : qmet === 'vam' ? '~' + Math.round(c.vam) : Math.round(100 * v) + '%';
+    const sc = Math.sqrt(v / mx) > .55;  // su fondo scuro il testo passa al colore del fondo pagina
+    return `<td style="background:${col(v)}${sc ? ';color:var(--bg)' : ''}">${txt}<small${sc ? ' style="color:var(--bg);opacity:.85"' : ''}>${c.n} pezzi</small></td>`; }).join('')}</tr>`).join('')}
+  </tbody></table></div>
+  <p class="sub" style="margin-top:12px">Fuori dalla tabella: ${Object.entries(QU.fuori).map(([k, v]) => `${esc(k)} ${v}`).join(' · ')}. Regione dal paese su Wikidata (P17).</p>`;
 }
 function route() {
-  S.mode = location.hash === '#percorso' ? 'percorso' : 'ricerca';
+  S.mode = location.hash === '#percorso' ? 'percorso' : location.hash === '#qualita' ? 'qualita' : 'ricerca';
   document.body.classList.toggle('percorso', S.mode === 'percorso');
+  document.body.classList.toggle('qualita', S.mode === 'qualita');
+  $('#m-qualita').setAttribute('aria-pressed', S.mode === 'qualita');
+  if (S.mode === 'qualita') { renderQual(); return; }
   $('#m-ricerca').setAttribute('aria-pressed', S.mode === 'ricerca'); $('#m-percorso').setAttribute('aria-pressed', S.mode === 'percorso');
   if (S.mode === 'percorso') applyTappa(); else { if (Lr) { S.L = Lr; Lr = null; } syncChecks(); update(); }
+  requestAnimationFrame(misura);  // dopo il cambio di griglia la mappa ha nuove misure
 }
 window.addEventListener('hashchange', route);
 $('#m-ricerca').onclick = () => { location.hash = 'ricerca'; };
 $('#m-percorso').onclick = () => { location.hash = 'percorso'; };
+$('#m-qualita').onclick = () => { location.hash = 'qualita'; };
+document.addEventListener('click', e => { const b = e.target.closest('[data-qm]'); if (b) { qmet = b.dataset.qm; renderQual(); } });
 
 /* ---------- controlli ---------- */
 const syncChecks = () => { document.querySelectorAll('[data-l]').forEach(i => { i.checked = !!S.L[i.dataset.l]; }); };

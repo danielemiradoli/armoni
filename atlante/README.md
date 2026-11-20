@@ -17,10 +17,11 @@ Atlante storico e geografico della storia dell'arte globale, costruito sul model
 
 Ogni pezzo porta il **grado d'inclusione** (`documentato`: il record nomina il blu; `ipotetico`: manifattura nota per il blu, record muto sul colore) e il **criterio** con cui è entrato.
 
-## Due interfacce
+## Tre viste
 
 - `#ricerca` — strati, filtri, contesto per luogo e per pezzo, Tavolo per accostare pezzi diversi (tenuto solo nel browser).
-- `#percorso` — nove tappe guidate. I testi sono redazionali e **da verificare con la bibliografia**; i numeri di ogni tappa sono calcolati sui dati.
+- `#percorso` — dieci tappe guidate. Ogni frase con riferimento tra parentesi rimanda a pagina o paragrafo di una fonte letta per intero; quanto non ha fonte sta in un riquadro «Da verificare». I numeri sono calcolati sui dati.
+- `#qualita` — dove l'atlante regge e dove no: per regione e secolo, quota documentata, quota localizzata per città, pezzi, conteggi V&A (`src/qualita.py`, `out/qualita.md`).
 
 ## Riprodurre
 
@@ -28,8 +29,9 @@ Ogni pezzo porta il **grado d'inclusione** (`documentato`: il record nomina il b
 # scaricare i due CSV in data/raw/ (URL in MANIFEST.md)
 sh src/confini.sh          # richiede mapshaper
 python3 src/build.py       # scrive web/*.json e out/metrics.md
+python3 src/periodo.py && python3 src/letteratura.py && python3 src/qualita.py
 python3 src/fetch_vam.py && python3 src/densita_vam.py   # V&A: solo conteggi; cancellare data/raw/vam.csv entro 4 settimane
-python3 -m pytest tests    # 20 guardie
+python3 -m pytest tests    # 21 guardie
 cd web && python3 -m http.server
 ```
 
@@ -40,6 +42,12 @@ cd web && python3 -m http.server
 - Con ColBase (1.707 ceramiche dei musei nazionali giapponesi, CC BY) le schede conservate negli Stati Uniti scendono dal 95% al **53%**. Ma ColBase porta il proprio silenzio: 1.332 pezzi senza luogo d'origine nel record (quasi tutti nel dipartimento di ceramica giapponese, che non lo dichiara; non lo deduciamo dal dipartimento perché vi compaiono anche pezzi olandesi) e 760 senza data.
 - In precedenza il 95% dei pezzi era conservato in **due musei degli Stati Uniti**. La terza fonte (Wikidata, collezioni fuori dagli USA) aggiunge São Paulo, Tokyo, Taipei, Macao, ma porta solo 101 pezzi, 68 dei quali azulejos del Museu Paulista senza data: entrano nei dati e non nel tempo.
 - Per Iznik, Delft e Puebla il catalogo spesso non nomina il colore: il 20% del campione è ipotetico.
+
+## Dove l'atlante regge (out/qualita.md)
+
+- In Asia il colore è quasi sempre dichiarato (90-100%) ma il luogo raramente è una città (Giappone 1-14%); in Europa e Anatolia il contrario (città 65-100%, colore dichiarato 3-30% dal Cinquecento: Iznik e Delft). Dove i cataloghi sanno il luogo non sanno il colore, e viceversa.
+- Asia meridionale e Africa sono vuote nei cataloghi museali; l'Africa compare solo nello strato bibliografico.
+- Fuori dalla tabella: 609 pezzi senza luogo, 834 senza data.
 
 ## Chi definisce il tempo (out/periodo.md)
 

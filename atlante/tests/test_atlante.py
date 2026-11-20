@@ -145,3 +145,10 @@ def test_letteratura_rifiuta_numeri_senza_provenienza():
     assert valida([{**buona, 'inizio': '1600'}], siti, fonti)       # anni invertiti
     assert valida([{**buona, 'misura': 'presenza'}], siti, fonti)    # presenza con un numero
     assert valida([{**buona, 'misura': 'presenza', 'frammenti': ''}], siti, fonti) == []
+
+
+def test_qualita_conta_tutti_i_pezzi():
+    # ogni pezzo sta in una cella o in una voce 'fuori': nessuno sparisce dal denominatore
+    q = json.load(open(ROOT / 'web/qualita.json', encoding='utf-8'))
+    assert sum(c['n'] for c in q['celle']) + sum(q['fuori'].values()) == len(OPERE)
+    assert q['fuori']['regione non determinata'] == 0
