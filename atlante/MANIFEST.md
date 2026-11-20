@@ -1,0 +1,42 @@
+# Atlante — fonti
+
+Prelievo del 20 novembre 2026. I file grezzi stanno in `data/raw/` e **non** sono nel repository (superano i 100 MB); si riscaricano dagli URL qui sotto e si confrontano con le impronte. Le sorgenti sono allineate al ramo principale, non a un commit: se un'impronta cambia, la fonte è cambiata.
+
+Licenza registrata **per campo**, non per fonte (vedi `claude/integrazione_visione.md` §3C).
+
+| file | fonte | sha256 | campi usati | licenza dei campi | immagini |
+| --- | --- | --- | --- | --- | --- |
+| `MetObjects.csv` | `media.githubusercontent.com/media/metmuseum/openaccess/master/MetObjects.csv` | `f53eb3bd6e321a05…` | titolo, cultura, date, tecnica, luogo, link, Wikidata | CC0 | non usate; record con `Is Public Domain = False` marcati |
+| `cma_data.csv` | `media.githubusercontent.com/media/ClevelandMuseumArt/openaccess/master/data.csv` | `cbcbec43a61f68cd…` | titolo, cultura, date, tecnica, descrizione, url | CC0 (`share_license_status`) | non usate: il CDN non è raggiungibile e la pagina pubblicata non carica immagini remote |
+| `data/luoghi.csv` | Wikidata, query in `data/query/luoghi*.rq`, `zone.rq` | nel repository | coordinate P625, QID | CC0 | — |
+| `data/periodi.csv` | Wikidata, `data/query/periodi.rq` | nel repository | P571/P576 o P580/P582 | CC0 | — |
+| `web/confini/*.json` | `aourednik/historical-basemaps`, `geojson/world_<anno>.geojson`, semplificati al 4% con mapshaper | sotto | NAME, geometrie | **GPL-3.0** | — |
+| `web/terre.json` | npm `world-atlas@2.0.2`, `land-110m.json` (Natural Earth) | — | geometrie | pacchetto ISC, dati Natural Earth di pubblico dominio | — |
+
+Impronte dei confini grezzi (primi 16 caratteri):
+
+| file | sha256 |
+| --- | --- |
+| `world_1000.geojson` | `2140776fd7888c1d` |
+| `world_1100.geojson` | `8b038ee5ec8f032d` |
+| `world_1200.geojson` | `2d6913ecedb38e26` |
+| `world_1279.geojson` | `839f48f61d984dd5` |
+| `world_1300.geojson` | `a27985e60d936611` |
+| `world_1400.geojson` | `c6b0efcb42d9520a` |
+| `world_1492.geojson` | `b0e6b0f299fc7b19` |
+| `world_1500.geojson` | `d01ffc9b80629787` |
+| `world_1530.geojson` | `984005809f085285` |
+| `world_1600.geojson` | `7285c07eeedfda90` |
+| `world_1650.geojson` | `e691a3b5bab4ca7a` |
+| `world_1700.geojson` | `eb73d6b00e98205f` |
+| `world_1715.geojson` | `fdf5097dd21c30c9` |
+| `world_1783.geojson` | `7cfa92418a8628df` |
+| `world_1800.geojson` | `51fcb6b1f1c36195` |
+| `world_1815.geojson` | `fb654f734583f550` |
+| `world_1880.geojson` | `4751e30d881d60d3` |
+| `world_1900.geojson` | `9c9221c851eaba49` |
+| `world_1914.geojson` | `5adf01da9a7c25c9` |
+| `world_1945.geojson` | `3005839db7bcc525` |
+| `world_700.geojson` | `bb66ebee15e57f5d` |
+| `world_800.geojson` | `9d046cdc4662109c` |
+| `world_900.geojson` | `f483b93e799d6518` |

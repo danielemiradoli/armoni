@@ -1,0 +1,5 @@
+SELECT ?lab ?item ?itemLabel ?coord ?cLabel WHERE {
+  VALUES (?lab ?c) { ("Worcester"@en wd:Q145) ("Chelsea"@en wd:Q145) ("Bow"@en wd:Q145) ("Derby"@en wd:Q145) ("Gwangju"@en wd:Q884) ("Puebla"@en wd:Q96) ("Dehua"@en wd:Q148) ("Jingdezhen"@en wd:Q148) }
+  ?item rdfs:label|skos:altLabel ?lab ; wdt:P17 ?c ; wdt:P625 ?coord .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+}

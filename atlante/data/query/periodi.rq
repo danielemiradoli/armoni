@@ -1,0 +1,7 @@
+SELECT ?lab ?item ?s ?e ?s2 ?e2 WHERE {
+  VALUES ?lab { "Yuan dynasty"@en "Ming dynasty"@en "Qing dynasty"@en "Joseon"@en "Goryeo"@en "Edo period"@en "Muromachi period"@en "Azuchi–Momoyama period"@en "Safavid Iran"@en "Timurid Empire"@en "Ottoman Empire"@en "Mamluk Sultanate"@en "Later Lê dynasty"@en "Dutch Republic"@en "New Spain"@en "Mughal Empire"@en "Ilkhanate"@en "Qajar Iran"@en "Kingdom of Great Britain"@en "Ayutthaya Kingdom"@en }
+  ?item rdfs:label ?lab .
+  OPTIONAL { ?item wdt:P571 ?s } OPTIONAL { ?item wdt:P576 ?e }
+  OPTIONAL { ?item wdt:P580 ?s2 } OPTIONAL { ?item wdt:P582 ?e2 }
+  FILTER(BOUND(?s) || BOUND(?s2))
+}

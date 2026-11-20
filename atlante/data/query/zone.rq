@@ -1,0 +1,1 @@
+SELECT ?item ?coord WHERE { VALUES ?item { wd:Q46 } ?item wdt:P625 ?coord }

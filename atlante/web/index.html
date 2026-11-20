@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Atlante del blu e bianco</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE: strumento di studio, calmo e preciso; dichiara sempre da dove viene ogni dato.
+   IDEA: un piatto di porcellana dipinto in blu di cobalto: il mondo e' il cavetto, il tempo e' la tesa.
+   PICTURE: il globo al centro, dipinto a cobalto su bianco, con i confini dell'anno scelto.
+   COLOUR and TYPE: bianco porcellana, blu cobalto dominante, rosso di ferro solo per selezione e mercati; Newsreader + Instrument Sans.
+   LAYOUT: strati a sinistra, globo al centro, contesto a destra, tempo sotto; il Tavolo sale dal basso. */
+:root{color-scheme:light dark;
+ --bg:light-dark(#fbfbf9,#0b1430);--panel:light-dark(#ffffff,#101b3d);--ink:light-dark(#121a33,#eef0f6);
+ --mute:light-dark(#5a6382,#a7b0cc);--co:light-dark(#1f3c96,#8fa9ff);--co2:light-dark(#1f3c9622,#8fa9ff2e);
+ --line:light-dark(#dde1ec,#22305e);--fe:light-dark(#b23a22,#ff8a6b);--glaze:light-dark(#ffffff,#0f1a3a)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Instrument Sans",system-ui,sans-serif;overflow:hidden}
+h1,h2,h3{font-family:Newsreader,Georgia,serif;font-weight:600;line-height:1.08;margin:0;text-wrap:balance}
+h1{font-size:22px}h2{font-size:24px}h3{font-size:17px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 12px;min-height:40px;cursor:pointer}
+button:hover{border-color:var(--co)}button[aria-pressed=true]{background:var(--co);color:var(--bg);border-color:var(--co)}
+:focus-visible{outline:2px solid var(--fe);outline-offset:2px}
+a{color:var(--co)}
+.app{display:grid;height:100vh;grid-template:"top top top" auto "lay map ctx" minmax(0,1fr) "tl tl tl" auto/236px minmax(0,1fr) 340px}
+header{grid-area:top;display:flex;gap:14px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+header .sub{color:var(--mute);font-size:13px}
+header .sp{flex:1}
+.seg{display:flex;gap:0}.seg button{border-radius:0}.seg button:first-child{border-radius:6px 0 0 6px}.seg button:last-child{border-radius:0 6px 6px 0}
+#q{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:8px 10px;width:220px;min-height:40px;font-size:16px}
+#lay{grid-area:lay;border-right:1px solid var(--line);padding:14px;overflow:auto}
+#lay h3{margin:14px 0 6px}#lay h3:first-child{margin-top:0}
+.chk{display:flex;gap:8px;align-items:flex-start;padding:5px 0;cursor:pointer}.chk input{margin-top:3px;width:16px;height:16px;flex:none;accent-color:var(--co)}
+.chk small{display:block;color:var(--mute);font-size:12.5px;line-height:1.35}
+.fig{grid-area:map;position:relative;overflow:hidden;background:var(--bg);touch-action:none}
+.fig>canvas{position:absolute;inset:0;width:100%;height:100%;cursor:grab}
+#tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 9px;font-size:13px;display:none;max-width:260px;box-shadow:0 4px 18px #0002}
+#chip{position:absolute;left:12px;bottom:12px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 11px;font-size:13px;max-width:min(420px,80%)}
+#mapctl{position:absolute;right:12px;top:12px;display:flex;gap:6px}
+#ctx{grid-area:ctx;border-left:1px solid var(--line);padding:16px;overflow:auto}
+#ctx .k{color:var(--mute);font-size:12.5px;margin-top:10px}#ctx .v{margin-top:1px}
+.big{font-family:Newsreader,serif;font-size:clamp(30px,4vw,44px);line-height:1;color:var(--co)}
+.row{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.row:hover{color:var(--co)}.row .n{font-variant-numeric:tabular-nums;white-space:nowrap}
+.bar{height:4px;background:var(--co);border-radius:2px;margin-top:3px}
+.tag{display:inline-block;font-size:12px;border:1px solid var(--line);border-radius:999px;padding:1px 8px;margin:2px 4px 0 0}
+.tag.doc{border-color:var(--co);color:var(--co)}.tag.ipo{border-style:dashed}.tag.fe{border-color:var(--fe);color:var(--fe)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+#tl{grid-area:tl;border-top:1px solid var(--line);padding:8px 16px 10px;position:relative}
+.tlbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:4px}
+.yr{font-family:Newsreader,serif;font-size:30px;color:var(--co);font-variant-numeric:tabular-nums;min-width:3.2ch}
+#tls{width:100%;height:150px;display:block;touch-action:none;cursor:ew-resize}
+#tavolo{position:fixed;left:0;right:0;bottom:0;height:min(62vh,560px);background:var(--panel);border-top:2px solid var(--co);transform:translateY(105%);transition:transform .28s ease;z-index:20;display:grid;grid-template-rows:auto auto minmax(0,1fr)}
+#tavolo.open{transform:none}
+#tavolo .hd{display:flex;gap:10px;align-items:center;padding:10px 16px;flex-wrap:wrap}
+#tavax{height:54px;width:100%;display:block}
+#board{position:relative;overflow:auto;background:repeating-linear-gradient(0deg,transparent 0 27px,var(--co2) 27px 28px)}
+.card{position:absolute;width:230px;background:var(--glaze);border:1px solid var(--line);border-radius:8px;box-shadow:0 3px 12px #0001;font-size:13px}
+.card .ch{padding:7px 9px;border-bottom:1px solid var(--line);cursor:move;display:flex;gap:6px;align-items:baseline}
+.card .num{font-family:Newsreader,serif;color:var(--fe);font-size:16px}
+.card .cb{padding:7px 9px}.card textarea{width:100%;border:1px solid var(--line);border-radius:4px;background:transparent;font-size:13px;min-height:44px;resize:vertical}
+.card .x{margin-left:auto;min-height:28px;padding:0 8px}
+.empty{color:var(--mute);padding:24px 16px;max-width:60ch}
+/* percorso */
+body.percorso .app{grid-template:"top top" auto "map nar" minmax(0,1fr) "tl tl" auto/minmax(0,1fr) 400px}
+body.percorso #lay,body.percorso #ctx,body.percorso #q,body.percorso #tavbtn{display:none}
+#nar{grid-area:nar;display:none;border-left:1px solid var(--line);padding:22px;overflow:auto}
+body.percorso #nar{display:block}
+#nar .step{color:var(--mute);font-size:13px}#nar h2{margin:6px 0 12px;font-size:30px}
+#nar p{font-size:16.5px;max-width:60ch}
+#nar .dati{border-left:3px solid var(--co);padding:6px 12px;margin:16px 0;background:var(--co2);border-radius:0 6px 6px 0}
+#nar .nota{font-size:12.5px;color:var(--mute);margin-top:22px}
+.dots{display:flex;gap:6px;margin:14px 0}.dots button{width:30px;min-height:30px;padding:0}
+@media(max-width:900px){
+ body{overflow:auto}
+ .app,body.percorso .app{height:auto;grid-template:"top" auto "map" 62vh "tl" auto "ctx" auto "nar" auto "lay" auto/minmax(0,1fr)}
+ #lay,#ctx,#nar{border:0;border-top:1px solid var(--line)}
+ #q{width:100%}
+}
+@media(prefers-reduced-motion:reduce){#tavolo{transition:none}}
+</style>
+</head>
+<body>
+<div class="app">
+ <header>
+  <h1>Atlante del blu e bianco</h1>
+  <span class="sub">Armoni · prototipo sperimentale · primo taglio dell'atlante globale</span>
+  <span class="sp"></span>
+  <input id="q" type="search" placeholder="Cerca titolo, cultura, tecnica" aria-label="Cerca">
+  <div class="seg" role="group" aria-label="Modalità">
+   <button id="m-ricerca" aria-pressed="true">Ricerca</button><button id="m-percorso" aria-pressed="false">Percorso</button>
+  </div>
+  <button id="tavbtn">Tavolo <span id="tavn">0</span></button>
+ </header>
+
+ <aside id="lay" aria-label="Strati">
+  <h3>Strati</h3>
+  <label class="chk"><input type="checkbox" data-l="confini" checked><span>Confini storici<small>historical-basemaps, istantanea più vicina all'anno</small></span></label>
+  <label class="chk"><input type="checkbox" data-l="origini" checked><span>Luoghi d'origine<small>pieno: città · anello: solo paese · tratteggio: incerto</small></span></label>
+  <label class="chk"><input type="checkbox" data-l="sedi" checked><span>Dove si trovano oggi<small>i due musei da cui vengono i dati</small></span></label>
+  <label class="chk"><input type="checkbox" data-l="spostamenti"><span>Spostamenti<small>dall'origine al museo attuale</small></span></label>
+  <label class="chk"><input type="checkbox" data-l="mercati" checked><span>Mercati dichiarati<small>solo dove il catalogo scrive «for … market»</small></span></label>
+  <label class="chk"><input type="checkbox" data-l="silenzio"><span>Silenzio delle fonti<small>quanto il dato è vago, e dove tace</small></span></label>
+  <h3>Inclusione</h3>
+  <label class="chk"><input type="checkbox" data-l="ipotetici" checked><span>Anche gli ipotetici<small>manifattura nota per il blu, ma il record non nomina il colore</small></span></label>
+  <h3>Fonti</h3>
+  <label class="chk"><input type="checkbox" data-f="met" checked><span>Metropolitan Museum<small>Open Access CSV, CC0</small></span></label>
+  <label class="chk"><input type="checkbox" data-f="cma" checked><span>Cleveland Museum of Art<small>Open Access CSV, CC0</small></span></label>
+  <h3>Vista</h3>
+  <div class="seg"><button id="p-globo" aria-pressed="true">Globo</button><button id="p-piano" aria-pressed="false">Piano</button></div>
+ </aside>
+
+ <div class="fig" id="fig"><canvas id="cv" aria-label="Mappa del mondo navigabile"></canvas><div id="tip"></div><div id="chip"></div>
+  <div id="mapctl"><button id="zin" aria-label="Avvicina">+</button><button id="zout" aria-label="Allontana">−</button></div></div>
+
+ <aside id="ctx" aria-live="polite"></aside>
+ <aside id="nar" aria-live="polite"></aside>
+
+ <section id="tl" aria-label="Tempo">
+  <div class="tlbar">
+   <span class="yr" id="yr">1640</span>
+   <button id="play" aria-pressed="false">▶ Scorri</button>
+   <label>finestra ± <select id="win"><option>10</option><option selected>25</option><option>50</option><option>100</option></select> anni</label>
+   <span class="sub" id="tlinfo"></span>
+  </div>
+  <svg id="tls" role="slider" aria-label="Anno" tabindex="0"></svg>
+ </section>
+</div>
+
+<section id="tavolo" aria-label="Tavolo">
+ <div class="hd"><h3>Tavolo</h3><span class="sub">accosta pezzi di luoghi ed epoche diverse; trascina, annota, copia</span><span class="sp" style="flex:1"></span>
+  <button id="tavcopy">Copia elenco</button><button id="tavclear">Svuota</button><button id="tavclose">Chiudi</button></div>
+ <svg id="tavax"></svg>
+ <div id="board"></div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+<script src="atlante.js"></script>
+</body>
+</html>

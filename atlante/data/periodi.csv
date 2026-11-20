@@ -1,0 +1,18 @@
+regione,nome,qid,inizio,fine,fonte_date
+Cina,Dinastia Yuan,Q7313,1271,1368,P571/P576
+Cina,Dinastia Ming,Q9903,1368,1644,P571/P576
+Cina,Dinastia Qing,Q8733,1636,1912,P571/P576
+Corea,Goryeo,Q28208,918,1392,P571/P576
+Corea,Joseon,Q28179,1392,1897,P571/P576
+Giappone,Periodo Muromachi,Q334845,1336,1573,P580/P582
+Giappone,Periodo Edo,Q184963,1603,1868,P580/P582
+Sud-est asiatico,Dinastia Lê posteriore,Q878276,1428,1789,P571/P576
+Sud-est asiatico,Regno di Ayutthaya,Q841364,1350,1767,P571/P576
+Iran e Asia centrale,Ilkhanato,Q178084,1256,1335,P571/P576
+Iran e Asia centrale,Impero timuride,Q484195,1370,1507,P571/P576
+Iran e Asia centrale,Iran safavide,Q18234383,1501,1736,P571/P576
+Iran e Asia centrale,Iran qajar,Q63158027,1789,1925,P571/P576
+Asia meridionale,Impero moghul,Q33296,1526,1857,P571/P576
+Anatolia e Mediterraneo,Impero ottomano,Q12560,1299,1922,P571/P576
+Europa,Repubblica delle Sette Province Unite,Q170072,1581,1795,P571/P576
+Americhe,Vicereame della Nuova Spagna,Q170603,1521,1820,P571/P576

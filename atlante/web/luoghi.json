@@ -1,0 +1,425 @@
+[
+{
+"id": "Arita",
+"nome": "Arita",
+"qid": "Q668427",
+"lat": "33.2106",
+"lon": "129.849",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Bristol",
+"nome": "Bristol",
+"qid": "Q23154",
+"lat": "51.4536",
+"lon": "-2.5975",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Chantilly",
+"nome": "Chantilly",
+"qid": "Q126675",
+"lat": "49.1869",
+"lon": "2.4608",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "China",
+"nome": "Cina",
+"qid": "Q29520",
+"lat": "35.0",
+"lon": "105.0",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Cleveland Museum of Art",
+"nome": "Cleveland Museum of Art",
+"qid": "Q657415",
+"lat": "41.5089",
+"lon": "-81.6117",
+"precisione": "istituzione",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Delft",
+"nome": "Delft",
+"qid": "Q690",
+"lat": "52.0117",
+"lon": "4.3592",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Egypt",
+"nome": "Egitto",
+"qid": "Q79",
+"lat": "27.0",
+"lon": "29.0",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "England",
+"nome": "Inghilterra",
+"qid": "Q21",
+"lat": "53.0",
+"lon": "-1.0",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Europe",
+"nome": "Europa",
+"qid": "Q46",
+"lat": "53.5",
+"lon": "15.5",
+"precisione": "zona",
+"metodo": "QID diretto (zone.rq)"
+},
+{
+"id": "Florence",
+"nome": "Firenze",
+"qid": "Q2044",
+"lat": "43.7714",
+"lon": "11.2542",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "France",
+"nome": "Francia",
+"qid": "Q142",
+"lat": "47.0",
+"lon": "2.0",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Frankfurt",
+"nome": "Francoforte",
+"qid": "Q1794",
+"lat": "50.1106",
+"lon": "8.6822",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Germany",
+"nome": "Germania",
+"qid": "Q183",
+"lat": "51.0",
+"lon": "10.0",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Iran",
+"nome": "Iran",
+"qid": "Q794",
+"lat": "32.0",
+"lon": "53.0",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Iraq",
+"nome": "Iraq",
+"qid": "Q796",
+"lat": "33.0",
+"lon": "43.0",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Ireland",
+"nome": "Irlanda",
+"qid": "Q27",
+"lat": "53.0",
+"lon": "-8.0",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Italy",
+"nome": "Italia",
+"qid": "Q38",
+"lat": "42.5",
+"lon": "12.5",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Japan",
+"nome": "Giappone",
+"qid": "Q17",
+"lat": "35.0",
+"lon": "136.0",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Jingdezhen",
+"nome": "Jingdezhen",
+"qid": "Q34405",
+"lat": "29.2942",
+"lon": "117.2036",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Kashan",
+"nome": "Kashan",
+"qid": "Q240475",
+"lat": "33.9881",
+"lon": "51.4425",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Kerman",
+"nome": "Kerman",
+"qid": "Q171714",
+"lat": "30.2911",
+"lon": "57.0678",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Korea",
+"nome": "Corea",
+"qid": "Q18097",
+"lat": "38.3167",
+"lon": "127.2333",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Kütahya",
+"nome": "Kütahya",
+"qid": "Q188894",
+"lat": "39.4242",
+"lon": "29.9833",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "London",
+"nome": "Londra",
+"qid": "Q84",
+"lat": "51.5072",
+"lon": "-0.1275",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Lowestoft",
+"nome": "Lowestoft",
+"qid": "Q986007",
+"lat": "52.48",
+"lon": "1.75",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Mashhad",
+"nome": "Mashhad",
+"qid": "Q121157",
+"lat": "36.2975",
+"lon": "59.6059",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Metropolitan Museum of Art",
+"nome": "Metropolitan Museum, New York",
+"qid": "Q160236",
+"lat": "40.7794",
+"lon": "-73.9633",
+"precisione": "istituzione",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Netherlands",
+"nome": "Paesi Bassi",
+"qid": "Q55",
+"lat": "52.3167",
+"lon": "5.55",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Nishapur",
+"nome": "Nishapur",
+"qid": "Q131350",
+"lat": "36.2133",
+"lon": "58.7958",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Paris",
+"nome": "Parigi",
+"qid": "Q90",
+"lat": "48.8567",
+"lon": "2.3522",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Philadelphia",
+"nome": "Filadelfia",
+"qid": "Q1345",
+"lat": "39.9528",
+"lon": "-75.1636",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Portugal",
+"nome": "Portogallo",
+"qid": "Q45",
+"lat": "38.7",
+"lon": "-9.1833",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Puebla City",
+"nome": "Puebla",
+"qid": "Q125293",
+"lat": "19.0514",
+"lon": "-98.2178",
+"precisione": "citta",
+"metodo": "etichetta + paese (luoghi_vincolati.rq)"
+},
+{
+"id": "Rouen",
+"nome": "Rouen",
+"qid": "Q30974",
+"lat": "49.4431",
+"lon": "1.1025",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Saint-Cloud",
+"nome": "Saint-Cloud",
+"qid": "Q189153",
+"lat": "48.8464",
+"lon": "2.2153",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Spain",
+"nome": "Spagna",
+"qid": "Q29",
+"lat": "40.2",
+"lon": "-3.5",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Staffordshire",
+"nome": "Staffordshire",
+"qid": "Q23105",
+"lat": "52.8069",
+"lon": "-2.1161",
+"precisione": "regione",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Syria",
+"nome": "Siria",
+"qid": "Q858",
+"lat": "35.2167",
+"lon": "38.5833",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Tabriz",
+"nome": "Tabriz",
+"qid": "Q80053",
+"lat": "38.0739",
+"lon": "46.2961",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Talavera de la Reina",
+"nome": "Talavera de la Reina",
+"qid": "Q181359",
+"lat": "39.9667",
+"lon": "-4.8333",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "United States",
+"nome": "Stati Uniti",
+"qid": "Q30",
+"lat": "39.8282",
+"lon": "-98.5795",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Uzbekistan",
+"nome": "Uzbekistan",
+"qid": "Q265",
+"lat": "41.0",
+"lon": "66.0",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Venice",
+"nome": "Venezia",
+"qid": "Q641",
+"lat": "45.4397",
+"lon": "12.3319",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Vietnam",
+"nome": "Vietnam",
+"qid": "Q881",
+"lat": "16.0",
+"lon": "108.0",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Warsaw",
+"nome": "Varsavia",
+"qid": "Q270",
+"lat": "52.23",
+"lon": "21.0111",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Worcester",
+"nome": "Worcester",
+"qid": "Q1646181",
+"lat": "52.1911",
+"lon": "-2.2206",
+"precisione": "citta",
+"metodo": "etichetta + paese (luoghi_vincolati.rq)"
+},
+{
+"id": "İznik",
+"nome": "Iznik",
+"qid": "Q217125",
+"lat": "40.4289",
+"lon": "29.7194",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+}
+]
