@@ -132,3 +132,14 @@ def test_japan_search_epoche():
     assert jps['中世'] == (1192, 1600, 'Giappone')
     assert jps['中国・明時代'] == (1368, 1644, 'Cina')   # prefisso 中国・ -> Cina, non Giappone
     assert jps['朝鮮・李氏朝鮮時代'][2] == 'Corea'
+
+
+def test_letteratura_rifiuta_numeri_senza_provenienza():
+    import sys; sys.path.insert(0, str(ROOT / 'src'))
+    from letteratura import valida
+    siti, fonti = {'Songo Mnara': {}}, {'zhao2012': {}}
+    buona = dict(sito_id='Songo Mnara', inizio='1300', fine='1500', tipo='qingbai', frammenti='10', percentuale='', base='', fonte_id='zhao2012', pagina='tab. 2', nota='')
+    assert valida([buona], siti, fonti) == []
+    assert valida([{**buona, 'pagina': ''}], siti, fonti)           # senza pagina
+    assert valida([{**buona, 'fonte_id': 'boh'}], siti, fonti)      # fonte sconosciuta
+    assert valida([{**buona, 'inizio': '1600'}], siti, fonti)       # anni invertiti

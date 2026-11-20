@@ -12,6 +12,7 @@ Atlante storico e geografico della storia dell'arte globale, costruito sul model
 | 3 · entità | 2.024 pezzi con data da Met e Cleveland, più 101 da Wikidata conservati fuori dagli Stati Uniti (39 con data): origine, sede attuale, mercato dichiarato, intervallo | `web/opere.json` |
 | 4 · relazioni | origine → sede (spostamento), origine → mercato (solo se il catalogo scrive «for … market») | calcolate nella pagina |
 | 3b · densità V&A | 6.396 ceramiche del V&A ridotte a conteggi per luogo e decennio, senza schede (condizioni d'uso del museo) | `web/densita_vam.json` |
+| 3c · consumo dalla letteratura | siti archeologici (costa swahili e oltre) con i numeri dei frammenti cinesi ricavati da articoli; ogni numero con autore e pagina; `src/letteratura.py` rifiuta righe senza provenienza | `data/siti_consumo.csv`, `data/bibliografia.csv`, `data/letteratura.csv` |
 | 5 · analisi | densità per decennio, silenzio delle fonti (precisione, ipotesi, assenze) | calcolate nella pagina |
 
 Ogni pezzo porta il **grado d'inclusione** (`documentato`: il record nomina il blu; `ipotetico`: manifattura nota per il blu, record muto sul colore) e il **criterio** con cui è entrato.
@@ -28,7 +29,7 @@ Ogni pezzo porta il **grado d'inclusione** (`documentato`: il record nomina il b
 sh src/confini.sh          # richiede mapshaper
 python3 src/build.py       # scrive web/*.json e out/metrics.md
 python3 src/fetch_vam.py && python3 src/densita_vam.py   # V&A: solo conteggi; cancellare data/raw/vam.csv entro 4 settimane
-python3 -m pytest tests    # 19 guardie
+python3 -m pytest tests    # 20 guardie
 cd web && python3 -m http.server
 ```
 

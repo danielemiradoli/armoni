@@ -1,0 +1,8 @@
+# Siti della costa swahili dove la letteratura documenta ceramica cinese; vincolati al paese, piu' sitelinks.
+SELECT ?lab ?item ?coord WHERE {
+  VALUES (?lab ?c) { ("Kilwa Kisiwani"@en wd:Q924) ("Songo Mnara"@en wd:Q924) ("Sanje ya Kati"@en wd:Q924)
+    ("Unguja Ukuu"@en wd:Q924) ("Stone Town"@en wd:Q924) ("Gede"@en wd:Q114) ("Shanga"@en wd:Q114) ("Manda Island"@en wd:Q114)
+    ("Pate Island"@en wd:Q114) ("Fort Jesus"@en wd:Q114) ("Malindi"@en wd:Q114) ("Lamu"@en wd:Q114) ("Mogadishu"@en wd:Q1045)
+    ("Chibuene"@en wd:Q1029) ("Mahilaka"@en wd:Q1019) ("Great Zimbabwe"@en wd:Q954) ("Mapungubwe"@en wd:Q258) }
+  ?item rdfs:label ?lab ; wdt:P17 ?c ; wdt:P625 ?coord .
+}

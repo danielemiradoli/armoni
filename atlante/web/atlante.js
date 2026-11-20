@@ -8,9 +8,9 @@ const PREC = {citta: 'città', paese: 'solo paese', regione: 'regione', zona: 'z
 const T0 = 700, T1 = 2000;
 
 const S = {corsie: 'wikidata', year: 1640, win: 25, proj: 'globo', rot: [-40, -28], k: 1, sel: null, place: null, q: '',
-  L: {confini: 1, origini: 1, sedi: 1, spostamenti: 0, mercati: 1, silenzio: 0, ipotetici: 1, vam: 1}, F: {met: 1, cma: 1, wd: 1, colbase: 1},
+  L: {confini: 1, origini: 1, sedi: 1, spostamenti: 0, mercati: 1, silenzio: 0, ipotetici: 1, vam: 1, letteratura: 1}, F: {met: 1, cma: 1, wd: 1, colbase: 1},
   tav: [], mode: 'ricerca', tappa: 0};
-let PO = null, VAM = null, vagg = [], NOD = [], O = [], LU = {}, PER = [], ANNI = [], TERRE = null, CONF = {}, act = [], agg = [];
+let LET = null, lagg = [], PO = null, VAM = null, vagg = [], NOD = [], O = [], LU = {}, PER = [], ANNI = [], TERRE = null, CONF = {}, act = [], agg = [];
 
 const TAPPE = [
  {t: 'Blu su bianco, prima della porcellana', y: 850, w: 60, rot: [-44, -30], L: {}, hi: ['Iraq'],
@@ -35,7 +35,8 @@ const TAPPE = [
 
 /* ---------- dati ---------- */
 const j = u => fetch(u).then(r => { if (!r.ok) throw new Error(u); return r.json(); });
-Promise.all([j('opere.json'), j('luoghi.json'), j('periodi.json'), j('confini/anni.json'), j('terre.json'), j('densita_vam.json').catch(() => null), j('periodo.json').catch(() => null)]).then(([o, l, p, a, t, v, po]) => {
+Promise.all([j('opere.json'), j('luoghi.json'), j('periodi.json'), j('confini/anni.json'), j('terre.json'), j('densita_vam.json').catch(() => null), j('periodo.json').catch(() => null), j('letteratura.json').catch(() => null)]).then(([o, l, p, a, t, v, po, le]) => {
+  LET = le; if (LET) for (const x of LET.siti) LU['sito:' + x.id] = {...x, lat: +x.lat, lon: +x.lon};
   PO = po; if (PO) S.corsie = 'periodo';
   for (const x of l) LU[x.id] = {...x, lat: +x.lat, lon: +x.lon};
   if (v) { VAM = v; for (const x of v.luoghi) if (!LU[x.id]) LU[x.id] = {...x, lat: +x.lat, lon: +x.lon}; }
@@ -63,6 +64,8 @@ function filtra() {
   agg = [...m.values()].sort((a, b) => b.n - a.n);
   const vm = new Map();
   if (VAM) for (const c of VAM.celle) if (c.d + 9 >= S.year - S.win && c.d <= S.year + S.win) vm.set(c.l, (vm.get(c.l) || 0) + c.n);
+  const lm = new Map(); if (LET) for (const a of LET.asserzioni) if (a.fine >= S.year - S.win && a.inizio <= S.year + S.win) { const k = 'sito:' + a.sito_id; lm.set(k, [...(lm.get(k) || []), a]); }
+  lagg = [...lm].map(([id, as]) => ({id, l: LU[id], as, n: as.length}));
   vagg = [...vm].map(([id, n]) => ({id, l: LU[id], n})).filter(g => g.n >= .5).sort((a, b) => b.n - a.n);
 }
 
@@ -114,6 +117,12 @@ function draw() {
     ctx.beginPath(); ctx.moveTo(x, y - r); ctx.lineTo(x + r, y); ctx.lineTo(x, y + r); ctx.lineTo(x - r, y); ctx.closePath();
     ctx.strokeStyle = fe; ctx.globalAlpha = .75; ctx.lineWidth = 1.1; ctx.stroke(); ctx.globalAlpha = 1;
   }
+  if (S.L.letteratura) for (const g of lagg) {
+    const c = [g.l.lon, g.l.lat]; if (!visibile(c)) continue; const [x, y] = proj(c), r = 7;
+    ctx.beginPath(); ctx.moveTo(x, y - r); ctx.lineTo(x + r * .9, y + r * .6); ctx.lineTo(x - r * .9, y + r * .6); ctx.closePath();
+    ctx.fillStyle = ink; ctx.globalAlpha = .85; ctx.fill(); ctx.globalAlpha = 1;
+    ctx.font = '12px "Instrument Sans",sans-serif'; ctx.fillStyle = ink; ctx.fillText(g.l.nome, x + 10, y + 4);
+  }
   if (S.L.sedi) for (const k of new Set(act.map(x => x.sede).filter(Boolean))) {
     const l = LU[k]; if (!l || !visibile([l.lon, l.lat])) continue; const [x, y] = proj([l.lon, l.lat]);
     ctx.fillStyle = ink; ctx.fillRect(x - 4, y - 4, 8, 8);
@@ -135,6 +144,7 @@ function chip(anno) {
 function hit(px, py) {
   let best = null, bd = 1e9;
   for (const g of agg) { const c = [g.l.lon, g.l.lat]; if (!visibile(c)) continue; const [x, y] = proj(c), d = Math.hypot(x - px, y - py); if (d < rr(g) + 5 && d < bd) { bd = d; best = g; } }
+  if (!best && S.L.letteratura) for (const g of lagg) { const c = [g.l.lon, g.l.lat]; if (!visibile(c)) continue; const [x, y] = proj(c), d = Math.hypot(x - px, y - py); if (d < 11 && d < bd) { bd = d; best = {...g, let: true}; } }
   if (!best && S.L.vam) for (const g of vagg) { const c = [g.l.lon, g.l.lat]; if (!visibile(c)) continue; const [x, y] = proj(c), d = Math.hypot(x - px, y - py); if (d < 3 + Math.sqrt(g.n) * 1.3 + 4 && d < bd) { bd = d; best = {...g, vam: true}; } }
   return best;
 }
@@ -149,7 +159,7 @@ cv.addEventListener('pointermove', e => {
   let pol = '';
   if (!g && S.L.confini) { const c = proj.invert([e.clientX - b.left, e.clientY - b.top]), cf = confini(S.year); if (c && cf.geo) { const f = cf.geo.features.find(f => f.properties.NAME && d3.geoContains(f, c)); if (f) pol = f.properties.NAME; } }
   if (g || pol) { tip.style.display = 'block'; tip.style.left = (e.clientX - b.left + 14) + 'px'; tip.style.top = (e.clientY - b.top + 10) + 'px';
-    tip.innerHTML = g && g.vam ? `<b>${esc(g.l.nome)}</b> · V&A ~${Math.round(g.n)} pezzi<br><span class="sub">solo conteggio aggregato</span>` : g ? `<b>${esc(g.l.nome)}</b> · ${g.n} pezzi<br><span class="sub">${PREC[g.l.precisione]}${g.inc ? ' · ' + g.inc + ' attribuzioni incerte' : ''}</span>` : `${esc(pol)}<br><span class="sub">confini del ${fmtY(confini(S.year).anno)}</span>`; }
+    tip.innerHTML = g && g.let ? `<b>${esc(g.l.nome)}</b> · ${g.n} dati dalla letteratura<br><span class="sub">sito archeologico: consumo, non produzione</span>` : g && g.vam ? `<b>${esc(g.l.nome)}</b> · V&A ~${Math.round(g.n)} pezzi<br><span class="sub">solo conteggio aggregato</span>` : g ? `<b>${esc(g.l.nome)}</b> · ${g.n} pezzi<br><span class="sub">${PREC[g.l.precisione]}${g.inc ? ' · ' + g.inc + ' attribuzioni incerte' : ''}</span>` : `${esc(pol)}<br><span class="sub">confini del ${fmtY(confini(S.year).anno)}</span>`; }
   else tip.style.display = 'none';
 });
 cv.addEventListener('pointerup', e => {
@@ -255,6 +265,13 @@ function scheda(x) {
 function renderCtx() {
   const c = $('#ctx'), sel = O.find(x => x.id === S.sel);
   if (sel) { c.innerHTML = scheda(sel); return; }
+  if (S.place && S.place.startsWith('sito:')) { const g = lagg.find(g => g.id === S.place), l = LU[S.place];
+    c.innerHTML = `<h2>${esc(l.nome)}</h2><div class="sub" style="margin-top:4px">sito archeologico · <a href="https://www.wikidata.org/wiki/${l.qid}">${l.qid}</a></div>
+    <p class="sub" style="margin-top:10px">Qui la porcellana è stata usata, non fatta. Numeri ricavati da pubblicazioni: ognuno con la sua pagina.</p>
+    ${(g ? g.as : []).map(a => { const f = LET.fonti[a.fonte_id] || {};
+      return `<div class="row" style="cursor:default;display:block"><b>${esc(a.tipo)}</b> · ${a.inizio}–${a.fine}<br>${a.frammenti ? esc(a.frammenti) + ' frammenti' : ''}${a.percentuale ? ' · ' + esc(a.percentuale) + '%' : ''}${a.base ? ' <span class="sub">su ' + esc(a.base) + '</span>' : ''}
+      <div class="sub">${esc(f.autori)} ${esc(f.anno)}, ${esc(a.pagina)}${a.nota ? ' — ' + esc(a.nota) : ''} · <a href="${esc(f.url)}">fonte</a></div></div>`; }).join('') || '<p class="sub">Nessun dato in questa finestra.</p>'}
+    <div class="acts"><button data-back>Indietro</button></div>`; return; }
   if (S.place) { const g = agg.find(g => g.id === S.place), l = LU[S.place], xs = act.filter(x => x.origine === S.place).sort((a, b) => a.inizio - b.inizio);
     c.innerHTML = `<h2>${esc(l.nome)}</h2><div class="sub" style="margin-top:4px">${PREC[l.precisione]} · <a href="https://www.wikidata.org/wiki/${l.qid}">${l.qid}</a> · ${esc(l.metodo)}</div>
     <div class="big" style="margin:14px 0 2px">${xs.length}</div><div class="sub">pezzi fra ${fmtY(S.year - S.win)} e ${fmtY(S.year + S.win)}${g && g.inc ? ` · ${g.inc} con attribuzione incerta` : ''}</div>
