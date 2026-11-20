@@ -81,4 +81,5 @@ cd web && python3 -m http.server
 
 - Tre fonti, ma il peso è quasi tutto statunitense; nessuna immagine. V&A, ColBase e Japan Search raggiungibili dal 20/11. Europeana, Rijksmuseum, SMK, Te Papa non raggiungibili.
 - PeriodO copre le regioni in modo diseguale e quasi solo in inglese: lo strato lo mostra, non lo corregge. Le dinastie di Wikidata servono ancora a datare le schede ColBase che indicano solo l'epoca.
-- I confini di historical-basemaps sono GPL-3.0 e approssimati; le istantanee non coprono ogni anno.
+- I confini di historical-basemaps sono GPL-3.0 e approssimati; le istantanee non coprono ogni anno. Restano file di dati separati sotto la loro licenza: l'elenco completo è in `LICENZE.md`.
+- Luogo dedotto: 676 schede ColBase del Museo nazionale di Tokyo non dichiarano il luogo; la categoria 陶磁 le indica come ceramica giapponese. La regola, verificata sulle 49 schede della stessa categoria che il luogo lo dichiarano, è giusta 43 volte (88%), e il campione sovrarappresenta i pezzi stranieri. Strato separato, spento di default, fuori dalle metriche di localizzazione.

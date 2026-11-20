@@ -150,5 +150,11 @@ def test_letteratura_rifiuta_numeri_senza_provenienza():
 def test_qualita_conta_tutti_i_pezzi():
     # ogni pezzo sta in una cella o in una voce 'fuori': nessuno sparisce dal denominatore
     q = json.load(open(ROOT / 'web/qualita.json', encoding='utf-8'))
-    assert sum(c['n'] for c in q['celle']) + sum(q['fuori'].values()) == len(OPERE)
+    fuori = sum(v for k, v in q['fuori'].items() if k != 'di cui con luogo dedotto')  # sottoinsieme di 'senza luogo'
+    assert sum(c['n'] for c in q['celle']) + fuori == len(OPERE)
     assert q['fuori']['regione non determinata'] == 0
+
+
+def test_luogo_dedotto_non_tocca_il_dichiarato():
+    ded = [o for o in OPERE if o.get('origine_dedotta')]
+    assert ded and all(o['fonte'] == 'colbase' and o['origine'] is None and o['sede'] == 'Tokyo National Museum' for o in ded)

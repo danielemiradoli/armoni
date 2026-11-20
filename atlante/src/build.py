@@ -236,6 +236,20 @@ def sede_cb(p):
     return None
 
 
+# Luogo dedotto, mai dichiarato: al Museo nazionale di Tokyo la categoria 陶磁 separa la ceramica
+# giapponese da quella asiatica (東洋陶磁). Misurata sui pezzi 陶磁 di Tokyo con luogo noto: 43 giapponesi
+# su 49 (88%); il campione sovrarappresenta i pezzi stranieri, che sono quelli che dichiarano il luogo.
+# A Kyoto e al Kyushu la categoria 陶磁 comprende anche la Cina: li' non si deduce nulla.
+CRITERIO_DEDOTTO = ('dedotto dalla categoria 陶磁 del Museo nazionale di Tokyo (ceramica giapponese); '
+                    'regola misurata: 43 giapponesi su 49 pezzi con luogo noto, 88%')
+
+
+def dedotto(o, c, it):
+    if o or sede_cb(c.get('provider', '')) != 'Tokyo National Museum' or it.get('cobas-4-s') != '陶磁':
+        return {}
+    return {'origine_dedotta': 'Japan', 'criterio_luogo': CRITERIO_DEDOTTO}
+
+
 # 明治 prima di 明: '明治時代' contiene il carattere della dinastia Ming
 EPOCHE = [('Periodo Meiji', r'明治|meiji'), ('Periodo Taishō', r'大正|taish'), ('Periodo Shōwa', r'昭和|sh[oō]wa'),
           ('Dinastia Ming', r'明|ming'), ('Dinastia Qing', r'清|qing'), ('Dinastia Yuan', r'元時代|yuan'),
@@ -289,7 +303,8 @@ def da_colbase(path):
                    grado=grado, criterio=crit, url=c.get('linkUrl', ''),
                    licenza='CC BY — fonte: ColBase (国立文化財機構所蔵品統合検索システム)', wikidata='',
                    origine=o, origine_incerta=bool(re.search(r'伝|推定|attributed|\?', contrib)),
-                   sede=sede_cb(c.get('provider', '')), mercato=None, export_senza_meta=False)
+                   sede=sede_cb(c.get('provider', '')), mercato=None, export_senza_meta=False,
+                   **dedotto(o, c, it))
 
 
 def main():
@@ -335,6 +350,7 @@ def scrivi_metriche(opere, luoghi, scarti):
     righe += ['', '## Precisione del luogo d\'origine', '', '| precisione | pezzi |', '| --- | ---: |']
     righe += [f'| {p} | {pct(k)} |' for p, k in prec.most_common()]
     righe += ['', f'Attribuzione del luogo dichiarata incerta dal catalogo: {pct(sum(o["origine_incerta"] for o in opere))}.']
+    righe += ['', f'Senza luogo dichiarato ma con luogo dedotto (Giappone, ColBase/Tokyo, strato separato): {sum(1 for o in opere if o.get("origine_dedotta"))}.']
     righe += ['', '## Origine (prime 15)', '', '| luogo | pezzi |', '| --- | ---: |']
     righe += [f'| {luoghi[o]["nome"] if o else "—"} | {k} |' for o, k in Counter(o['origine'] for o in opere).most_common(15)]
     sedi = Counter(luoghi[o['sede']]['nome'] if o['sede'] else 'sede senza coordinate' for o in opere)

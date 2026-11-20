@@ -94,4 +94,4 @@ promessa è che ogni affermazione dichiari su cosa si regge.
 
 ## Licenze
 
-Codice: Apache 2.0. Asserzioni prodotte: CC0, come le fonti da cui derivano.
+Codice: Apache 2.0. Asserzioni prodotte: CC0, come le fonti da cui derivano. I dati di terzi conservano la propria licenza (per l'atlante: `atlante/LICENZE.md`; i confini storici sono GPL-3.0).

@@ -15,5 +15,5 @@ Rigenerato da `src/qualita.py`. Cella: pezzi · % documentati (blu nel record) �
 | Europa | — | — | — | — | — | — | 3 · 100% · 33% | 4 · 100% · 100% | 86 · 17% · 65% | 222 · 15% · 78% | 27 · 30% · 63% | 3 · 0% · 100% |
 | Americhe | — | — | — | — | — | — | — | — | 3 · 0% · 100% | 7 · 29% · 86% | 5 · 100% · 0% | 1 · 100% · 0% |
 
-Fuori dalla tabella: senza luogo 609, senza data 834, regione non determinata 0, fuori scala (prima dell'800) 4.
+Fuori dalla tabella: senza luogo 609, di cui con luogo dedotto 267, senza data 834, regione non determinata 0, fuori scala (prima dell'800) 4.
 Asserzioni bibliografiche (consumo): 35, in `data/letteratura.csv`.

@@ -45,13 +45,14 @@ def main():
     luoghi = {l['id']: l for l in json.load(open(ROOT / 'web/luoghi.json', encoding='utf-8'))}
     opere = json.load(open(ROOT / 'web/opere.json', encoding='utf-8'))
     celle = defaultdict(lambda: {'n': 0, 'doc': 0, 'citta': 0, 'incerta': 0, 'vam': 0.0})
-    fuori = {'senza luogo': 0, 'senza data': 0, 'regione non determinata': 0, 'fuori scala (prima dell\'800)': 0}
+    fuori = {'senza luogo': 0, 'di cui con luogo dedotto': 0, 'senza data': 0, 'regione non determinata': 0, 'fuori scala (prima dell\'800)': 0}
     for o in opere:
         if o['inizio'] is None:
             fuori['senza data'] += 1
             continue
         if not o['origine']:
             fuori['senza luogo'] += 1
+            fuori['di cui con luogo dedotto'] += bool(o.get('origine_dedotta'))
             continue
         reg = reg_q.get(luoghi[o['origine']]['qid'])
         if not reg:

@@ -23,6 +23,8 @@ Pezzi: **3832** — Met 1643, Cleveland 381, Wikidata fuori dagli Stati Uniti 10
 
 Attribuzione del luogo dichiarata incerta dal catalogo: 36 (0.9%).
 
+Senza luogo dichiarato ma con luogo dedotto (Giappone, ColBase/Tokyo, strato separato): 676.
+
 ## Origine (prime 15)
 
 | luogo | pezzi |
