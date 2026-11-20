@@ -1,0 +1,138 @@
+[
+{
+"regione": "Cina",
+"nome": "Dinastia Yuan",
+"qid": "Q7313",
+"inizio": "1271",
+"fine": "1368",
+"fonte_date": "P571/P576"
+},
+{
+"regione": "Cina",
+"nome": "Dinastia Ming",
+"qid": "Q9903",
+"inizio": "1368",
+"fine": "1644",
+"fonte_date": "P571/P576"
+},
+{
+"regione": "Cina",
+"nome": "Dinastia Qing",
+"qid": "Q8733",
+"inizio": "1636",
+"fine": "1912",
+"fonte_date": "P571/P576"
+},
+{
+"regione": "Corea",
+"nome": "Goryeo",
+"qid": "Q28208",
+"inizio": "918",
+"fine": "1392",
+"fonte_date": "P571/P576"
+},
+{
+"regione": "Corea",
+"nome": "Joseon",
+"qid": "Q28179",
+"inizio": "1392",
+"fine": "1897",
+"fonte_date": "P571/P576"
+},
+{
+"regione": "Giappone",
+"nome": "Periodo Muromachi",
+"qid": "Q334845",
+"inizio": "1336",
+"fine": "1573",
+"fonte_date": "P580/P582"
+},
+{
+"regione": "Giappone",
+"nome": "Periodo Edo",
+"qid": "Q184963",
+"inizio": "1603",
+"fine": "1868",
+"fonte_date": "P580/P582"
+},
+{
+"regione": "Sud-est asiatico",
+"nome": "Dinastia Lê posteriore",
+"qid": "Q878276",
+"inizio": "1428",
+"fine": "1789",
+"fonte_date": "P571/P576"
+},
+{
+"regione": "Sud-est asiatico",
+"nome": "Regno di Ayutthaya",
+"qid": "Q841364",
+"inizio": "1350",
+"fine": "1767",
+"fonte_date": "P571/P576"
+},
+{
+"regione": "Iran e Asia centrale",
+"nome": "Ilkhanato",
+"qid": "Q178084",
+"inizio": "1256",
+"fine": "1335",
+"fonte_date": "P571/P576"
+},
+{
+"regione": "Iran e Asia centrale",
+"nome": "Impero timuride",
+"qid": "Q484195",
+"inizio": "1370",
+"fine": "1507",
+"fonte_date": "P571/P576"
+},
+{
+"regione": "Iran e Asia centrale",
+"nome": "Iran safavide",
+"qid": "Q18234383",
+"inizio": "1501",
+"fine": "1736",
+"fonte_date": "P571/P576"
+},
+{
+"regione": "Iran e Asia centrale",
+"nome": "Iran qajar",
+"qid": "Q63158027",
+"inizio": "1789",
+"fine": "1925",
+"fonte_date": "P571/P576"
+},
+{
+"regione": "Asia meridionale",
+"nome": "Impero moghul",
+"qid": "Q33296",
+"inizio": "1526",
+"fine": "1857",
+"fonte_date": "P571/P576"
+},
+{
+"regione": "Anatolia e Mediterraneo",
+"nome": "Impero ottomano",
+"qid": "Q12560",
+"inizio": "1299",
+"fine": "1922",
+"fonte_date": "P571/P576"
+},
+{
+"regione": "Europa",
+"nome": "Repubblica delle Sette Province Unite",
+"qid": "Q170072",
+"inizio": "1581",
+"fine": "1795",
+"fonte_date": "P571/P576"
+},
+{
+"regione": "Americhe",
+"nome": "Vicereame della Nuova Spagna",
+"qid": "Q170603",
+"inizio": "1521",
+"fine": "1820",
+"fonte_date": "P571/P576"
+}
+]
