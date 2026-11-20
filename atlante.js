@@ -8,7 +8,7 @@ const PREC = {citta: 'città', paese: 'solo paese', regione: 'regione', zona: 'z
 const T0 = 700, T1 = 2000;
 
 const S = {corsie: 'wikidata', year: 1640, win: 25, proj: 'globo', rot: [-40, -28], k: 1, sel: null, place: null, q: '',
-  L: {confini: 1, origini: 1, sedi: 1, spostamenti: 0, mercati: 1, silenzio: 0, ipotetici: 1, vam: 1, letteratura: 1}, F: {met: 1, cma: 1, wd: 1, colbase: 1},
+  L: {confini: 1, origini: 1, sedi: 1, spostamenti: 0, mercati: 1, silenzio: 0, ipotetici: 1, dedotti: 0, vam: 1, letteratura: 1}, F: {met: 1, cma: 1, wd: 1, colbase: 1},
   tav: [], mode: 'ricerca', tappa: 0};
 let QU = null, qmet = 'doc', LET = null, lagg = [], PO = null, VAM = null, vagg = [], NOD = [], O = [], LU = {}, PER = [], ANNI = [], TERRE = null, CONF = {}, act = [], agg = [];
 
@@ -65,12 +65,14 @@ function confini(y) {
   return {anno: a, geo: CONF[a] && CONF[a] !== 'caricamento' ? CONF[a] : null};
 }
 
+// luogo dichiarato; quello dedotto solo se lo strato e' acceso, e mai al posto del dichiarato
+const luogo = x => x.o ? x.origine : S.L.dedotti && LU[x.origine_dedotta] ? x.origine_dedotta : null;
 function filtra() {
   const q = S.q.toLowerCase();
   act = O.filter(x => x.inizio <= S.year + S.win && x.fine >= S.year - S.win && S.F[x.fonte] &&
     (S.L.ipotetici || x.grado === 'documentato') && (!q || x.hay.includes(q)));
   const m = new Map();
-  for (const x of act) { if (!x.o) continue; const g = m.get(x.origine) || {id: x.origine, l: x.o, n: 0, doc: 0, inc: 0}; g.n++; if (x.grado === 'documentato') g.doc++; if (x.origine_incerta) g.inc++; m.set(x.origine, g); }
+  for (const x of act) { const id = luogo(x); if (!id) continue; const g = m.get(id) || {id, l: LU[id], n: 0, doc: 0, inc: 0, ded: 0}; g.n++; if (x.grado === 'documentato') g.doc++; if (x.origine_incerta) g.inc++; if (!x.o) g.ded++; m.set(id, g); }
   agg = [...m.values()].sort((a, b) => b.n - a.n);
   const vm = new Map();
   if (VAM) for (const c of VAM.celle) if (c.d + 9 >= S.year - S.win && c.d <= S.year + S.win) vm.set(c.l, (vm.get(c.l) || 0) + c.n);
@@ -169,7 +171,7 @@ cv.addEventListener('pointermove', e => {
   let pol = '';
   if (!g && S.L.confini) { const c = proj.invert([e.clientX - b.left, e.clientY - b.top]), cf = confini(S.year); if (c && cf.geo) { const f = cf.geo.features.find(f => f.properties.NAME && d3.geoContains(f, c)); if (f) pol = f.properties.NAME; } }
   if (g || pol) { tip.style.display = 'block'; tip.style.left = (e.clientX - b.left + 14) + 'px'; tip.style.top = (e.clientY - b.top + 10) + 'px';
-    tip.innerHTML = g && g.let ? `<b>${esc(g.l.nome)}</b> · ${g.n} dati dalla letteratura<br><span class="sub">sito archeologico: consumo, non produzione</span>` : g && g.vam ? `<b>${esc(g.l.nome)}</b> · V&A ~${Math.round(g.n)} pezzi<br><span class="sub">solo conteggio aggregato</span>` : g ? `<b>${esc(g.l.nome)}</b> · ${g.n} pezzi<br><span class="sub">${PREC[g.l.precisione]}${g.inc ? ' · ' + g.inc + ' attribuzioni incerte' : ''}</span>` : `${esc(pol)}<br><span class="sub">confini del ${fmtY(confini(S.year).anno)}</span>`; }
+    tip.innerHTML = g && g.let ? `<b>${esc(g.l.nome)}</b> · ${g.n} dati dalla letteratura<br><span class="sub">sito archeologico: consumo, non produzione</span>` : g && g.vam ? `<b>${esc(g.l.nome)}</b> · V&A ~${Math.round(g.n)} pezzi<br><span class="sub">solo conteggio aggregato</span>` : g ? `<b>${esc(g.l.nome)}</b> · ${g.n} pezzi<br><span class="sub">${PREC[g.l.precisione]}${g.inc ? ' · ' + g.inc + ' attribuzioni incerte' : ''}${g.ded ? ' · ' + g.ded + ' con luogo dedotto' : ''}</span>` : `${esc(pol)}<br><span class="sub">confini del ${fmtY(confini(S.year).anno)}</span>`; }
   else tip.style.display = 'none';
 });
 cv.addEventListener('pointerup', e => {
@@ -262,7 +264,7 @@ $('#play').onclick = () => { const b = $('#play'); if (timer) { clearInterval(ti
 function scheda(x) {
   const o = x.o, inT = S.tav.some(c => c.id === x.id);
   return `<h2>${esc(x.titolo)}</h2>
-  <div style="margin-top:8px"><span class="tag ${x.grado === 'documentato' ? 'doc' : 'ipo'}">${x.grado}</span>${x.origine_incerta ? '<span class="tag ipo">attribuzione incerta</span>' : ''}${x.mercato ? '<span class="tag fe">per un mercato</span>' : ''}</div>
+  <div style="margin-top:8px"><span class="tag ${x.grado === 'documentato' ? 'doc' : 'ipo'}">${x.grado}</span>${x.origine_incerta ? '<span class="tag ipo">attribuzione incerta</span>' : ''}${!x.origine && x.origine_dedotta ? `<span class="tag ipo" title="${esc(x.criterio_luogo)}">luogo dedotto</span>` : ''}${x.mercato ? '<span class="tag fe">per un mercato</span>' : ''}</div>
   <div class="k">Cultura, come la scrive il catalogo</div><div class="v">${esc(x.cultura) || '—'}</div>
   <div class="k">Data</div><div class="v">${esc(x.data_testo) || '—'} <span class="sub">(intervallo ${fmtY(x.inizio)}–${fmtY(x.fine)})</span></div>
   <div class="k">Tecnica</div><div class="v">${esc(x.tecnica) || '—'}</div>
@@ -283,7 +285,7 @@ function renderCtx() {
       return `<div class="row" style="cursor:default;display:block"><b>${esc(a.tipo)}</b> · ${a.inizio}–${a.fine}<br>${a.misura === 'presenza' ? 'presenza attestata' : ''}${a.frammenti ? esc(a.frammenti) + ' ' + esc(a.unita || 'frammenti') : ''}${a.percentuale ? ' · ' + esc(a.percentuale) + '%' : ''}${a.base ? ' <span class="sub">su ' + esc(a.base) + '</span>' : ''}
       <div class="sub">${esc(f.autori)} ${esc(f.anno)}, ${esc(a.pagina)}${a.nota ? ' — ' + esc(a.nota) : ''} · <a href="${esc(f.url)}">fonte</a></div></div>`; }).join('') || '<p class="sub">Nessun dato in questa finestra.</p>'}
     <div class="acts"><button data-back>Indietro</button></div>`; return; }
-  if (S.place) { const g = agg.find(g => g.id === S.place), l = LU[S.place], xs = act.filter(x => x.origine === S.place).sort((a, b) => a.inizio - b.inizio);
+  if (S.place) { const g = agg.find(g => g.id === S.place), l = LU[S.place], xs = act.filter(x => luogo(x) === S.place).sort((a, b) => a.inizio - b.inizio);
     c.innerHTML = `<h2>${esc(l.nome)}</h2><div class="sub" style="margin-top:4px">${PREC[l.precisione]} · <a href="https://www.wikidata.org/wiki/${l.qid}">${l.qid}</a> · ${esc(l.metodo)}</div>
     <div class="big" style="margin:14px 0 2px">${xs.length}</div><div class="sub">pezzi fra ${fmtY(S.year - S.win)} e ${fmtY(S.year + S.win)}${g && g.inc ? ` · ${g.inc} con attribuzione incerta` : ''}</div>
     ${(() => { const v = vagg.find(v => v.id === S.place); return v ? `<p class="sub" style="margin-top:8px">V&A, nella stessa finestra: ~${Math.round(v.n)} pezzi (solo conteggio, nessuna scheda: condizioni d'uso del V&A).</p>` : ''; })()}
@@ -343,7 +345,7 @@ let Lr = null;
 function applyTappa() {
   const t = TAPPE[S.tappa]; if (!Lr) Lr = {...S.L};
   S.year = t.y; S.win = t.w; S.rot = [...t.rot]; S.k = 1; S.place = null; S.sel = null;
-  S.L = {confini: 1, origini: 1, sedi: 0, spostamenti: 0, mercati: 0, silenzio: 0, ipotetici: 1, vam: 0, letteratura: 0, ...t.L};
+  S.L = {confini: 1, origini: 1, sedi: 0, spostamenti: 0, mercati: 0, silenzio: 0, ipotetici: 1, dedotti: 0, vam: 0, letteratura: 0, ...t.L};
   update();
   const inHi = act.filter(x => t.hi.includes(x.origine)), ipo = inHi.filter(x => x.grado === 'ipotetico').length;
   const poDati = () => { if (!PO) return 'PeriodO non caricato.'; return 'Nel ' + fmtY(t.y) + ': ' + REG_PO.map(r => { const ps = PO.periodi.filter(p => p.r === r && p.a <= t.y && p.b >= t.y); if (!ps.length) return ''; const lg = {}; for (const p of ps) lg[p.lg] = (lg[p.lg] || 0) + 1;
