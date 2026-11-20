@@ -267,9 +267,9 @@ function renderCtx() {
   if (sel) { c.innerHTML = scheda(sel); return; }
   if (S.place && S.place.startsWith('sito:')) { const g = lagg.find(g => g.id === S.place), l = LU[S.place];
     c.innerHTML = `<h2>${esc(l.nome)}</h2><div class="sub" style="margin-top:4px">sito archeologico · <a href="https://www.wikidata.org/wiki/${l.qid}">${l.qid}</a></div>
-    <p class="sub" style="margin-top:10px">Qui la porcellana è stata usata, non fatta. Numeri ricavati da pubblicazioni: ognuno con la sua pagina.</p>
+    <p class="sub" style="margin-top:10px">Qui la porcellana è stata usata, raccolta o conservata, non fatta. Numeri ricavati da pubblicazioni: ognuno con la sua pagina o il suo paragrafo.</p>
     ${(g ? g.as : []).map(a => { const f = LET.fonti[a.fonte_id] || {};
-      return `<div class="row" style="cursor:default;display:block"><b>${esc(a.tipo)}</b> · ${a.inizio}–${a.fine}<br>${a.misura === 'presenza' ? 'presenza attestata' : ''}${a.frammenti ? esc(a.frammenti) + ' frammenti' : ''}${a.percentuale ? ' · ' + esc(a.percentuale) + '%' : ''}${a.base ? ' <span class="sub">su ' + esc(a.base) + '</span>' : ''}
+      return `<div class="row" style="cursor:default;display:block"><b>${esc(a.tipo)}</b> · ${a.inizio}–${a.fine}<br>${a.misura === 'presenza' ? 'presenza attestata' : ''}${a.frammenti ? esc(a.frammenti) + ' ' + esc(a.unita || 'frammenti') : ''}${a.percentuale ? ' · ' + esc(a.percentuale) + '%' : ''}${a.base ? ' <span class="sub">su ' + esc(a.base) + '</span>' : ''}
       <div class="sub">${esc(f.autori)} ${esc(f.anno)}, ${esc(a.pagina)}${a.nota ? ' — ' + esc(a.nota) : ''} · <a href="${esc(f.url)}">fonte</a></div></div>`; }).join('') || '<p class="sub">Nessun dato in questa finestra.</p>'}
     <div class="acts"><button data-back>Indietro</button></div>`; return; }
   if (S.place) { const g = agg.find(g => g.id === S.place), l = LU[S.place], xs = act.filter(x => x.origine === S.place).sort((a, b) => a.inizio - b.inizio);
