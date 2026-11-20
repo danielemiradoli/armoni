@@ -53,6 +53,8 @@ cd web && python3 -m http.server
 - 11 asserzioni da Zhao Bing 2015 (*Afriques* 06, accesso aperto), letto per intero dal browser di Daniele: 7 siti fra Kenya e Tanzania. Ogni riga porta paragrafo e nota.
 - Percentuali di ceramica dell'Estremo Oriente sul totale dei frammenti: 0,12% a Shanga, 0,9% a Gedi. Il blu e bianco qui è un bene raro, di élite.
 - Ardabil (Medley, *Encyclopaedia Iranica* 1986, accesso aperto): il dono di Shah Abbas I contava 1.162 porcellane, circa 400 blu e bianche, installate nel 1611; 805 portate a Teheran nel 1935. La curva per secolo (37 del XIV, oltre 200 del primo XV, 25-30 del tardo XV, oltre 120 del XVI) segue il calo del commercio dopo il 1436. Il blu e bianco del Trecento di Topkapı viene dal saccheggio della collezione reale di Tabriz nel 1516.
+- Topkapı (Tufan, *Millî Saraylar* 26, 2024, in turco, scritto dal responsabile della collezione): 5.373 blu e bianchi in inventario su ~12.000 porcellane cinesi; per epoca 40 Yuan, 54 primo Ming, 288 medio Ming, 2.308 tardo Ming, 2.680 primo Qing (somma 5.370: scarto di 3). Nel 1582, per la festa del principe Mehmed, 397 porcellane cinesi dal tesoro non bastarono: si comprarono 541 piatti di Iznik al bazar.
+- Galeone di Manila (Von der Porten 2015, riassunto su tDAR): le porcellane di Drake (1579) e del San Agustín (1595) a Drakes Bay; il carico kraak di un galeone in Baja California datato 1575-1577, con identificazione poi rivista. I Miwok ne fecero gioielli (Zhao 2015 §30).
 - Tre tipi di misura: conteggio, percentuale, presenza; unità «frammenti» (scavi) o «pezzi» (collezioni). Una presenza non porta numeri.
 - Zhao 2012 (*Journal of World History*) non è ad accesso aperto: su HAL c'è solo la scheda.
 
