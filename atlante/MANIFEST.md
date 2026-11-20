@@ -10,6 +10,7 @@ Licenza registrata **per campo**, non per fonte (vedi `claude/integrazione_visio
 | `cma_data.csv` | `media.githubusercontent.com/media/ClevelandMuseumArt/openaccess/master/data.csv` | `cbcbec43a61f68cd…` | titolo, cultura, date, tecnica, descrizione, url | CC0 (`share_license_status`) | non usate: il CDN non è raggiungibile e la pagina pubblicata non carica immagini remote |
 | `data/luoghi.csv` | Wikidata, query in `data/query/luoghi*.rq`, `zone.rq` | nel repository | coordinate P625, QID | CC0 | — |
 | `data/periodi.csv` | Wikidata, `data/query/periodi.rq` | nel repository | P571/P576 o P580/P582 | CC0 | — |
+| `wikidata_ceramiche.csv` | Wikidata, `data/query/wikidata_ceramiche.rq` (oggetti in porcellana o ceramica con collezione fuori dagli Stati Uniti; 3.688 item, uguale al `COUNT` indipendente) | `02f799d3d8831b03…` | etichette, descrizioni, P571 con precisione, P495, P1071, P195 | CC0 | — |
 | `web/confini/*.json` | `aourednik/historical-basemaps`, `geojson/world_<anno>.geojson`, semplificati al 4% con mapshaper | sotto | NAME, geometrie | **GPL-3.0** | — |
 | `web/terre.json` | npm `world-atlas@2.0.2`, `land-110m.json` (Natural Earth) | — | geometrie | pacchetto ISC, dati Natural Earth di pubblico dominio | — |
 

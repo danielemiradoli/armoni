@@ -2,25 +2,26 @@
 
 Rigenerato da `src/build.py`. Ogni cifra si ricalcola dai file in `data/`.
 
-Pezzi: **2024** — Met 1643, Cleveland 381.
+Pezzi: **2125** — Met 1643, Cleveland 381, Wikidata fuori dagli Stati Uniti 101.
 
 ## Inclusione
 
 | grado | pezzi |
 | --- | ---: |
-| documentato | 1616 (79.8%) |
-| ipotetico | 408 (20.2%) |
+| documentato | 1648 (77.6%) |
+| ipotetico | 477 (22.4%) |
 
 ## Precisione del luogo d'origine
 
 | precisione | pezzi |
 | --- | ---: |
-| paese | 1514 (74.8%) |
-| citta | 503 (24.9%) |
+| paese | 1518 (71.4%) |
+| citta | 520 (24.5%) |
+| nessun luogo | 81 (3.8%) |
 | regione | 5 (0.2%) |
-| nessun luogo | 2 (0.1%) |
+| zona | 1 (0.0%) |
 
-Attribuzione del luogo dichiarata incerta dal catalogo: 32 (1.6%).
+Attribuzione del luogo dichiarata incerta dal catalogo: 32 (1.5%).
 
 ## Origine (prime 15)
 
@@ -30,17 +31,36 @@ Attribuzione del luogo dichiarata incerta dal catalogo: 32 (1.6%).
 | Giappone | 614 |
 | Delft | 201 |
 | Iznik | 107 |
+| — | 81 |
 | Paesi Bassi | 68 |
 | Jingdezhen | 59 |
 | Vietnam | 49 |
 | Kashan | 35 |
 | Iran | 31 |
 | Corea | 22 |
+| Hoshigaoka Kiln | 14 |
 | Kütahya | 13 |
 | Worcester | 12 |
 | Nishapur | 12 |
-| Arita | 12 |
-| Egitto | 11 |
+
+## Dove sono conservati
+
+| sede | pezzi |
+| --- | ---: |
+| Metropolitan Museum, New York | 1643 |
+| Cleveland Museum of Art | 381 |
+| Coleção Museu Paulista | 65 |
+| Setagaya Art Museum | 11 |
+| Museu do Centro Científico e Cultural de Macau | 8 |
+| National Palace Museum | 5 |
+| Coleção Museu de Itaipu | 2 |
+| Stedelijk Museum Het Prinsenhof | 1 |
+| Museu Nacional de Tóquio | 1 |
+| Museu de Xangai | 1 |
+| Kyushu Ceramic Museum | 1 |
+| Tsurui Museum of Art | 1 |
+
+Origine Wikidata = Repubblica Popolare Cinese per oggetti anteriori al 1949: 0.
 
 ## Mercati di destinazione dichiarati nel catalogo
 
@@ -48,7 +68,7 @@ Con mercato riconosciuto: 9. «Export» senza destinazione: 3.
 
 ## Date
 
-Senza intervallo utilizzabile: 0.
+Senza intervallo utilizzabile: 74.
 
 ## Licenze
 
@@ -56,4 +76,5 @@ Senza intervallo utilizzabile: 0.
 | --- | ---: |
 | CC0 | 1904 |
 | metadati CC0; immagine non di pubblico dominio | 111 |
+| CC0 (Wikidata) | 101 |
 | diritti: Copyrighted | 9 |

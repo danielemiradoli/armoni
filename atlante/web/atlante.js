@@ -8,9 +8,9 @@ const PREC = {citta: 'città', paese: 'solo paese', regione: 'regione', zona: 'z
 const T0 = 700, T1 = 2000;
 
 const S = {year: 1640, win: 25, proj: 'globo', rot: [-40, -28], k: 1, sel: null, place: null, q: '',
-  L: {confini: 1, origini: 1, sedi: 1, spostamenti: 0, mercati: 1, silenzio: 0, ipotetici: 1}, F: {met: 1, cma: 1},
+  L: {confini: 1, origini: 1, sedi: 1, spostamenti: 0, mercati: 1, silenzio: 0, ipotetici: 1}, F: {met: 1, cma: 1, wd: 1},
   tav: [], mode: 'ricerca', tappa: 0};
-let O = [], LU = {}, PER = [], ANNI = [], TERRE = null, CONF = {}, act = [], agg = [];
+let NOD = [], O = [], LU = {}, PER = [], ANNI = [], TERRE = null, CONF = {}, act = [], agg = [];
 
 const TAPPE = [
  {t: 'Blu su bianco, prima della porcellana', y: 850, w: 60, rot: [-44, -30], L: {}, hi: ['Iraq'],
@@ -28,13 +28,14 @@ const TAPPE = [
  {t: 'Il galeone di Manila e Puebla', y: 1710, w: 40, rot: [100, -18], L: {}, hi: ['Puebla City', 'Mexico'],
   p: 'Attraverso il Pacifico la porcellana cinese arriva nella Nuova Spagna; a Puebla i vasai dipingono in blu una maiolica che risponde a quella e alla Talavera spagnola. Tutti i pezzi di Puebla in questi dati sono ipotetici: nessun record nomina il blu.'},
  {t: 'Ciò che questi dati non mostrano', y: 1600, w: 400, rot: [-40, 2], L: {silenzio: 1, sedi: 1, spostamenti: 1}, hi: [],
-  p: 'Tutti i pezzi di questo atlante sono conservati in due musei degli Stati Uniti. La costa swahili, dove la porcellana cinese fu murata in moschee e tombe, il Sud-est asiatico insulare, i luoghi del consumo nelle Americhe: qui sono vuoti delle fonti, non vuoti della storia.'}
+  p: 'Quasi tutti i pezzi di questo atlante sono conservati in due musei degli Stati Uniti; la terza fonte, Wikidata, aggiunge poche sedi in Brasile e in Asia orientale, e molti dei suoi pezzi non hanno data. La costa swahili, dove la porcellana cinese fu murata in moschee e tombe, il Sud-est asiatico insulare, i luoghi del consumo nelle Americhe: qui sono vuoti delle fonti, non vuoti della storia.'}
 ];
 
 /* ---------- dati ---------- */
 const j = u => fetch(u).then(r => { if (!r.ok) throw new Error(u); return r.json(); });
 Promise.all([j('opere.json'), j('luoghi.json'), j('periodi.json'), j('confini/anni.json'), j('terre.json')]).then(([o, l, p, a, t]) => {
   for (const x of l) LU[x.id] = {...x, lat: +x.lat, lon: +x.lon};
+  NOD = o.filter(x => x.inizio == null);
   O = o.filter(x => x.inizio != null).map(x => ({...x, o: LU[x.origine], s: LU[x.sede], m: LU[x.mercato],
     hay: (x.titolo + ' ' + x.cultura + ' ' + x.tecnica).toLowerCase()}));
   PER = p.map(x => ({...x, inizio: +x.inizio, fine: +x.fine}));
@@ -84,7 +85,7 @@ function draw() {
   if (S.L.confini && cf.geo) { ctx.beginPath(); path(cf.geo); ctx.strokeStyle = co; ctx.globalAlpha = .42; ctx.lineWidth = .7; ctx.stroke(); ctx.globalAlpha = 1; }
   const hi = S.mode === 'percorso' ? new Set(TAPPE[S.tappa].hi) : null;
   if (S.L.spostamenti) {
-    const m = new Map(); for (const x of act) if (x.o) { const k = x.origine + '>' + x.sede; m.set(k, (m.get(k) || 0) + 1); }
+    const m = new Map(); for (const x of act) if (x.o && x.s) { const k = x.origine + '>' + x.sede; m.set(k, (m.get(k) || 0) + 1); }
     for (const [k, n] of m) { const [a, b] = k.split('>'); ctx.beginPath(); path({type: 'LineString', coordinates: [[LU[a].lon, LU[a].lat], [LU[b].lon, LU[b].lat]]}); ctx.strokeStyle = co; ctx.globalAlpha = Math.min(.5, .06 + n / 120); ctx.lineWidth = 1 + Math.sqrt(n) / 3; ctx.stroke(); }
     ctx.globalAlpha = 1;
   }
@@ -101,7 +102,7 @@ function draw() {
     ctx.globalAlpha = 1;
     if (r > 9 || (hi && hi.has(g.id))) { ctx.font = '12px "Instrument Sans",sans-serif'; ctx.fillStyle = ink; ctx.fillText(g.l.nome, x + r + 4, y + 4); }
   }
-  if (S.L.sedi) for (const k of ['Metropolitan Museum of Art', 'Cleveland Museum of Art']) {
+  if (S.L.sedi) for (const k of new Set(act.map(x => x.sede).filter(Boolean))) {
     const l = LU[k]; if (!l || !visibile([l.lon, l.lat])) continue; const [x, y] = proj([l.lon, l.lat]);
     ctx.fillStyle = ink; ctx.fillRect(x - 4, y - 4, 8, 8);
   }
@@ -113,7 +114,8 @@ function draw() {
 function chip(anno) {
   const n = act.length, paese = act.filter(x => x.o && x.o.precisione !== 'citta').length, ipo = act.filter(x => x.grado === 'ipotetico').length;
   let h = `<b>${n}</b> pezzi attivi · confini del ${fmtY(anno)}`;
-  if (S.L.silenzio && n) h += `<br>${Math.round(100 * paese / n)}% localizzati solo per paese · ${ipo} ipotetici · ${act.filter(x => !x.o).length} senza luogo<br>tutti conservati in 2 musei degli Stati Uniti`;
+  if (S.L.silenzio && n) { const us = act.filter(x => x.fonte !== 'wd').length, sedi = new Set(act.map(x => x.sede).filter(Boolean)).size, pu = 100 * us / n;
+    h += `<br>${Math.round(100 * paese / n)}% localizzati solo per paese · ${ipo} ipotetici · ${act.filter(x => !x.o).length} senza luogo<br>${sedi} sedi di conservazione · ${pu > 99 && pu < 100 ? pu.toFixed(1) : Math.round(pu)}% negli Stati Uniti<br>${NOD.filter(x => S.F[x.fonte]).length} pezzi senza data: esistono nei dati, non nel tempo`; }
   $('#chip').innerHTML = h;
 }
 
@@ -199,7 +201,7 @@ function scheda(x) {
   <div class="k">Tecnica</div><div class="v">${esc(x.tecnica) || '—'}</div>
   <div class="k">Luogo d'origine</div><div class="v">${o ? `${esc(o.nome)} <span class="sub">· ${PREC[o.precisione]} · <a href="https://www.wikidata.org/wiki/${o.qid}">${o.qid}</a></span>` : 'non determinabile dal record'}</div>
   ${x.m ? `<div class="k">Mercato di destinazione</div><div class="v">${esc(x.m.nome)} <span class="sub">· dichiarato dal catalogo</span></div>` : ''}
-  <div class="k">Dove si trova oggi</div><div class="v">${esc(x.s.nome)}</div>
+  <div class="k">Dove si trova oggi</div><div class="v">${x.s ? esc(x.s.nome) : 'sede senza coordinate'}</div>
   <div class="k">Perché è nell'atlante</div><div class="v">${esc(x.criterio)}</div>
   <div class="k">Fonte e licenza</div><div class="v"><a href="${esc(x.url)}">scheda del museo</a>${x.wikidata ? ` · <a href="https://www.wikidata.org/wiki/${esc(x.wikidata)}">${esc(x.wikidata)}</a>` : ''} · ${esc(x.licenza)}</div>
   <div class="acts"><button data-tav="${x.id}" ${inT ? 'disabled' : ''}>${inT ? 'Già sul tavolo' : 'Metti sul tavolo'}</button><button data-centra="${x.id}">Centra sul luogo</button><button data-back>Indietro</button></div>`;
@@ -268,7 +270,7 @@ function applyTappa() {
   update();
   const inHi = act.filter(x => t.hi.includes(x.origine)), ipo = inHi.filter(x => x.grado === 'ipotetico').length;
   const dati = t.hi.length ? `Fra ${fmtY(t.y - t.w)} e ${fmtY(t.y + t.w)} i dati contengono <b>${act.length}</b> pezzi; <b>${inHi.length}</b> vengono dai luoghi evidenziati${ipo ? `, di cui ${ipo} ipotetici` : ''}.`
-    : `<b>${O.length}</b> pezzi in tutto. Il ${Math.round(100 * O.filter(x => x.o && x.o.precisione !== 'citta').length / O.length)}% è localizzato solo per paese.`;
+    : `<b>${O.length}</b> pezzi con data, ${NOD.length} senza. Il ${Math.round(100 * O.filter(x => x.o && x.o.precisione !== 'citta').length / O.length)}% è localizzato solo per paese; il ${Math.round(100 * O.filter(x => x.fonte !== 'wd').length / O.length)}% è conservato negli Stati Uniti.`;
   $('#nar').innerHTML = `<div class="step">Tappa ${S.tappa + 1} di ${TAPPE.length} · ${fmtY(t.y)}</div><h2>${esc(t.t)}</h2><p>${t.p}</p><div class="dati">${dati}</div>
   <div class="acts"><button data-go="${Math.max(0, S.tappa - 1)}" ${S.tappa ? '' : 'disabled'}>← Precedente</button><button data-go="${Math.min(TAPPE.length - 1, S.tappa + 1)}" ${S.tappa < TAPPE.length - 1 ? '' : 'disabled'}>Successiva →</button></div>
   <div class="dots">${TAPPE.map((_, i) => `<button data-go="${i}" aria-pressed="${i === S.tappa}" aria-label="Tappa ${i + 1}">${i + 1}</button>`).join('')}</div>

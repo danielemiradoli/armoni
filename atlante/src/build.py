@@ -139,6 +139,75 @@ def da_cma(path):
                    wikidata='')
 
 
+# Wikidata: blu dichiarato in etichette o descrizioni (pt, en, ja, zh, fr, ...).
+# Niente 'cobalt' nudo e niente 'azul' dentro 'azulejo': 'cobalt blue glaze' e 'sky blue glaze' sono monocromi.
+BLU_WD = re.compile(r'underglazed?[- ](?:cobalt[- ]?)?blue|underglaze cobalt|blue[- ]and[- ]white|blue and white|'
+                    r'azul[- ]e[- ]branco|azul[- ]cobalto|\bazul\b|bleu de cobalt|bleu et blanc|染付|青花|sometsuke|qinghua', re.I)
+FAMIGLIE_WD = FAMIGLIE + [('azulejo', r'azulejo')]
+PRC = 'Q148'  # Repubblica Popolare Cinese, fondata nel 1949
+
+
+def intervallo_wd(data, prec, a, b):
+    """Intervallo da P571. Con precisione 'secolo' l'anno registrato e' ambiguo (1800 = XVIII o XIX?):
+    si tengono entrambe le letture invece di sceglierne una."""
+    if a and b:
+        return anno(a[:5].rstrip('-')), anno(b[:5].rstrip('-')), 'P1319/P1326'
+    if not data:
+        return None, None, None
+    y = anno(re.match(r'[+-]?\d+', data).group(0))
+    p = int(float(prec)) if prec else 9
+    if p >= 9:
+        return y, y, 'anno'
+    if p == 8:
+        return y - y % 10, y - y % 10 + 9, 'decennio'
+    if p == 7:
+        c = (y // 100) * 100
+        return c - 99, c + 100, 'secolo (lettura ambigua: entrambe tenute)'
+    return None, None, None
+
+
+def da_wd(path, luoghi):
+    qid2id = {r['qid']: k for k, r in luoghi.items()}
+    q = lambda u: u.rsplit('/', 1)[-1] if u else ''
+    def luogo(qid, nome, coord, prec, metodo):
+        if not qid:
+            return None
+        if qid in qid2id:
+            return qid2id[qid]
+        if coord and qid not in luoghi:
+            lo, la = re.match(r'Point\(([-\d.]+) ([-\d.]+)\)', coord).groups()
+            luoghi[qid] = dict(id=qid, nome=nome or qid, qid=qid, lat=round(float(la), 4), lon=round(float(lo), 4),
+                               precisione=prec, metodo=metodo)
+        return qid if qid in luoghi else None
+    d = pd.read_csv(path, dtype=str).fillna('')
+    for w, g in d.groupby('w', sort=False):
+        uniq = lambda c: sorted(set(x for x in g[c] if x))
+        testo = ' | '.join(uniq('lab') + uniq('desc'))
+        if re.search(r'monochrome|sky blue glaze|cobalt blue glaze|blue[- ]glazed|霽青|天青', testo, re.I) and not re.search(r'underglaze|染付|青花', testo):
+            continue
+        m = BLU_WD.search(testo)
+        if m:
+            grado, crit = 'documentato', 'blu dichiarato su Wikidata: «%s»' % m.group(0)
+        else:
+            fam = trova(FAMIGLIE_WD, testo)
+            if not fam:
+                continue
+            grado, crit = 'ipotetico', 'genere o manifattura %s; Wikidata non nomina il blu' % fam
+        r = g.iloc[0]
+        ini, fin, prec = intervallo_wd(r['data'], r['prec'], r['inizio'], r['fine'])
+        crea = luogo(q(r['crea']), r['creaLab'], r['creaCoord'], 'citta', 'P1071 su Wikidata')
+        orig = crea or luogo(q(r['orig']), r['origLab'], r['origCoord'], 'paese', 'P495 su Wikidata')
+        sede = luogo(q(r['col']), r['colLab'], next((c for c in g['colCoord'] if c), ''), 'istituzione',
+                     'P625 della collezione o della sua sede')
+        titoli = uniq('lab')
+        yield dict(id='wd:' + q(w), fonte='wd', titolo=next((t for t in titoli if re.match(r'[A-Za-zÀ-ÿ]', t)), titoli[0] if titoli else q(w)),
+                   cultura=' | '.join(titoli[1:3]), data_testo=(r['data'][:4].lstrip('+') + f' ({prec})') if prec else '',
+                   inizio=ini, fine=fin, tecnica=' | '.join(uniq('desc'))[:300], grado=grado, criterio=crit,
+                   url=w, licenza='CC0 (Wikidata)', wikidata=q(w), origine=orig, origine_incerta=False,
+                   origine_anacronistica=q(r['orig']) == PRC and fin is not None and fin < 1949,
+                   sede=sede, mercato=None, export_senza_meta=False)
+
+
 def main():
     luoghi = {r['id']: r for r in csv.DictReader(open(ROOT / 'data/luoghi.csv', encoding='utf-8'))}
     opere, scarti = [], Counter()
@@ -150,6 +219,11 @@ def main():
         mk, export = mercato(rec['cultura'])
         rec.update(origine=o, origine_incerta=bool(INCERTO.search(rec['cultura'])), sede=SEDI[rec['fonte']],
                    mercato=mk, export_senza_meta=export)
+        opere.append(rec)
+    for rec in da_wd(ROOT / 'data/raw/wikidata_ceramiche.csv', luoghi):
+        if rec['inizio'] is None or rec['fine'] is None or rec['inizio'] > rec['fine']:
+            scarti['date assenti o invertite'] += 1
+            rec['inizio'] = rec['fine'] = None
         opere.append(rec)
 
     web = ROOT / 'web'
@@ -169,7 +243,8 @@ def scrivi_metriche(opere, luoghi, scarti):
     prec = Counter(luoghi[o['origine']]['precisione'] if o['origine'] else 'nessun luogo' for o in opere)
     righe = ['# Metriche dell\'atlante — taglio «blu e bianco»', '',
              'Rigenerato da `src/build.py`. Ogni cifra si ricalcola dai file in `data/`.', '',
-             f'Pezzi: **{n}** — Met {sum(o["fonte"] == "met" for o in opere)}, Cleveland {sum(o["fonte"] == "cma" for o in opere)}.', '',
+             f'Pezzi: **{n}** — Met {sum(o["fonte"] == "met" for o in opere)}, Cleveland {sum(o["fonte"] == "cma" for o in opere)}, '
+             f'Wikidata fuori dagli Stati Uniti {sum(o["fonte"] == "wd" for o in opere)}.', '',
              '## Inclusione', '', '| grado | pezzi |', '| --- | ---: |']
     righe += [f'| {g} | {pct(k)} |' for g, k in Counter(o['grado'] for o in opere).most_common()]
     righe += ['', '## Precisione del luogo d\'origine', '', '| precisione | pezzi |', '| --- | ---: |']
@@ -177,6 +252,11 @@ def scrivi_metriche(opere, luoghi, scarti):
     righe += ['', f'Attribuzione del luogo dichiarata incerta dal catalogo: {pct(sum(o["origine_incerta"] for o in opere))}.']
     righe += ['', '## Origine (prime 15)', '', '| luogo | pezzi |', '| --- | ---: |']
     righe += [f'| {luoghi[o]["nome"] if o else "—"} | {k} |' for o, k in Counter(o['origine'] for o in opere).most_common(15)]
+    sedi = Counter(luoghi[o['sede']]['nome'] if o['sede'] else 'sede senza coordinate' for o in opere)
+    righe += ['', '## Dove sono conservati', '', '| sede | pezzi |', '| --- | ---: |']
+    righe += [f'| {k} | {v} |' for k, v in sedi.most_common(12)]
+    righe += ['', f'Origine Wikidata = Repubblica Popolare Cinese per oggetti anteriori al 1949: '
+              f'{sum(o.get("origine_anacronistica", False) for o in opere)}.']
     righe += ['', '## Mercati di destinazione dichiarati nel catalogo', '',
               f'Con mercato riconosciuto: {sum(1 for o in opere if o["mercato"])}. '
               f'«Export» senza destinazione: {sum(o["export_senza_meta"] for o in opere)}.', '']

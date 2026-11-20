@@ -49,3 +49,23 @@ def test_mercato_non_inventato():
 def test_cina_per_portogallo():
     o = [o for o in OPERE if o['cultura'] == 'Chinese, for Portuguese market']
     assert o and all(x['origine'] == 'China' and x['mercato'] == 'Portugal' for x in o)
+
+
+WD = [o for o in OPERE if o['fonte'] == 'wd']
+
+
+def test_azulejo_non_e_azul():
+    # 'azulejo' contiene 'azul' ma significa piastrella: senza blu dichiarato resta ipotetico
+    az = [o for o in WD if 'azulejo' in o['titolo'].lower()]
+    assert az and all(o['grado'] == 'ipotetico' for o in az)
+
+
+def test_monocromi_esclusi():
+    assert not [o for o in WD if re.search(r'sky blue glaze|cobalt blue glaze', o['titolo'] + o['tecnica'], re.I)
+                and not re.search(r'underglaze', o['titolo'] + o['tecnica'], re.I)]
+
+
+def test_secolo_ambiguo_tiene_entrambe_le_letture():
+    import sys; sys.path.insert(0, str(ROOT / 'src'))
+    from build import intervallo_wd
+    assert intervallo_wd('+1800-00-00T00:00:00Z', '7', '', '') [:2] == (1701, 1900)

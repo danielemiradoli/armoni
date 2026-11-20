@@ -1,0 +1,16 @@
+# Oggetti in porcellana o ceramica conservati fuori dagli Stati Uniti, con tutto cio' che serve all'atlante.
+# Una riga per combinazione di valori: build.py ricompone per item.
+SELECT ?w ?lab ?desc ?inizio ?fine ?data ?prec ?orig ?origLab ?origCoord ?crea ?creaLab ?creaCoord ?colore
+       ?col ?colLab ?colCoord ?paeseCol WHERE {
+  VALUES ?mat { wd:Q130693 wd:Q13464614 wd:Q45621 }
+  ?w wdt:P186 ?mat ; wdt:P195 ?col . ?col wdt:P17 ?paeseCol . FILTER(?paeseCol != wd:Q30)
+  OPTIONAL { ?w rdfs:label ?lab . FILTER(LANG(?lab) IN ("pt","en","ja","zh","fr","de","es","it")) }
+  OPTIONAL { ?w schema:description ?desc . FILTER(LANG(?desc) IN ("pt","en","ja","zh","fr","de","es","it")) }
+  OPTIONAL { ?w p:P571/psv:P571 ?dv . ?dv wikibase:timeValue ?data ; wikibase:timePrecision ?prec }
+  OPTIONAL { ?w p:P571/pq:P1319 ?inizio } OPTIONAL { ?w p:P571/pq:P1326 ?fine }
+  OPTIONAL { ?w wdt:P495 ?orig . OPTIONAL { ?orig wdt:P625 ?origCoord } OPTIONAL { ?orig rdfs:label ?origLab . FILTER(LANG(?origLab)="en") } }
+  OPTIONAL { ?w wdt:P1071 ?crea . OPTIONAL { ?crea wdt:P625 ?creaCoord } OPTIONAL { ?crea rdfs:label ?creaLab . FILTER(LANG(?creaLab)="en") } }
+  OPTIONAL { ?w wdt:P462 ?colore }
+  OPTIONAL { ?col rdfs:label ?colLab . FILTER(LANG(?colLab) IN ("pt","en")) }
+  OPTIONAL { { ?col wdt:P625 ?colCoord } UNION { ?col wdt:P276/wdt:P625 ?colCoord } UNION { ?col wdt:P361/wdt:P625 ?colCoord } UNION { ?col wdt:P131/wdt:P625 ?colCoord } }
+}
