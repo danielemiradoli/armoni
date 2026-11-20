@@ -52,7 +52,8 @@ cd web && python3 -m http.server
 
 - 11 asserzioni da Zhao Bing 2015 (*Afriques* 06, accesso aperto), letto per intero dal browser di Daniele: 7 siti fra Kenya e Tanzania. Ogni riga porta paragrafo e nota.
 - Percentuali di ceramica dell'Estremo Oriente sul totale dei frammenti: 0,12% a Shanga, 0,9% a Gedi. Il blu e bianco qui è un bene raro, di élite.
-- Tre tipi di misura: conteggio, percentuale, presenza. Una presenza non porta numeri.
+- Ardabil (Medley, *Encyclopaedia Iranica* 1986, accesso aperto): il dono di Shah Abbas I contava 1.162 porcellane, circa 400 blu e bianche, installate nel 1611; 805 portate a Teheran nel 1935. La curva per secolo (37 del XIV, oltre 200 del primo XV, 25-30 del tardo XV, oltre 120 del XVI) segue il calo del commercio dopo il 1436. Il blu e bianco del Trecento di Topkapı viene dal saccheggio della collezione reale di Tabriz nel 1516.
+- Tre tipi di misura: conteggio, percentuale, presenza; unità «frammenti» (scavi) o «pezzi» (collezioni). Una presenza non porta numeri.
 - Zhao 2012 (*Journal of World History*) non è ad accesso aperto: su HAL c'è solo la scheda.
 
 ## Errori trovati e corretti in costruzione (ora sono test)

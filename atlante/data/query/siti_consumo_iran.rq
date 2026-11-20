@@ -1,0 +1,7 @@
+SELECT ?lab ?item ?coord WHERE {
+  VALUES (?lab ?c) { ("Sheikh Safi al-Din Khānegāh and Shrine Ensemble in Ardabil"@en wd:Q794) ("Sheikh Safi al-Din Ardabili Shrine"@en wd:Q794)
+    ("Tomb of Sheikh Safi al-Din"@en wd:Q794) ("Topkapı Palace"@en wd:Q43) ("Tabriz"@en wd:Q794) ("National Museum of Iran"@en wd:Q794) }
+  ?item rdfs:label ?lab ; wdt:P17 ?c ; wdt:P625 ?coord .
+}
+
+# Santuario di Ardabil per QID (trovato con wbsearchentities «Sheikh Safi»): SELECT ?item ?coord WHERE { VALUES ?item { wd:Q4243 } ?item wdt:P625 ?coord }

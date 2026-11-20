@@ -1,12 +1,21 @@
-sito_id,inizio,fine,tipo,misura,frammenti,percentuale,base,fonte_id,pagina,nota
-Shanga,760,900,"ceramica Changsha (fornaci di Tongguan, Hunan)",conteggio,19,,,zhao2015,"§17, n. 27","datazione C14 di Horton; riesame di archeologi cinesi (Qin 2015): produzioni del IX-X secolo"
-Manda Island,900,950,"porcellana bianca, fornaci di Fanchang (Anhui)",conteggio,1,,,zhao2015,"§17, n. 28","unico frammento di ciotola, prima metà del X secolo"
-Shanga,800,1510,"ceramica dell'Estremo Oriente (Cina e Sud-est asiatico)",percentuale,,0.12,sul totale dei frammenti del sito,zhao2015,"§31, n. 69","dato originale: Horton, Brown, Mudida 1996, tab. 9 e 14; periodo non specificato nella nota: si usa l'ambito dell'articolo (IX-XVI sec.)"
-Gedi,800,1510,"ceramica dell'Estremo Oriente (Cina e Sud-est asiatico)",percentuale,,0.9,sul totale dei frammenti del sito,zhao2015,"§31, n. 69","dato originale: scavi di S. Pradines (Pradines 2010, p. 312); periodo non specificato nella nota"
-Gedi,1430,1510,"ceramiche del Sud-est asiatico (blu e bianco vietnamita, gres thailandese, ceramiche birmane)",presenza,,,,zhao2015,"§25, n. 47","fase IV, in cui domina il blu e bianco di Jingdezhen"
-Manda Island,1430,1510,"ceramiche del Sud-est asiatico (blu e bianco vietnamita, gres thailandese, ceramiche birmane)",presenza,,,,zhao2015,"§25, n. 48","fase IV, in cui domina il blu e bianco di Jingdezhen"
-Kilwa Kisiwani,1430,1510,"ceramiche del Sud-est asiatico (blu e bianco vietnamita, gres thailandese, ceramiche birmane)",presenza,,,,zhao2015,"§25, n. 49","fase IV, in cui domina il blu e bianco di Jingdezhen"
-Songo Mnara,1430,1510,"ceramiche del Sud-est asiatico (blu e bianco vietnamita, gres thailandese, ceramiche birmane)",presenza,,,,zhao2015,"§25, n. 50","fase IV, in cui domina il blu e bianco di Jingdezhen"
-Sanje ya Kati,1430,1510,"ceramiche del Sud-est asiatico",presenza,,,,zhao2015,"§25, n. 50","n. 50 rinvia a Zhao 2012, p. 57, per Sanje ya Kati e Songo Mnara"
-Songo Mnara,1200,1330,"ciotole vietnamite dipinte in bruno di ferro sotto coperta",presenza,,,,zhao2015,"§24, n. 44","XIII - inizio XIV secolo"
-Mombasa,1200,1330,"ciotole vietnamite dipinte in bruno di ferro sotto coperta",presenza,,,,zhao2015,"§24, n. 44","XIII - inizio XIV secolo"
+sito_id,inizio,fine,tipo,misura,frammenti,percentuale,base,fonte_id,pagina,nota,unita
+Shanga,760,900,"ceramica Changsha (fornaci di Tongguan, Hunan)",conteggio,19,,,zhao2015,"§17, n. 27",datazione C14 di Horton; riesame di archeologi cinesi (Qin 2015): produzioni del IX-X secolo,frammenti
+Manda Island,900,950,"porcellana bianca, fornaci di Fanchang (Anhui)",conteggio,1,,,zhao2015,"§17, n. 28","unico frammento di ciotola, prima metà del X secolo",frammenti
+Shanga,800,1510,ceramica dell'Estremo Oriente (Cina e Sud-est asiatico),percentuale,,0.12,sul totale dei frammenti del sito,zhao2015,"§31, n. 69","dato originale: Horton, Brown, Mudida 1996, tab. 9 e 14; periodo non specificato nella nota: si usa l'ambito dell'articolo (IX-XVI sec.)",frammenti
+Gedi,800,1510,ceramica dell'Estremo Oriente (Cina e Sud-est asiatico),percentuale,,0.9,sul totale dei frammenti del sito,zhao2015,"§31, n. 69","dato originale: scavi di S. Pradines (Pradines 2010, p. 312); periodo non specificato nella nota",frammenti
+Gedi,1430,1510,"ceramiche del Sud-est asiatico (blu e bianco vietnamita, gres thailandese, ceramiche birmane)",presenza,,,,zhao2015,"§25, n. 47","fase IV, in cui domina il blu e bianco di Jingdezhen",frammenti
+Manda Island,1430,1510,"ceramiche del Sud-est asiatico (blu e bianco vietnamita, gres thailandese, ceramiche birmane)",presenza,,,,zhao2015,"§25, n. 48","fase IV, in cui domina il blu e bianco di Jingdezhen",frammenti
+Kilwa Kisiwani,1430,1510,"ceramiche del Sud-est asiatico (blu e bianco vietnamita, gres thailandese, ceramiche birmane)",presenza,,,,zhao2015,"§25, n. 49","fase IV, in cui domina il blu e bianco di Jingdezhen",frammenti
+Songo Mnara,1430,1510,"ceramiche del Sud-est asiatico (blu e bianco vietnamita, gres thailandese, ceramiche birmane)",presenza,,,,zhao2015,"§25, n. 50","fase IV, in cui domina il blu e bianco di Jingdezhen",frammenti
+Sanje ya Kati,1430,1510,ceramiche del Sud-est asiatico,presenza,,,,zhao2015,"§25, n. 50","n. 50 rinvia a Zhao 2012, p. 57, per Sanje ya Kati e Songo Mnara",frammenti
+Songo Mnara,1200,1330,ciotole vietnamite dipinte in bruno di ferro sotto coperta,presenza,,,,zhao2015,"§24, n. 44",XIII - inizio XIV secolo,frammenti
+Mombasa,1200,1330,ciotole vietnamite dipinte in bruno di ferro sotto coperta,presenza,,,,zhao2015,"§24, n. 44",XIII - inizio XIV secolo,frammenti
+Ardabil (santuario di Sheikh Safi),1611,1611,porcellane cinesi del dono di Shah Abbas I (insieme originale),conteggio,1162,,,medley1986,par. 2,"installate nel Čīnī-ḵāna nel 1611, circa tre anni dopo la decisione di costituirle in waqf (par. 1); dato originale: Pope 1956, p. 49",pezzi
+Ardabil (santuario di Sheikh Safi),1350,1611,"blu e bianco, intero arco della collezione",conteggio,circa 400,,,medley1986,par. 3,"«400-odd», compresi i pezzi rimasti nel Čīnī-ḵāna; dalla metà del XIV all'inizio del XVII secolo",pezzi
+Ardabil (santuario di Sheikh Safi),1300,1399,blu e bianco del XIV secolo (soprattutto grandi piatti),conteggio,37,,,medley1986,par. 3,,pezzi
+Ardabil (santuario di Sheikh Safi),1400,1435,blu e bianco del primo XV secolo,conteggio,oltre 200,,,medley1986,par. 4,"«well over 200», la parte maggiore; novanta dei migliori portano il nome di Qaračaḡāy. Fine al 1435: dal 1436 il commercio cala (par. 7)",pezzi
+Ardabil (santuario di Sheikh Safi),1436,1500,blu e bianco del tardo XV secolo,conteggio,25-30,,,medley1986,par. 7,il calo segue la fine delle spedizioni marittime cinesi,pezzi
+Ardabil (santuario di Sheikh Safi),1500,1611,blu e bianco del XVI e del primissimo XVII secolo,conteggio,oltre 120,,,medley1986,par. 9,il gruppo che più influenzò il blu e bianco safavide,pezzi
+Museo nazionale dell Iran,1935,1935,porcellane del santuario trasferite a Teheran,conteggio,805,,,medley1986,par. 2,"dato originale: Pope 1956, p. 49; nel santuario ne restano 80-90",pezzi
+Topkapi,1516,1516,"blu e bianco del XIV secolo, bottino della collezione reale di Tabriz",presenza,,,,medley1986,par. 3,«a fair number of pieces»; Medley cita Pope 1982,pezzi
+Tabriz,1300,1516,blu e bianco del XIV secolo nella collezione reale,presenza,,,,medley1986,par. 3,collezione saccheggiata nel 1516 e portata a Topkapı,pezzi
