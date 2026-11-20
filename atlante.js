@@ -27,6 +27,8 @@ const TAPPE = [
   p: 'Con la crisi della produzione cinese nel passaggio dai Ming ai Qing, le fornaci giapponesi di Arita entrano nel commercio di esportazione attraverso Nagasaki. Nei dati, il Giappone cresce proprio in questi decenni.'},
  {t: 'Il galeone di Manila e Puebla', y: 1710, w: 40, rot: [100, -18], L: {}, hi: ['Puebla City', 'Mexico'],
   p: 'Attraverso il Pacifico la porcellana cinese arriva nella Nuova Spagna; a Puebla i vasai dipingono in blu una maiolica che risponde a quella e alla Talavera spagnola. Tutti i pezzi di Puebla in questi dati sono ipotetici: nessun record nomina il blu.'},
+ {t: 'Chi divide il tempo', y: 1500, w: 25, rot: [-60, -30], L: {}, hi: [], po: true,
+  p: 'Lo stesso «medioevo» finisce nel 1300 per Ephraim Emerton (1918), nel 1540 per Historic England, nel 1600 per la storiografia giapponese che Japan Search registra come 中世. Le corsie del tempo non sono un orologio comune: sono asserzioni di qualcuno, in una lingua. Per la Cina le sole definizioni in una lingua dell\'Asia orientale vengono dal Giappone, e portano il suo sguardo.'},
  {t: 'Ciò che questi dati non mostrano', y: 1600, w: 400, rot: [-40, 2], L: {silenzio: 1, sedi: 1, spostamenti: 1}, hi: [],
   p: 'Con ColBase metà delle schede è conservata in Giappone, ma quasi metà dei pezzi giapponesi non ha luogo d\'origine nel record, e molti non hanno data. Wikidata aggiunge poche sedi in Brasile e a Macao. La costa swahili, dove la porcellana cinese fu murata in moschee e tombe, il Sud-est asiatico insulare, i luoghi del consumo nelle Americhe: qui sono vuoti delle fonti, non vuoti della storia.'}
 ];
@@ -218,8 +220,9 @@ function nominato() {
   const g = REG_PO.map(r => [r, PO.periodi.filter(p => p.r === r && p.a <= S.year && p.b >= S.year)]).filter(([, ps]) => ps.length);
   return `<h3 style="margin:18px 0 6px">Il ${fmtY(S.year)}, nominato da chi</h3><p class="sub">Periodi di PeriodO che contengono l'anno, con la fonte che li definisce e la lingua del nome.</p>` +
     g.map(([r, ps]) => { const lg = [...new Set(ps.map(p => LINGUE[p.lg] || p.lg))].join(', ');
-      return `<div class="k">${esc(r)} · ${ps.length} definizioni · in ${esc(lg)}</div>` + ps.slice(0, 3).map(p => { const a = PO.autorita[p.au] || {};
-        return `<div class="v" style="font-size:14px">${esc(p.n)} <span class="sub">${p.a}–${p.b} · ${esc(((a.chi ? a.chi + ', ' : '') + a.titolo).slice(0, 70))}${a.anno ? ' (' + a.anno + ')' : ''}</span></div>`; }).join('') + (ps.length > 3 ? `<div class="sub">e altre ${ps.length - 3}</div>` : ''); }).join('');
+      const una = [...new Map(ps.map(p => [p.au, p])).values()].sort((p, q) => (p.lg === 'en') - (q.lg === 'en'));  // una per autorità, prima le lingue non inglesi
+      return `<div class="k">${esc(r)} · ${ps.length} definizioni da ${una.length} fonti · in ${esc(lg)}</div>` + una.slice(0, 4).map(p => { const a = PO.autorita[p.au] || {};
+        return `<div class="v" style="font-size:14px">${esc(p.n)} <span class="sub">${p.a}–${p.b} · ${esc(((a.chi ? a.chi + ', ' : '') + a.titolo).slice(0, 70))}${a.anno ? ' (' + a.anno + ')' : ''}</span></div>`; }).join('') + (una.length > 4 ? `<div class="sub">e altre ${una.length - 4} fonti</div>` : ''); }).join('');
 }
 const setYear = v => { S.year = Math.round(Math.max(T0, Math.min(T1, v))); update(); };
 let tdrag = false;
@@ -315,7 +318,9 @@ function applyTappa() {
   S.L = {confini: 1, origini: 1, sedi: 0, spostamenti: 0, mercati: 0, silenzio: 0, ipotetici: 1, ...t.L};
   update();
   const inHi = act.filter(x => t.hi.includes(x.origine)), ipo = inHi.filter(x => x.grado === 'ipotetico').length;
-  const dati = t.hi.length ? `Fra ${fmtY(t.y - t.w)} e ${fmtY(t.y + t.w)} i dati contengono <b>${act.length}</b> pezzi; <b>${inHi.length}</b> vengono dai luoghi evidenziati${ipo ? `, di cui ${ipo} ipotetici` : ''}.`
+  const poDati = () => { if (!PO) return 'PeriodO non caricato.'; return 'Nel ' + fmtY(t.y) + ': ' + REG_PO.map(r => { const ps = PO.periodi.filter(p => p.r === r && p.a <= t.y && p.b >= t.y); if (!ps.length) return ''; const lg = {}; for (const p of ps) lg[p.lg] = (lg[p.lg] || 0) + 1;
+    return `<b>${esc(r)}</b> ${ps.length} (${Object.entries(lg).map(([l, n]) => (LINGUE[l] || l) + ' ' + n).join(', ')})`; }).filter(Boolean).join(' · ') + '.'; };
+  const dati = t.po ? poDati() : t.hi.length ? `Fra ${fmtY(t.y - t.w)} e ${fmtY(t.y + t.w)} i dati contengono <b>${act.length}</b> pezzi; <b>${inHi.length}</b> vengono dai luoghi evidenziati${ipo ? `, di cui ${ipo} ipotetici` : ''}.`
     : `<b>${O.length}</b> pezzi con data, ${NOD.length} senza. Il ${Math.round(100 * O.filter(x => x.o && x.o.precisione !== 'citta').length / O.length)}% è localizzato solo per paese; il ${Math.round(100 * O.filter(x => x.fonte === 'met' || x.fonte === 'cma').length / O.length)}% è conservato negli Stati Uniti.`;
   $('#nar').innerHTML = `<div class="step">Tappa ${S.tappa + 1} di ${TAPPE.length} · ${fmtY(t.y)}</div><h2>${esc(t.t)}</h2><p>${t.p}</p><div class="dati">${dati}</div>
   <div class="acts"><button data-go="${Math.max(0, S.tappa - 1)}" ${S.tappa ? '' : 'disabled'}>← Precedente</button><button data-go="${Math.min(TAPPE.length - 1, S.tappa + 1)}" ${S.tappa < TAPPE.length - 1 ? '' : 'disabled'}>Successiva →</button></div>
