@@ -116,3 +116,11 @@ def test_meiji_non_e_ming():
 def test_colbase_documentato_solo_dal_titolo():
     for o in CB:
         assert (o['grado'] == 'documentato') == o['criterio'].startswith('blu nel titolo'), o['id']
+
+
+def test_periodo_regioni_e_autorita():
+    po = json.load(open(ROOT / 'web/periodo.json', encoding='utf-8'))
+    regioni = {p['r'] for p in po['periodi']}
+    assert 'Corea' in regioni  # PeriodO la chiama 'Korean Peninsula'
+    assert all(p['au'] in po['autorita'] for p in po['periodi'])
+    assert all(10 <= p['b'] - p['a'] <= 800 for p in po['periodi'])

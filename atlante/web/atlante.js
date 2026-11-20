@@ -7,10 +7,10 @@ const fmtY = y => y < 0 ? `${-y} a.C.` : String(y);
 const PREC = {citta: 'città', paese: 'solo paese', regione: 'regione', zona: 'zona', istituzione: 'istituzione'};
 const T0 = 700, T1 = 2000;
 
-const S = {year: 1640, win: 25, proj: 'globo', rot: [-40, -28], k: 1, sel: null, place: null, q: '',
+const S = {corsie: 'wikidata', year: 1640, win: 25, proj: 'globo', rot: [-40, -28], k: 1, sel: null, place: null, q: '',
   L: {confini: 1, origini: 1, sedi: 1, spostamenti: 0, mercati: 1, silenzio: 0, ipotetici: 1, vam: 1}, F: {met: 1, cma: 1, wd: 1, colbase: 1},
   tav: [], mode: 'ricerca', tappa: 0};
-let VAM = null, vagg = [], NOD = [], O = [], LU = {}, PER = [], ANNI = [], TERRE = null, CONF = {}, act = [], agg = [];
+let PO = null, VAM = null, vagg = [], NOD = [], O = [], LU = {}, PER = [], ANNI = [], TERRE = null, CONF = {}, act = [], agg = [];
 
 const TAPPE = [
  {t: 'Blu su bianco, prima della porcellana', y: 850, w: 60, rot: [-44, -30], L: {}, hi: ['Iraq'],
@@ -33,14 +33,15 @@ const TAPPE = [
 
 /* ---------- dati ---------- */
 const j = u => fetch(u).then(r => { if (!r.ok) throw new Error(u); return r.json(); });
-Promise.all([j('opere.json'), j('luoghi.json'), j('periodi.json'), j('confini/anni.json'), j('terre.json'), j('densita_vam.json').catch(() => null)]).then(([o, l, p, a, t, v]) => {
+Promise.all([j('opere.json'), j('luoghi.json'), j('periodi.json'), j('confini/anni.json'), j('terre.json'), j('densita_vam.json').catch(() => null), j('periodo.json').catch(() => null)]).then(([o, l, p, a, t, v, po]) => {
+  PO = po; if (PO) S.corsie = 'periodo';
   for (const x of l) LU[x.id] = {...x, lat: +x.lat, lon: +x.lon};
   if (v) { VAM = v; for (const x of v.luoghi) if (!LU[x.id]) LU[x.id] = {...x, lat: +x.lat, lon: +x.lon}; }
   NOD = o.filter(x => x.inizio == null);
   O = o.filter(x => x.inizio != null).map(x => ({...x, o: LU[x.origine], s: LU[x.sede], m: LU[x.mercato],
     hay: (x.titolo + ' ' + x.cultura + ' ' + x.tecnica).toLowerCase()}));
   PER = p.map(x => ({...x, inizio: +x.inizio, fine: +x.fine}));
-  ANNI = a; TERRE = topojson.feature(t, t.objects.land);
+  ANNI = a; if (PO) $('#corsie').value = 'periodo'; TERRE = topojson.feature(t, t.objects.land);
   try { S.tav = JSON.parse(localStorage.getItem('armoni-tavolo') || '[]').filter(c => O.some(x => x.id === c.id)); } catch (e) { S.tav = []; }
   route(); update();
 }).catch(e => { $('#ctx').innerHTML = `<p>Non riesco a caricare i dati (${esc(e.message)}).</p>`; });
@@ -166,6 +167,7 @@ const dec = () => { const c = new Map(); for (const x of O) { if (!S.F[x.fonte] 
   for (let d = Math.max(T0, Math.floor(x.inizio / 10) * 10); d <= Math.min(T1, x.fine); d += 10) { const v = c.get(d) || [0, 0]; v[x.grado === 'documentato' ? 0 : 1] += 1 / (1 + (x.fine - x.inizio) / 10); c.set(d, v); } } return c; };
 function drawTl() {
   const w = tls.clientWidth, lh = 12, top = 46, righe = [];
+  if (S.corsie === 'periodo' && PO) return drawTlPO(w);
   for (const r of [...new Set(PER.map(p => p.regione))]) {  // periodi sovrapposti nella stessa regione vanno su sotto-corsie
     const sub = [];
     for (const p of PER.filter(p => p.regione === r).sort((a, b) => a.inizio - b.inizio)) { let k = sub.findIndex(f => f <= p.inizio); if (k < 0) { k = sub.length; sub.push(0); } sub[k] = p.fine; righe.push({r, k, p}); }
@@ -190,6 +192,34 @@ function drawTl() {
   $('#yr').textContent = fmtY(S.year);
   const fuori = O.filter(o => o.fine < T0).length;
   $('#tlinfo').textContent = `istogramma: pezzi per decennio (scuro documentati, chiaro ipotetici${VAM && S.L.vam ? '; linea rossa: V&A, scala propria' : ''}) · corsie: periodi secondo Wikidata${fuori ? ` · ${fuori} pezzi prima del ${T0} fuori scala` : ''}`;
+}
+const REG_PO = ['Cina', 'Corea', 'Giappone', 'Sud-est asiatico', 'Iran e Asia centrale', 'Asia meridionale', 'Anatolia e Mediterraneo', 'Africa', 'Europa', 'Americhe'];
+const LINGUE = {en: 'inglese', fr: 'francese', nl: 'olandese', ja: 'giapponese', tr: 'turco', de: 'tedesco', it: 'italiano', zh: 'cinese', es: 'spagnolo'};
+function drawTlPO(w) {
+  const lh = 13, top = 46, h = top + REG_PO.length * (lh + 3) + 18, x = d3.scaleLinear([T0, T1], [0, w]), x0 = w > 520 ? 150 : 0;
+  tls.style.height = h + 'px';
+  const c = dec(), mx = Math.max(...[...c.values()].map(v => v[0] + v[1]), 1);
+  let s = '';
+  for (const [d, [a, b]] of c) s += `<rect x="${x(d)}" y="${42 - 40 * (a + b) / mx}" width="${Math.max(1, x(d + 10) - x(d) - 1)}" height="${40 * b / mx}" fill="var(--co)" opacity=".35"/><rect x="${x(d)}" y="${42 - 40 * a / mx}" width="${Math.max(1, x(d + 10) - x(d) - 1)}" height="${40 * a / mx}" fill="var(--co)"/>`;
+  if (VAM && S.L.vam) { const vd = new Map(); for (const k of VAM.celle) vd.set(k.d, (vd.get(k.d) || 0) + k.n); const vmx = Math.max(...vd.values(), 1);
+    s += `<polyline fill="none" stroke="var(--fe)" stroke-width="1.4" points="${[...vd].filter(([d]) => d >= T0).sort((a, b) => a[0] - b[0]).map(([d, n]) => `${x(d + 5)},${42 - 40 * n / vmx}`).join(' ')}"/>`; }
+  s += `<rect x="${x(S.year - S.win)}" y="0" width="${x(S.year + S.win) - x(S.year - S.win)}" height="${h - 16}" fill="var(--fe)" opacity=".08"/>`;
+  REG_PO.forEach((r, i) => { const yy = top + i * (lh + 3), ps = PO.periodi.filter(p => p.r === r), qui = ps.filter(p => p.a <= S.year && p.b >= S.year);
+    if (w > 520) s += `<text x="2" y="${yy + 10}" font-size="10.5" fill="var(--mute)">${esc(r)} <tspan fill="var(--ink)">${qui.length}</tspan></text>`;
+    for (const p of ps) { const a = Math.max(x(Math.max(p.a, T0)), x0), b = x(Math.min(p.b, T1)); if (b > a) s += `<rect x="${a}" y="${yy}" width="${b - a}" height="${lh}" fill="var(--co)" opacity=".07"/>`; }
+    if (!ps.length) s += `<text x="${x0 + 4}" y="${yy + 10}" font-size="10" fill="var(--mute)">nessun periodo in PeriodO</text>`; });
+  for (let t = 800; t < T1; t += w < 520 ? 400 : 100) s += `<text x="${x(t)}" y="${h - 3}" font-size="10.5" fill="var(--mute)" text-anchor="middle">${t}</text>`;
+  s += `<line x1="${x(S.year)}" x2="${x(S.year)}" y1="0" y2="${h - 14}" stroke="var(--fe)" stroke-width="2"/>`;
+  tls.innerHTML = s; $('#yr').textContent = fmtY(S.year);
+  $('#tlinfo').textContent = `corsie: quante definizioni di periodo PeriodO coprono ogni anno, per regione (il numero: quante valgono per l'anno scelto)${VAM && S.L.vam ? ' · linea rossa: V&A' : ''}`;
+}
+function nominato() {
+  if (!PO) return '';
+  const g = REG_PO.map(r => [r, PO.periodi.filter(p => p.r === r && p.a <= S.year && p.b >= S.year)]).filter(([, ps]) => ps.length);
+  return `<h3 style="margin:18px 0 6px">Il ${fmtY(S.year)}, nominato da chi</h3><p class="sub">Periodi di PeriodO che contengono l'anno, con la fonte che li definisce e la lingua del nome.</p>` +
+    g.map(([r, ps]) => { const lg = [...new Set(ps.map(p => LINGUE[p.lg] || p.lg))].join(', ');
+      return `<div class="k">${esc(r)} · ${ps.length} definizioni · in ${esc(lg)}</div>` + ps.slice(0, 3).map(p => { const a = PO.autorita[p.au] || {};
+        return `<div class="v" style="font-size:14px">${esc(p.n)} <span class="sub">${p.a}–${p.b} · ${esc(((a.chi ? a.chi + ', ' : '') + a.titolo).slice(0, 70))}${a.anno ? ' (' + a.anno + ')' : ''}</span></div>`; }).join('') + (ps.length > 3 ? `<div class="sub">e altre ${ps.length - 3}</div>` : ''); }).join('');
 }
 const setYear = v => { S.year = Math.round(Math.max(T0, Math.min(T1, v))); update(); };
 let tdrag = false;
@@ -234,6 +264,7 @@ function renderCtx() {
   <h3 style="margin:18px 0 6px">Da dove</h3>
   ${agg.slice(0, 14).map(g => `<div class="row" data-place="${g.id}"><span>${esc(g.l.nome)} <span class="sub">${g.l.precisione === 'citta' ? '' : '· ' + PREC[g.l.precisione]}</span><div class="bar" style="width:${100 * g.n / mx}%"></div></span><span class="n">${g.n}</span></div>`).join('') || '<p class="sub">Nessun pezzo in questa finestra.</p>'}
   ${VAM && S.L.vam && vagg.length ? `<h3 style="margin:18px 0 6px">V&A, solo conteggi</h3>${vagg.slice(0, 8).map(g => `<div class="row" data-place="${g.id}"><span>${esc(g.l.nome)} <span class="sub">${g.l.precisione === 'citta' ? '' : '· ' + PREC[g.l.precisione]}</span></span><span class="n">~${Math.round(g.n)}</span></div>`).join('')}` : ''}
+  ${nominato()}
   <h3 style="margin:18px 0 6px">Come leggere</h3>
   <p class="sub">Ogni punto è un luogo d'origine dichiarato dal catalogo. Il pieno indica una città; l'anello tratteggiato un paese, perché il record non dice di più. I pezzi «ipotetici» appartengono a una manifattura nota per il blu, ma il loro record non nomina il colore. Clicca un luogo per l'elenco, poi un pezzo per la scheda.</p>`;
 }
@@ -308,6 +339,7 @@ document.querySelectorAll('[data-f]').forEach(i => i.onchange = () => { S.F[i.da
 for (const p of ['globo', 'piano']) $('#p-' + p).onclick = () => { S.proj = p; S.k = 1; $('#p-globo').setAttribute('aria-pressed', p === 'globo'); $('#p-piano').setAttribute('aria-pressed', p === 'piano'); draw(); };
 let qt; $('#q').oninput = e => { clearTimeout(qt); qt = setTimeout(() => { S.q = e.target.value.trim(); update(); }, 180); };
 $('#win').value = String(S.win);
+$('#corsie').onchange = e => { S.corsie = e.target.value; drawTl(); };
 function update() { if (!O.length) return; const ws = $('#win'); if (![...ws.options].some(o => +o.value === S.win)) ws.add(new Option(String(S.win))); ws.value = String(S.win); filtra(); draw(); drawTl(); if (S.mode === 'ricerca') renderCtx(); renderTavCount(); }
 const renderTavCount = () => { $('#tavn').textContent = S.tav.length; };
 new MutationObserver(() => { draw(); drawTl(); }).observe(document.documentElement, {attributes: true, attributeFilter: ['data-theme']});
