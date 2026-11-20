@@ -134,5 +134,29 @@
 "inizio": "1521",
 "fine": "1820",
 "fonte_date": "P571/P576"
+},
+{
+"regione": "Giappone",
+"nome": "Periodo Meiji",
+"qid": "Q3125096",
+"inizio": "1868",
+"fine": "1912",
+"fonte_date": "P580/P582"
+},
+{
+"regione": "Giappone",
+"nome": "Periodo Taishō",
+"qid": "Q329174",
+"inizio": "1912",
+"fine": "1926",
+"fonte_date": "P580/P582"
+},
+{
+"regione": "Giappone",
+"nome": "Periodo Shōwa",
+"qid": "Q327567",
+"inizio": "1926",
+"fine": "1989",
+"fonte_date": "P580/P582"
 }
 ]
