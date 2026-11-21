@@ -375,7 +375,7 @@ function renderQual() {
     const sc = Math.sqrt(v / mx) > .55;  // su fondo scuro il testo passa al colore del fondo pagina
     return `<td style="background:${col(v)}${sc ? ';color:var(--bg)' : ''}">${txt}<small${sc ? ' style="color:var(--bg);opacity:.85"' : ''}>${c.n} pezzi</small></td>`; }).join('')}</tr>`).join('')}
   </tbody></table></div>
-  <p class="sub" style="margin-top:12px">Fuori dalla tabella: ${Object.entries(QU.fuori).map(([k, v]) => `${esc(k)} ${v}`).join(' · ')}. Regione dal paese su Wikidata (P17).</p>`;
+  <p class="sub" style="margin-top:12px">Fuori dalla tabella: ${Object.entries(QU.fuori).map(([k, v]) => `${esc(k)} ${v}`).join(' · ')}. Regione dal paese su Wikidata (P17).</p>${(QU.mancanti || []).length ? `<h3 style="margin-top:18px">Fonti cercate e non raggiunte</h3><p class="sub">Un vuoto nella tabella può essere un vuoto delle fonti, non della storia.</p><ul>${QU.mancanti.map(m => `<li><b>${esc(m.fonte)}</b> · ${esc(m.regione)}, ${esc(m.ultimo_tentativo)}<br>${esc(m.esito)}. Ripiego: ${esc(m.ripiego_misurato)}. Prossimo passo: ${esc(m.prossimo_passo)}.</li>`).join('')}</ul>` : ''}`;
 }
 function route() {
   S.mode = location.hash === '#percorso' ? 'percorso' : location.hash === '#qualita' ? 'qualita' : 'ricerca';
