@@ -17,3 +17,8 @@ Rigenerato da `src/qualita.py`. Cella: pezzi · % documentati (blu nel record) �
 
 Fuori dalla tabella: senza luogo 609, di cui con luogo dedotto 267, senza data 834, regione non determinata 0, fuori scala (prima dell'800) 4.
 Asserzioni bibliografiche (consumo): 35, in `data/letteratura.csv`.
+
+## Fonti cercate e non raggiunte
+
+- **Museo nazionale del Palazzo, Taipei (odapi.npm.gov.tw, dataset ceramiche)** (Cina, 2026-11-21): connessione interrotta o scaduta, sia dal server di Armoni sia dal browser in Italia. Ripiego: nessuno: non ho trovato copie del dataset altrove. Prossimo passo: richiesta scritta al referente del dataset.
+- **Museo nazionale di Corea (API su data.go.kr)** (Corea, 2026-11-21): accesso negato (403) dall'Italia; da verificare se il portale registri utenti stranieri. Ripiego: Wikidata: circa 15 ceramiche conservate in musei coreani, nessuna marcata come blu e bianco; una decina di 청화백자 tutelati, quasi tutti senza museo né data. Prossimo passo: richiesta scritta al museo.

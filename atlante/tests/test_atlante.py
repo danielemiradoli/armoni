@@ -158,3 +158,9 @@ def test_qualita_conta_tutti_i_pezzi():
 def test_luogo_dedotto_non_tocca_il_dichiarato():
     ded = [o for o in OPERE if o.get('origine_dedotta')]
     assert ded and all(o['fonte'] == 'colbase' and o['origine'] is None and o['sede'] == 'Tokyo National Museum' for o in ded)
+
+
+def test_fonti_mancanti_dichiarate():
+    q = json.load(open(ROOT / 'web/qualita.json', encoding='utf-8'))
+    assert {m['regione'] for m in q['mancanti']} >= {'Corea'}
+    assert all(m['esito'] and m['prossimo_passo'] for m in q['mancanti'])

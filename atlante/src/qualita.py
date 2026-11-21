@@ -78,7 +78,8 @@ def main():
 
     tab = [{'r': r, 's': s, **{k: (round(v, 1) if k == 'vam' else v) for k, v in celle[(r, s)].items()}}
            for r in REGIONI for s in SECOLI if (r, s) in celle]
-    json.dump({'celle': tab, 'fuori': fuori, 'letteratura': n_let, 'regioni': REGIONI, 'secoli': SECOLI},
+    mancanti = list(csv.DictReader(open(ROOT / 'data/fonti_mancanti.csv', encoding='utf-8')))
+    json.dump({'celle': tab, 'fuori': fuori, 'letteratura': n_let, 'regioni': REGIONI, 'secoli': SECOLI, 'mancanti': mancanti},
               open(ROOT / 'web/qualita.json', 'w', encoding='utf-8'), ensure_ascii=False)
 
     righe = ['# Affidabilità dell\'atlante per regione e secolo', '',
@@ -93,6 +94,7 @@ def main():
         righe.append(f'| {r} | ' + ' | '.join(cel) + ' |')
     righe += ['', 'Fuori dalla tabella: ' + ', '.join(f'{k} {v}' for k, v in fuori.items()) + '.',
               f'Asserzioni bibliografiche (consumo): {n_let}, in `data/letteratura.csv`.']
+    righe += ['', '## Fonti cercate e non raggiunte', ''] + [f'- **{m["fonte"]}** ({m["regione"]}, {m["ultimo_tentativo"]}): {m["esito"]}. Ripiego: {m["ripiego_misurato"]}. Prossimo passo: {m["prossimo_passo"]}.' for m in mancanti]
     (ROOT / 'out/qualita.md').write_text('\n'.join(righe) + '\n', encoding='utf-8')
     print('\n'.join(righe))
 

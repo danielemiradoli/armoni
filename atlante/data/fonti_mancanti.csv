@@ -1,0 +1,3 @@
+fonte,regione,ultimo_tentativo,esito,ripiego_misurato,prossimo_passo
+"Museo nazionale del Palazzo, Taipei (odapi.npm.gov.tw, dataset ceramiche)",Cina,2026-11-21,"connessione interrotta o scaduta, sia dal server di Armoni sia dal browser in Italia",nessuno: non ho trovato copie del dataset altrove,richiesta scritta al referente del dataset
+"Museo nazionale di Corea (API su data.go.kr)",Corea,2026-11-21,"accesso negato (403) dall'Italia; da verificare se il portale registri utenti stranieri","Wikidata: circa 15 ceramiche conservate in musei coreani, nessuna marcata come blu e bianco; una decina di 청화백자 tutelati, quasi tutti senza museo né data",richiesta scritta al museo
