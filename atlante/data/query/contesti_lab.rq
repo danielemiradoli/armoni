@@ -1,0 +1,3 @@
+SELECT ?m ?tipo ?it ?en ?dit ?den WHERE { VALUES ?tipo { wd:Q968159 wd:Q1792644 } ?m wdt:P31 ?tipo .
+ OPTIONAL { ?m rdfs:label ?it FILTER(LANG(?it)="it") } OPTIONAL { ?m rdfs:label ?en FILTER(LANG(?en)="en") }
+ OPTIONAL { ?m schema:description ?dit FILTER(LANG(?dit)="it") } OPTIONAL { ?m schema:description ?den FILTER(LANG(?den)="en") } }

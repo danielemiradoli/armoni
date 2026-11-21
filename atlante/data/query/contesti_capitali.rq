@@ -1,0 +1,2 @@
+# Capitali dei paesi dei luoghi: servono solo a cercare lo Stato di allora per i luoghi di precisione «paese».
+SELECT ?x ?coord WHERE { VALUES ?x { #PAESI# } ?x wdt:P36 ?c . ?c wdt:P625 ?coord }

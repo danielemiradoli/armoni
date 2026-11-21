@@ -11,6 +11,7 @@ Scelta confermata da Daniele Miradoli il 20/11/2026: **codice Apache 2.0** (vedi
 | epoche di Japan Search | `data/jps_epoche.csv`, in `web/periodo.json` | CC0 per principio, con richiesta di citare la fonte | citata nella pagina e nel README |
 | conteggi V&A | `web/densita_vam.json` | condizioni V&A §9 (uso non commerciale); solo conteggi aggregati, nessuna scheda | Victoria and Albert Museum |
 | **confini storici** | `web/confini/*.json` | **GPL-3.0**, da `aourednik/historical-basemaps` | André Ourednik, *historical-basemaps* |
+| stili e movimenti, guerre e rivoluzioni | `web/contesti.json` | CC0 (Wikidata); il nome dello Stato di allora viene dai confini, GPL-3.0 | — |
 | terre emerse | `web/terre.json` | Natural Earth, pubblico dominio (via npm `world-atlas`, ISC) | — |
 
 I confini sono file di dati separati, distribuiti accanto al codice e non incorporati in esso: restano sotto GPL-3.0, con l'attribuzione qui sopra. Sostituibili con OpenHistoricalMap (CC0) dove la copertura basta. Questa nota descrive una scelta di progetto, non un parere legale.

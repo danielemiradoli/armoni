@@ -1,0 +1,5 @@
+SELECT ?e ?it ?en ?tipo ?a ?b ?sl WHERE {
+ VALUES ?tipo { wd:Q198 wd:Q10931 wd:Q8465 wd:Q103495 wd:Q180684 wd:Q2001676 wd:Q124734 }
+ ?e wdt:P31 ?tipo ; wikibase:sitelinks ?sl . FILTER(?sl >= 20)
+ ?e wdt:P580 ?a . OPTIONAL { ?e wdt:P582 ?b }
+ OPTIONAL { ?e rdfs:label ?it FILTER(LANG(?it)="it") } OPTIONAL { ?e rdfs:label ?en FILTER(LANG(?en)="en") } }

@@ -1,0 +1,3 @@
+SELECT ?m ?prop ?t ?prec WHERE { VALUES ?tipo { wd:Q968159 wd:Q1792644 } ?m wdt:P31 ?tipo .
+ VALUES ?prop { "P571" "P580" "P576" "P582" } BIND(IRI(CONCAT("http://www.wikidata.org/prop/",?prop)) AS ?p) BIND(IRI(CONCAT("http://www.wikidata.org/prop/statement/value/",?prop)) AS ?psv)
+ ?m ?p ?st . ?st ?psv ?v . ?v wikibase:timeValue ?t ; wikibase:timePrecision ?prec }

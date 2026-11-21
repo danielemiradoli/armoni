@@ -164,3 +164,13 @@ def test_fonti_mancanti_dichiarate():
     q = json.load(open(ROOT / 'web/qualita.json', encoding='utf-8'))
     assert {m['regione'] for m in q['mancanti']} >= {'Corea'}
     assert all(m['esito'] and m['prossimo_passo'] for m in q['mancanti'])
+
+
+def test_contesti_accostano_non_collegano():
+    c = json.load(open(ROOT / 'web/contesti.json', encoding='utf-8'))
+    el = c['elementi']
+    assert el and all(e['quando']['da'] is not None and e['luoghi'] for e in el)
+    assert not any(k in e for e in el for k in ('opere', 'opera', 'pezzi'))  # nessun legame con le opere
+    assert all(l['stato_allora'] is None for e in el for l in e['luoghi'] if l['precisione'] == 'regione')
+    assert all(x['via'] in ('territorio', 'partecipante') for e in el for x in e['contesto'])
+    assert all('dedotto' in e['quando']['metodo'] for e in el if e['quando'].get('dedotto'))

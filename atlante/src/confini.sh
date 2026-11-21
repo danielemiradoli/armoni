@@ -5,7 +5,7 @@ set -e
 cd "$(dirname "$0")/.."
 COMMIT=${HB_COMMIT:-master}
 mkdir -p data/raw/confini web/confini
-ANNI="700 800 900 1000 1100 1200 1279 1300 1400 1492 1500 1530 1600 1650 1700 1715 1783 1800 1815 1880 1900 1914 1945"
+ANNI="700 800 900 1000 1100 1200 1279 1300 1400 1492 1500 1530 1600 1650 1700 1715 1783 1800 1815 1880 1900 1914 1920 1930 1938 1945 1960 1994 2010"
 for a in $ANNI; do
   f=data/raw/confini/world_$a.geojson
   [ -s "$f" ] || curl -sS -m 120 -o "$f" "https://raw.githubusercontent.com/aourednik/historical-basemaps/$COMMIT/geojson/world_$a.geojson"

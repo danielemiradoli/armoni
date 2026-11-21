@@ -1,0 +1,2 @@
+SELECT ?x ?nome ?lang ?a ?b WHERE { VALUES ?x { #LUOGHI# }
+ ?x p:P1448 ?s . ?s ps:P1448 ?nome . BIND(LANG(?nome) AS ?lang) OPTIONAL { ?s pq:P580 ?a } OPTIONAL { ?s pq:P582 ?b } }

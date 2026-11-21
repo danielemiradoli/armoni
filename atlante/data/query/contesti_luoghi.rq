@@ -1,0 +1,4 @@
+SELECT ?x ?it ?en ?paese ?cont ?pl ?pe WHERE { VALUES ?x { #LUOGHI# }
+ OPTIONAL { ?x rdfs:label ?it FILTER(LANG(?it)="it") } OPTIONAL { ?x rdfs:label ?en FILTER(LANG(?en)="en") }
+ OPTIONAL { ?x wdt:P17 ?paese . OPTIONAL { ?paese rdfs:label ?pl FILTER(LANG(?pl)="it") } OPTIONAL { ?paese rdfs:label ?pe FILTER(LANG(?pe)="en") } }
+ OPTIONAL { ?x wdt:P30 ?cont } OPTIONAL { ?x wdt:P17/wdt:P30 ?cont } }

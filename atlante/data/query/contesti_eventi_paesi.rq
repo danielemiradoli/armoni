@@ -1,0 +1,4 @@
+SELECT DISTINCT ?e ?c ?via WHERE { VALUES ?e { #EVENTI# }
+ { ?e wdt:P17 ?c BIND("territorio" AS ?via) } UNION { ?e wdt:P276/wdt:P17 ?c BIND("territorio" AS ?via) }
+ UNION { ?e wdt:P710 ?c BIND("partecipante" AS ?via) } UNION { ?e wdt:P710/wdt:P3842 ?c BIND("partecipante" AS ?via) }
+ UNION { ?e wdt:P710/wdt:P1366 ?c BIND("partecipante" AS ?via) } UNION { ?e wdt:P710/wdt:P17 ?c BIND("partecipante" AS ?via) } }
