@@ -88,11 +88,57 @@ body.percorso #nar{display:block}
 #nar .nv{font-size:14.5px;border:1px dashed var(--line);border-radius:6px;padding:8px 12px;color:var(--mute)}
 #nar .nota{font-size:12.5px;color:var(--mute);margin-top:22px}
 .dots{display:flex;gap:6px;margin:14px 0}.dots button{width:30px;min-height:30px;padding:0}
+/* ── Gerarchia visiva ──────────────────────────────────────────────────────────
+   Come un pezzo di porcellana: il palcoscenico (globo e tempo) e la lettura (pannello di destra)
+   sono «invetriati», bianchi e lucidi; gli strumenti (intestazione, livelli) stanno sul «biscotto»,
+   la superficie opaca, un tono sotto. Serif solo per i contenuti (anni, numeri, titoli delle schede),
+   sans per i comandi. Percorso dell'occhio: modo → anno → globo → lettura; i livelli si usano quando servono. */
+:root{--biscotto:light-dark(#eceff4,#081026);--vetro:light-dark(#ffffff,#0f1a3a);--riga:light-dark(#e4e7ef,#1b2852)}
+body{background:var(--biscotto)}
+header{background:var(--biscotto);border-bottom:1px solid var(--line);padding:8px 16px;gap:12px}
+header h1{font-size:21px;letter-spacing:.005em}
+header .sub{font-size:12.5px}
+.seg button{min-height:38px;padding:6px 16px;font-weight:500;background:var(--vetro)}
+.seg button[aria-pressed=true]{background:var(--co);color:var(--vetro);border-color:var(--co)}
+.util{display:flex;gap:2px}
+.util button{background:transparent;border-color:transparent;color:var(--mute);padding:6px 10px}
+.util button:hover{color:var(--co);border-color:var(--line);background:var(--vetro)}
+#tavn{display:inline-block;min-width:1.6em;padding:0 6px;margin-left:4px;border-radius:999px;background:var(--co2);color:var(--co);font-size:12.5px;font-variant-numeric:tabular-nums;text-align:center}
+#q{background:var(--vetro);width:200px}
+/* strumenti: i livelli, in sans, più quieti */
+#lay{background:var(--biscotto);border-right:0;padding:14px 12px 14px 16px}
+#lay h3{font:600 12.5px/1.3 "Instrument Sans",system-ui,sans-serif;color:var(--mute);margin:16px 0 4px}
+#lay>h3:first-child{font:600 16px/1.2 Newsreader,Georgia,serif;color:var(--ink);margin:0 0 2px}
+#lay>p.sub{font-size:12.5px;line-height:1.4}
+.grp{border-top:1px solid var(--riga);padding:8px 0}
+.ghead b{font-weight:600;font-size:14.5px}
+.chk{padding:4px 0;font-size:14px;line-height:1.3}
+.chk small{font-size:12px;margin-top:2px}
+/* palcoscenico: globo e tempo sono un solo pezzo invetriato */
+.fig{background:var(--vetro);border-radius:12px 0 0 0;box-shadow:inset 0 0 0 1px var(--riga)}
+#tl{background:var(--vetro);border-top:1px solid var(--riga);padding:6px 16px 8px}
+.tlbar{gap:14px;margin-bottom:2px}
+.yr{font-size:42px;line-height:1;font-weight:600;letter-spacing:-.01em}
+.tlbar label,.tlbar button{font-size:13.5px;color:var(--mute)}
+.tlbar select{background:var(--vetro);border:1px solid var(--line);border-radius:6px;padding:4px 6px;color:var(--ink)}
+#play{min-height:34px;padding:4px 12px}
+#tlinfo{font-size:12px}
+#chip,#tip{box-shadow:0 2px 10px rgb(16 28 70 / .08)}
+#mapctl button{background:var(--vetro);min-width:38px}
+/* lettura: il pannello di destra, invetriato, con ritmo dato dagli spazi più che dalle righe */
+#ctx{background:var(--vetro);border-left:1px solid var(--riga);padding:18px 18px 24px}
+#ctx h3{margin:22px 0 6px;font-size:17px}
+#ctx h2{font-size:26px}
+#ctx .row{border-bottom-color:var(--riga)}
+#nar{background:var(--vetro);border-left:1px solid var(--riga)}
+#qual{background:var(--vetro)}
 @media(max-width:900px){
  body{overflow:auto}
  .app,body.percorso .app{height:auto;grid-template:"top" auto "map" 62vh "tl" auto "ctx" auto "nar" auto "lay" auto/minmax(0,1fr)}
  #lay,#ctx,#nar{border:0;border-top:1px solid var(--line)}
  #q{width:100%;order:9}
+ .fig{border-radius:0}
+ .util{flex-wrap:wrap}
  header{flex-wrap:wrap;gap:8px}
  header .sub{display:none}
  header h1{font-size:22px}
@@ -136,9 +182,11 @@ body.percorso #nar{display:block}
   <div class="seg" role="group" aria-label="Modalità">
    <button id="m-ricerca" aria-pressed="true">Ricerca</button><button id="m-percorso" aria-pressed="false">Percorso</button><button id="m-qualita" aria-pressed="false">Affidabilità</button>
   </div>
+  <div class="util">
   <button id="guidabtn">Guida</button>
   <button id="commentabtn" title="Commenta questa vista: apre un modulo breve, e la vista che stai guardando viene allegata da sola">Commenta</button>
   <button id="tavbtn">Tavolo <span id="tavn">0</span></button>
+  </div>
  </header>
 
  <aside id="lay" aria-label="Strati">
