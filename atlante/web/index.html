@@ -38,6 +38,7 @@ header .sp{flex:1}
 .chk small{display:block;color:var(--mute);font-size:12.5px;line-height:1.35}
 .fig{grid-area:map;position:relative;overflow:hidden;background:var(--bg);touch-action:none}
 .fig>canvas{position:absolute;inset:0;width:100%;height:100%;cursor:grab}
+#alone{pointer-events:none}
 #tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 9px;font-size:13px;display:none;max-width:260px;box-shadow:0 4px 18px #0002}
 #chip{position:absolute;left:12px;bottom:12px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 11px;font-size:13px;max-width:min(420px,80%)}
 #mapctl{position:absolute;right:12px;top:12px;display:flex;gap:6px}
@@ -142,6 +143,7 @@ header .sub{font-size:12.5px}
 /* Colore d'identità dello strumento: dice dove sei, non cambia il significato dei segni (blu dati, rosso selezione).
    Ogni strumento di ArMoni avrà il suo, dalla famiglia della ceramica; l'Atlante è cobalto. */
 [data-strumento=atlante]{--strumento:light-dark(#1f3c96,#8fa9ff)}
+:root{--cel:light-dark(#2b7660,#79c9b0)}  /* celadon: il colore del contesto (fenomeni, relazioni) */
 header{border-top:4px solid var(--strumento)}
 header h1 .strumento{color:var(--strumento)}
 .seg button[aria-pressed=true]{background:var(--strumento);border-color:var(--strumento)}
@@ -209,8 +211,8 @@ header h1 .strumento{color:var(--strumento)}
   <div class="grp open" data-grp="opere">
    <div class="ghead"><input type="checkbox" data-g="opere" checked aria-label="Accendi o spegni la cartella Opere"><button data-gt aria-expanded="true"><b>Opere</b> <span class="sub" data-gn="opere"></span></button></div>
    <div class="gbody">
-  <label class="chk"><input type="checkbox" data-l="origini" checked><span>Luoghi d'origine<small>pieno: città · anello: solo paese · tratteggio: incerto</small></span></label>
-  <label class="chk"><input type="checkbox" data-l="sedi" checked><span>Dove si trovano oggi<small>le sedi di conservazione dichiarate dalle fonti</small></span></label>
+  <label class="chk"><input type="checkbox" data-l="origini" checked><span>Luoghi d'origine (cerchi e nomi blu)<small>pieno: città · anello: solo paese · tratteggio: incerto · alone: quanto è grande il paese o la regione</small></span></label>
+  <label class="chk"><input type="checkbox" data-l="sedi" checked><span>Dove si trovano oggi (quadratini pieni)<small>le sedi di conservazione dichiarate dalle fonti</small></span></label>
   <label class="chk"><input type="checkbox" data-l="spostamenti"><span>Spostamenti<small>dall'origine al museo attuale</small></span></label>
   <label class="chk"><input type="checkbox" data-l="mercati" checked><span>Mercati dichiarati<small>solo dove il catalogo scrive «for … market»</small></span></label>
   <h3>Inclusione <span class="sub">(non si spengono con la cartella)</span></h3>
@@ -234,7 +236,7 @@ header h1 .strumento{color:var(--strumento)}
    <div class="ghead"><input type="checkbox" data-g="contesto" checked aria-label="Accendi o spegni la cartella Contesto"><button data-gt aria-expanded="true"><b>Contesto</b> <span class="sub" data-gn="contesto"></span></button></div>
    <div class="gbody">
   <label class="chk"><input type="checkbox" data-l="confini" checked><span>Confini storici<small>A. Ourednik, historical-basemaps (GPL-3.0), istantanea più vicina all'anno</small></span></label>
-  <label class="chk"><input type="checkbox" data-l="contesti"><span>Stili, movimenti, scuole, dinastie (quadrati, nomi in corsivo)<small>dove e quando nascono, lo Stato di allora e il nome di oggi, guerre e rivoluzioni di quegli anni. Si sovrappone agli altri livelli per accostare: non lega nulla alle opere. Clicca un nome per la scheda; nel tempo, scegli le corsie «fenomeni artistici»</small></span></label>
+  <label class="chk"><input type="checkbox" data-l="contesti"><span>Stili, movimenti, scuole, dinastie (quadrati e nomi in corsivo, verdi)<small>dove e quando nascono, lo Stato di allora e il nome di oggi, guerre e rivoluzioni di quegli anni. Si sovrappone agli altri livelli per accostare: non lega nulla alle opere. Clicca un nome per la scheda; nel tempo, scegli le corsie «fenomeni artistici»</small></span></label>
   <div class="sub" style="margin:-4px 0 10px 28px;display:flex;flex-wrap:wrap;gap:2px 10px">tipi: <label><input type="checkbox" data-ct="movimento" checked> movimenti</label><label><input type="checkbox" data-ct="scuola" checked> scuole</label><label><input type="checkbox" data-ct="stile" checked> stili</label><label><input type="checkbox" data-ct="periodizzazione" checked> dinastie</label></div>
   <label class="chk"><input type="checkbox" data-l="relazioni"><span>Relazioni dichiarate (puntini)<small>influenzato da, parte di, segue, sostituisce: solo quelle scritte su Wikidata, fra voci attive nella finestra. Mai dedotte dalla vicinanza</small></span></label>
    </div>
@@ -250,7 +252,7 @@ header h1 .strumento{color:var(--strumento)}
   <p class="sub" style="margin-top:18px"><a href="fonti.html">Fonti e licenze</a> · <a href="https://github.com/danielemiradoli/armoni">Codice e dati</a></p>
  </aside>
 
- <div class="fig" id="fig"><canvas id="cv" aria-label="Mappa del mondo navigabile"></canvas><div id="tip"></div><div id="chip"></div>
+ <div class="fig" id="fig"><canvas id="cv" aria-label="Mappa del mondo navigabile"></canvas><canvas id="alone" aria-hidden="true"></canvas><div id="tip"></div><div id="chip"></div>
   <div id="mapctl"><button id="zin" aria-label="Avvicina">+</button><button id="zout" aria-label="Allontana">−</button></div></div>
 
  <aside id="ctx" aria-live="polite" tabindex="-1"><p class="sub">Carico opere, luoghi e confini…</p></aside>

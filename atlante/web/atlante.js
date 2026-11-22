@@ -47,8 +47,8 @@ const TAPPE = [
 
 /* ---------- dati ---------- */
 const j = u => fetch(u).then(r => { if (!r.ok) throw new Error(u); return r.json(); });
-Promise.all([j('opere.json'), j('luoghi.json'), j('periodi.json'), j('confini/anni.json'), j('terre.json'), j('densita_vam.json').catch(() => null), j('periodo.json').catch(() => null), j('letteratura.json').catch(() => null), j('qualita.json').catch(() => null), j('contesti.json').catch(() => null)]).then(([o, l, p, a, t, v, po, le, qu, cx]) => {
-  QU = qu;
+Promise.all([j('opere.json'), j('luoghi.json'), j('periodi.json'), j('confini/anni.json'), j('terre.json'), j('densita_vam.json').catch(() => null), j('periodo.json').catch(() => null), j('letteratura.json').catch(() => null), j('qualita.json').catch(() => null), j('contesti.json').catch(() => null), j('aree.json').catch(() => ({}))]).then(([o, l, p, a, t, v, po, le, qu, cx, ar]) => {
+  QU = qu; AREE = ar || {};
   if (cx) { CXR = cx; CX = cx.elementi.map(e => ({...e, fv: e.quando.a ?? e.quando.da + APERTO})); }
   LET = le; if (LET) for (const x of LET.siti) LU['sito:' + x.id] = {...x, lat: +x.lat, lon: +x.lon};
   PO = po; if (PO) S.corsie = 'periodo';
@@ -103,6 +103,33 @@ function filtra() {
 
 /* ---------- mappa ---------- */
 const cv = $('#cv'), ctx = cv.getContext('2d'), fig = $('#fig');
+/* Alone: per ciò che ha un'estensione (paesi, regioni, continenti) un disco trasparente grande quanto
+   l'area vera, che pulsa piano. Sta su un canvas suo, sopra la mappa e senza clic, così pulsare non
+   costringe a ridisegnare tutto. Fermo per chi chiede meno movimento. Le città non hanno alone. */
+const av = $('#alone'), actx = av.getContext('2d');
+let AREE = {}, ALONI = [], rafAlone = null, ultimoAlone = 0;
+const RIDOTTO = matchMedia('(prefers-reduced-motion: reduce)');
+function prepAloni(co, cel) {
+  const v = new Map(), add = (id, c, col) => { const a = AREE[id]; if (a && !v.has(id + col)) v.set(id + col, {g: d3.geoCircle().center(c).radius(Math.sqrt(a.km2 / Math.PI) / 111.195)(), col}); };
+  if (S.L.origini) for (const g of agg) if (['paese', 'regione', 'zona'].includes(g.l.precisione)) add(g.l.qid, [g.l.lon, g.l.lat], co);
+  if (S.L.contesti) for (const e of cagg) for (const l of e.luoghi) if (l.precisione !== 'luogo') add(l.id, [l.lon, l.lat], cel);
+  ALONI = [...v.values()];
+  if (!rafAlone) rafAlone = requestAnimationFrame(anima);
+}
+function disegnaAloni(t) {
+  actx.clearRect(0, 0, W, H); if (!ALONI.length || !proj) return;
+  const p = RIDOTTO.matches ? .5 : .5 + .5 * Math.sin(t * 2 * Math.PI / 3600), pa = d3.geoPath(proj, actx);
+  const forza = matchMedia('(prefers-color-scheme: dark)').matches ? 1 : .75;  // sul chiaro lo stesso velo pesa di più
+  for (const a of ALONI) { actx.beginPath(); pa(a.g); actx.fillStyle = a.col; actx.globalAlpha = (.02 + .03 * p) * forza; actx.fill();
+    actx.globalAlpha = (.07 + .1 * p) * forza; actx.lineWidth = 1; actx.strokeStyle = a.col; actx.stroke(); }
+  actx.globalAlpha = 1;
+}
+function anima(t) {
+  rafAlone = null;
+  if (t - ultimoAlone > 40) { ultimoAlone = t; disegnaAloni(t); }  // circa 25 immagini al secondo bastano
+  if (ALONI.length && !RIDOTTO.matches && !document.hidden) rafAlone = requestAnimationFrame(anima);
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden && !rafAlone) rafAlone = requestAnimationFrame(anima); });
 let W = 0, H = 0, proj, path;
 function setProj() {
   const R = Math.min(W, H) * 0.46;
@@ -151,7 +178,7 @@ function draw() {
   if (!W) return;
   setProj();
   const fili = ventaglio();
-  const co = css('--co'), fe = css('--fe'), ink = css('--ink'), mute = css('--mute');
+  const co = css('--co'), fe = css('--fe'), ink = css('--ink'), mute = css('--mute'), cel = css('--cel');
   ctx.clearRect(0, 0, W, H);
   ctx.beginPath(); path({type: 'Sphere'}); ctx.fillStyle = css('--glaze'); ctx.fill();
   ctx.lineWidth = 1.2; ctx.strokeStyle = co; ctx.globalAlpha = .55; ctx.stroke(); ctx.globalAlpha = 1;
@@ -177,8 +204,8 @@ function draw() {
     if (S.L.silenzio && g.l.precisione !== 'citta') { ctx.beginPath(); ctx.arc(x, y, r + 16, 0, 7); ctx.fillStyle = mute; ctx.globalAlpha = .1; ctx.fill(); }
     if (S.place === g.id) { ctx.beginPath(); ctx.arc(x, y, r + 5, 0, 7); ctx.strokeStyle = fe; ctx.globalAlpha = 1; ctx.lineWidth = 2; ctx.stroke(); }
     ctx.globalAlpha = 1;
-    if (r > (W < 520 ? 15 : 9) || (hi && hi.has(g.id))) { ctx.font = '12px "Instrument Sans",sans-serif'; const w = ctx.measureText(g.l.nome).width, bx = [x + r + 4, y - 8, x + r + 4 + w, y + 6];
-      if (S.place === g.id || (hi && hi.has(g.id)) || libero(bx)) { OCC.push(bx); ctx.fillStyle = ink; ctx.fillText(g.l.nome, x + r + 4, y + 4); } }
+    if (r > (W < 520 ? 15 : 9) || (hi && hi.has(g.id))) { ctx.font = '500 12.5px "Instrument Sans",sans-serif'; const w = ctx.measureText(g.l.nome).width, bx = [x + r + 4, y - 8, x + r + 4 + w, y + 6];
+      if (S.place === g.id || (hi && hi.has(g.id)) || libero(bx)) { OCC.push(bx); ctx.fillStyle = co; ctx.fillText(g.l.nome, x + r + 4, y + 4); } }
   }
   if (S.L.vam) for (const g of vagg) {
     const c = [g.l.lon, g.l.lat]; if (!visibile(c)) continue; const [x, y] = P('v', g.id, c), r = 3 + Math.sqrt(g.n) * 1.3;
@@ -189,7 +216,8 @@ function draw() {
     const c = [g.l.lon, g.l.lat]; if (!visibile(c)) continue; const [x, y] = P('l', g.id, c), r = 7;
     ctx.beginPath(); ctx.moveTo(x, y - r); ctx.lineTo(x + r * .9, y + r * .6); ctx.lineTo(x - r * .9, y + r * .6); ctx.closePath();
     ctx.fillStyle = ink; ctx.globalAlpha = .85; ctx.fill(); ctx.globalAlpha = 1;
-    ctx.font = '12px "Instrument Sans",sans-serif'; ctx.fillStyle = ink; ctx.fillText(g.l.nome, x + 10, y + 4);
+    ctx.font = '12px "Instrument Sans",sans-serif'; const bx = [x + 10, y - 8, x + 10 + ctx.measureText(g.l.nome).width, y + 6];
+    if (libero(bx)) { OCC.push(bx); ctx.fillStyle = ink; ctx.fillText(g.l.nome, x + 10, y + 4); }
   }
   if (S.L.contesti) drawContesti(ink, mute);
   if (S.L.sedi) for (const k of new Set(act.map(x => x.sede).filter(Boolean))) {
@@ -199,6 +227,7 @@ function draw() {
   const sel = O.find(x => x.id === S.sel);
   if (sel && sel.o && visibile([sel.o.lon, sel.o.lat])) { const [x, y] = proj([sel.o.lon, sel.o.lat]); ctx.beginPath(); ctx.arc(x, y, 11, 0, 7); ctx.strokeStyle = fe; ctx.lineWidth = 2.5; ctx.stroke(); }
   evidenzia(fe);
+  prepAloni(co, cel); disegnaAloni(performance.now());
   chip(cf.anno);
 }
 /* Il segno scelto resta in risalto: doppio anello (chiaro fuori, colore d'accento dentro), leggibile su ogni sfondo. */
@@ -216,21 +245,22 @@ function evidenzia(fe) {
 /* Stili e movimenti: quadrati vuoti (luogo), quadrati tratteggiati più grandi (paese), solo nome in corsivo (regione).
    Nomi scritti per i più noti (versioni linguistiche su Wikidata), senza sovrapporsi. */
 function drawContesti(ink, mute) {
+  const cel = css('--cel');  // il contesto ha il suo colore: verde celadon, distinto dal cobalto delle opere
   const occ = OCC, sel = S.place && S.place.startsWith('mov:') ? S.place.slice(4) : null;
   // relazioni dichiarate: fra voci attive se il livello è acceso; quelle della voce scelta sempre, anche fuori finestra
   const att = new Map(cagg.map(e => [e.id, e])), tutte = new Map(CX.map(e => [e.id, e]));
   const linea = (a, b, forte) => { const p = a.luoghi[0], q = b.luoghi[0]; if (p.id === q.id) return; ctx.beginPath(); path({type: 'LineString', coordinates: [[p.lon, p.lat], [q.lon, q.lat]]});
-    ctx.strokeStyle = ink; ctx.globalAlpha = forte ? .85 : .35; ctx.lineWidth = forte ? 1.6 : .9; ctx.setLineDash([1, 3]); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1; };
+    ctx.strokeStyle = cel; ctx.globalAlpha = forte ? .85 : .35; ctx.lineWidth = forte ? 1.6 : .9; ctx.setLineDash([1, 3]); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1; };
   if (S.L.relazioni) for (const e of cagg) for (const r of e.relazioni) if (r.verso === '>' && att.has(r.id)) linea(e, att.get(r.id), false);
   if (sel && tutte.has(sel)) for (const r of tutte.get(sel).relazioni) if (r.collocata && tutte.has(r.id)) linea(tutte.get(sel), tutte.get(r.id), true);
   ctx.font = 'italic 500 13px Newsreader,Georgia,serif'; let cnomi = 0;
   for (const e of cagg) for (const l of e.luoghi) {
     const c = [l.lon, l.lat]; if (!visibile(c)) continue; const [x, y] = P('m', e.id + '|' + l.id, c), r = l.precisione === 'paese' ? 7 : 4.5;
-    ctx.strokeStyle = ink; ctx.lineWidth = e.id === sel ? 2.2 : 1; ctx.globalAlpha = e.id === sel ? 1 : .7;
+    ctx.strokeStyle = cel; ctx.lineWidth = e.id === sel ? 2.2 : 1; ctx.globalAlpha = e.id === sel ? 1 : .7;
     if (l.precisione !== 'regione') { if (l.precisione === 'paese') ctx.setLineDash([2, 2]); ctx.strokeRect(x - r, y - r, 2 * r, 2 * r); ctx.setLineDash([]); }
     const t = e.nome, w = ctx.measureText(t).width, bx = [x + r + 3, y - 9, x + r + 3 + w, y + 4];
     if (e.id === sel || (cnomi < (S.k >= VENTAGLIO ? 80 : W < 520 ? 6 : 18) && libero(bx) && ++cnomi)) {
-      occ.push(bx); ctx.fillStyle = ink; ctx.globalAlpha = e.id === sel ? 1 : .8; ctx.fillText(t, bx[0], y + 3); }
+      occ.push(bx); ctx.fillStyle = cel; ctx.globalAlpha = e.id === sel ? 1 : .8; ctx.fillText(t, bx[0], y + 3); }
     ctx.globalAlpha = 1;
   }
 }
@@ -282,7 +312,7 @@ const angolo = d => ((d + 540) % 360) - 180;  // la via più corta attorno al gl
 const ZMAX = 200;
 const zoom = f => { S.k = Math.max(.7, Math.min(ZMAX, S.k * f)); draw(); };
 $('#zin').onclick = () => zoom(1.3); $('#zout').onclick = () => zoom(1 / 1.3);
-const misura = () => { const d = devicePixelRatio || 1; W = fig.clientWidth; H = fig.clientHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); draw(); };
+const misura = () => { const d = devicePixelRatio || 1; W = fig.clientWidth; H = fig.clientHeight; for (const [c, x] of [[cv, ctx], [av, actx]]) { c.width = W * d; c.height = H * d; x.setTransform(d, 0, 0, d, 0, 0); } draw(); };
 const roMap = new ResizeObserver(misura);
 roMap.observe(fig);
 
@@ -599,7 +629,7 @@ $('#commentabtn').onclick = () => window.open(`${MODULO}?vista=${encodeURICompon
 
 const VISITA = [
   {s: 'header .seg', t: 'Tre modi di usare l\'atlante', p: '<b>Ricerca</b>: esplori liberamente, scegliendo anno, luoghi e livelli. <b>Percorso</b>: un racconto in tappe, con le fonti di ogni frase. <b>Affidabilità</b>: che cosa sanno i dati, e dove tacciono.'},
-  {s: '#fig', t: 'Il globo', p: 'Trascina per ruotarlo; per avvicinarti usa + e −, oppure la rotella, che ingrandisce verso il punto sotto il cursore. Più ti avvicini, più coste e confini diventano dettagliati. Un clic su un segno apre la sua scheda a destra. <b>Cerchi</b>: pezzi per luogo d\'origine (pieno: città; anello: solo il paese). <b>Rombi</b>: quantità al V&amp;A. <b>Triangoli</b>: scavi archeologici. <b>Quadrati e nomi in corsivo</b>: stili, movimenti, scuole, dinastie.'},
+  {s: '#fig', t: 'Il globo', p: 'Trascina per ruotarlo; per avvicinarti usa + e −, oppure la rotella, che ingrandisce verso il punto sotto il cursore. Più ti avvicini, più coste e confini diventano dettagliati. Un clic su un segno apre la sua scheda a destra. <b>Cerchi e nomi blu</b>: pezzi per luogo d\'origine (pieno: città; anello: solo il paese). <b>Rombi rossi</b>: quantità al V&amp;A. <b>Triangoli</b>: scavi archeologici. <b>Quadratini pieni</b>: musei di oggi. <b>Quadrati e nomi in corsivo verdi</b>: stili, movimenti, scuole, dinastie. Un <b>alone</b> che pulsa piano mostra quanto è grande ciò che ha un\'estensione: un paese, una regione.'},
   {s: '#tl', t: 'Il tempo', p: 'Clicca o trascina sulla barra per scegliere l\'anno; con «finestra ±» decidi quanti anni guardare insieme; «Scorri» fa avanzare il tempo da solo. Sotto, le <b>corsie</b>: chi divide il tempo e come lo chiama (PeriodO), le dinastie, i fenomeni artistici per regione.'},
   {s: '#lay', t: 'Livelli, in cartelle', p: 'Ogni cartella si accende e si spegne in blocco, e ricorda come l\'avevi lasciata; il nome la apre. Ogni voce dice che cosa mostra. I livelli si <b>sovrappongono per accostare</b>: vedere due cose nello stesso luogo e nello stesso tempo non significa che siano collegate. Le relazioni compaiono solo dove una fonte le dichiara.'},
   {s: '#ctx', t: 'Il pannello di destra', p: 'Senza nulla di scelto, riassume la finestra: quanti pezzi, da dove, quali fenomeni, chi nomina quegli anni. Con un luogo o una voce scelti, mostra la scheda: ogni dato con la sua fonte e il suo grado di certezza. «Indietro» torna al riassunto.'},

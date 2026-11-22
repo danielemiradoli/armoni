@@ -1,0 +1,3 @@
+# Superficie (P2046, valore normalizzato in metri quadrati) dei luoghi che hanno un'estensione:
+# paesi, regioni, zone, città dell'atlante e dei fenomeni artistici. #LUOGHI#: gli identificativi.
+SELECT ?x (MAX(?v) AS ?m2) WHERE { VALUES ?x { #LUOGHI# } ?x p:P2046/psn:P2046/wikibase:quantityAmount ?v } GROUP BY ?x

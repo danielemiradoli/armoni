@@ -11,6 +11,7 @@ Scelta confermata da Daniele Miradoli il 20/11/2026: **codice Apache 2.0** (vedi
 | epoche di Japan Search | `data/jps_epoche.csv`, in `web/periodo.json` | CC0 per principio, con richiesta di citare la fonte | citata nella pagina e nel README |
 | conteggi V&A | `web/densita_vam.json` | condizioni V&A §9 (uso non commerciale); solo conteggi aggregati, nessuna scheda | Victoria and Albert Museum |
 | **confini storici** | `web/confini/*.json`, `web/confini/fini/*.json` (dettaglio) | **GPL-3.0**, da `aourednik/historical-basemaps` | André Ourednik, *historical-basemaps* |
+| superfici per gli aloni | `web/aree.json` | CC0 (Wikidata); dove manca, area calcolata dai confini 2010 (GPL-3.0) | — |
 | stili e movimenti, guerre e rivoluzioni | `web/contesti.json` | CC0 (Wikidata); il nome dello Stato di allora viene dai confini, GPL-3.0 | — |
 | librerie di disegno | `web/lib/d3.min.js`, `web/lib/topojson-client.min.js` | ISC (d3, topojson-client) | testi in `web/lib/LICENSE-*.txt` |
 | caratteri | `web/lib/font/` (Newsreader, Instrument Sans) | SIL Open Font License 1.1 | testi in `web/lib/font/OFL-*.txt` |

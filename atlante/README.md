@@ -34,6 +34,7 @@ python3 src/periodo.py && python3 src/letteratura.py && python3 src/qualita.py
 python3 src/fetch_vam.py && python3 src/densita_vam.py   # V&A: solo conteggi; cancellare data/raw/vam.csv entro 4 settimane
 # contesti: eseguire le query data/query/contesti_*.rq su query.wikidata.org, CSV in data/raw/contesti/
 python3 src/contesti.py    # richiede shapely; scrive web/contesti.json e out/contesti.md
+python3 src/aree.py        # aloni: superficie da Wikidata (data/query/aree.rq) o dai confini 2010; scrive web/aree.json
 python3 -m pytest tests    # 26 guardie
 cd web && python3 -m http.server
 ```
