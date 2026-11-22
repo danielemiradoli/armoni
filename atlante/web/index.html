@@ -132,6 +132,12 @@ header .sub{font-size:12.5px}
 #ctx .row{border-bottom-color:var(--riga)}
 #nar{background:var(--vetro);border-left:1px solid var(--riga)}
 #qual{background:var(--vetro)}
+.cerca{background:var(--co2);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:14px}
+.cerca button{min-height:34px;padding:4px 10px;font-size:13.5px}
+[role=button]:focus-visible{outline:2px solid var(--fe);outline-offset:1px}
+.salta{position:absolute;left:8px;top:-60px;z-index:60;background:var(--co);color:var(--vetro);padding:8px 12px;border-radius:6px}
+.salta:focus{top:8px}
+#ctx:focus,#tls:focus{outline:2px solid var(--fe);outline-offset:-2px}
 @media(max-width:900px){
  body{overflow:auto}
  .app,body.percorso .app{height:auto;grid-template:"top" auto "map" 62vh "tl" auto "ctx" auto "nar" auto "lay" auto/minmax(0,1fr)}
@@ -174,11 +180,12 @@ header .sub{font-size:12.5px}
 </head>
 <body>
 <div class="app">
+ <a class="salta" href="#ctx">Vai ai risultati</a><a class="salta" href="#tls">Vai alla barra del tempo</a>
  <header>
   <h1>ArMoni · Atlante</h1>
   <span class="sub">prototipo · primo filo: la porcellana blu e bianca nel mondo</span>
   <span class="sp"></span>
-  <input id="q" type="search" placeholder="Cerca titolo, cultura, tecnica" aria-label="Cerca">
+  <input id="q" type="search" placeholder="Cerca titolo, luogo, cultura, tecnica" aria-label="Cerca">
   <div class="seg" role="group" aria-label="Modalità">
    <button id="m-ricerca" aria-pressed="true">Ricerca</button><button id="m-percorso" aria-pressed="false">Percorso</button><button id="m-qualita" aria-pressed="false">Affidabilità</button>
   </div>
@@ -239,7 +246,7 @@ header .sub{font-size:12.5px}
  <div class="fig" id="fig"><canvas id="cv" aria-label="Mappa del mondo navigabile"></canvas><div id="tip"></div><div id="chip"></div>
   <div id="mapctl"><button id="zin" aria-label="Avvicina">+</button><button id="zout" aria-label="Allontana">−</button></div></div>
 
- <aside id="ctx" aria-live="polite"></aside>
+ <aside id="ctx" aria-live="polite" tabindex="-1"><p class="sub">Carico opere, luoghi e confini…</p></aside>
  <aside id="nar" aria-live="polite"></aside>
  <section id="qual" aria-label="Affidabilità"></section>
 
