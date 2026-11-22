@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fonti e licenze · ArMoni · Atlante</title><link href="lib/fonts.css" rel="stylesheet">
+<style>
+:root{color-scheme:light dark;--bg:light-dark(#fbfbf9,#0b1430);--ink:light-dark(#121a33,#eef0f6);--line:light-dark(#dde1ec,#22305e);--co:light-dark(#1f3c96,#8fa9ff)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Instrument Sans",system-ui,sans-serif}
+main{max-width:920px;margin:0 auto;padding:28px 18px 60px}
+h1,h2{font-family:Newsreader,Georgia,serif;font-weight:600;line-height:1.1} h1{font-size:34px}
+a{color:var(--co)} table{border-collapse:collapse;width:100%;font-size:14.5px;margin:16px 0} th,td{border-bottom:1px solid var(--line);text-align:left;vertical-align:top;padding:8px 6px}
+code{font-size:.92em} .torna{display:inline-block;margin-bottom:18px}
+</style></head><body><main>
+<a class="torna" href="./">← Torna all'atlante</a>
+<h1>Licenze dei componenti dell'atlante</h1>
+<p>Scelta confermata da Daniele Miradoli il 20/11/2026: <strong>codice Apache 2.0</strong> (vedi <code>LICENSE</code> alla radice), <strong>asserzioni prodotte da Armoni CC0</strong>. I dati di terzi conservano la propria licenza, indicata qui e, campo per campo, in <code>MANIFEST.md</code>.</p>
+<table>
+<thead>
+<tr>
+<th>componente</th>
+<th>file</th>
+<th>licenza</th>
+<th>attribuzione richiesta</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>codice dell'atlante</td>
+<td><code>src/</code>, <code>tests/</code>, <code>web/index.html</code>, <code>web/atlante.js</code></td>
+<td>Apache 2.0</td>
+<td>—</td>
+</tr>
+<tr>
+<td>asserzioni e tabelle derivate</td>
+<td><code>web/opere.json</code>, <code>web/luoghi.json</code>, <code>web/qualita.json</code>, <code>data/letteratura.csv</code>, <code>data/luoghi.csv</code>, <code>data/siti_consumo.csv</code></td>
+<td>CC0</td>
+<td>— (ogni riga cita comunque la propria fonte)</td>
+</tr>
+<tr>
+<td>metadati Met, Cleveland, Wikidata, PeriodO</td>
+<td>ricavati in <code>web/opere.json</code>, <code>web/periodo.json</code></td>
+<td>CC0 / pubblico dominio</td>
+<td>—</td>
+</tr>
+<tr>
+<td>metadati ColBase</td>
+<td>ricavati in <code>web/opere.json</code></td>
+<td>CC BY (政府標準利用規約 2.0)</td>
+<td>«出典: ColBase», presente in ogni scheda</td>
+</tr>
+<tr>
+<td>epoche di Japan Search</td>
+<td><code>data/jps_epoche.csv</code>, in <code>web/periodo.json</code></td>
+<td>CC0 per principio, con richiesta di citare la fonte</td>
+<td>citata nella pagina e nel README</td>
+</tr>
+<tr>
+<td>conteggi V&amp;A</td>
+<td><code>web/densita_vam.json</code></td>
+<td>condizioni V&amp;A §9 (uso non commerciale); solo conteggi aggregati, nessuna scheda</td>
+<td>Victoria and Albert Museum</td>
+</tr>
+<tr>
+<td><strong>confini storici</strong></td>
+<td><code>web/confini/*.json</code></td>
+<td><strong>GPL-3.0</strong>, da <code>aourednik/historical-basemaps</code></td>
+<td>André Ourednik, <em>historical-basemaps</em></td>
+</tr>
+<tr>
+<td>stili e movimenti, guerre e rivoluzioni</td>
+<td><code>web/contesti.json</code></td>
+<td>CC0 (Wikidata); il nome dello Stato di allora viene dai confini, GPL-3.0</td>
+<td>—</td>
+</tr>
+<tr>
+<td>librerie di disegno</td>
+<td><code>web/lib/d3.min.js</code>, <code>web/lib/topojson-client.min.js</code></td>
+<td>ISC (d3, topojson-client)</td>
+<td>testi in <code>web/lib/LICENSE-*.txt</code></td>
+</tr>
+<tr>
+<td>caratteri</td>
+<td><code>web/lib/font/</code> (Newsreader, Instrument Sans)</td>
+<td>SIL Open Font License 1.1</td>
+<td>testi in <code>web/lib/font/OFL-*.txt</code></td>
+</tr>
+<tr>
+<td>terre emerse</td>
+<td><code>web/terre.json</code></td>
+<td>Natural Earth, pubblico dominio (via npm <code>world-atlas</code>, ISC)</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p>I confini sono file di dati separati, distribuiti accanto al codice e non incorporati in esso: restano sotto GPL-3.0, con l'attribuzione qui sopra. Sostituibili con OpenHistoricalMap (CC0) dove la copertura basta. Questa nota descrive una scelta di progetto, non un parere legale.</p>
+<p>La pagina non chiede nulla a server di terzi: caratteri e librerie sono serviti insieme al sito, così nessun indirizzo IP dei visitatori viene trasmesso altrove.</p>
+<h2>Rigenerare e verificare</h2>
+<p>Codice, query e misure sono nel repository pubblico <a href="https://github.com/danielemiradoli/armoni">github.com/danielemiradoli/armoni</a>, cartella <code>atlante/</code>. Ogni livello ha il suo documento di misura in <code>atlante/out/</code>; le regole con cui entra ogni fonte sono in <code>docs/protocollo_ingestione.md</code>.</p>
+</main></body></html>
