@@ -119,10 +119,10 @@ function prepAloni(co, cel) {
 function disegnaAloni(t) {
   actx.clearRect(0, 0, W, H); if (!ALONI.length || !proj) return;
   // la pulsazione cambia solo la trasparenza, nulla si sposta: resta anche con «riduci movimento», più lenta e più tenue
-  const p = RIDOTTO.matches ? .5 + .25 * Math.sin(t * 2 * Math.PI / 7000) : .5 + .5 * Math.sin(t * 2 * Math.PI / 3600), pa = d3.geoPath(proj, actx);
-  const forza = matchMedia('(prefers-color-scheme: dark)').matches ? 1 : .75;  // sul chiaro lo stesso velo pesa di più
-  for (const a of ALONI) { actx.beginPath(); pa(a.g); actx.fillStyle = a.col; actx.globalAlpha = (.02 + .03 * p) * forza; actx.fill();
-    actx.globalAlpha = (.07 + .1 * p) * forza; actx.lineWidth = 1; actx.strokeStyle = a.col; actx.stroke(); }
+  const p = .5 + .5 * Math.sin(t * 2 * Math.PI / (RIDOTTO.matches ? 6000 : 3600)), pa = d3.geoPath(proj, actx);
+  const forza = matchMedia('(prefers-color-scheme: dark)').matches ? .7 : .9;  // il giallo si vede molto sullo scuro e poco sul chiaro
+  for (const a of ALONI) { actx.beginPath(); pa(a.g); actx.fillStyle = a.col; actx.globalAlpha = (.03 + .07 * p) * forza; actx.fill();
+    actx.globalAlpha = (.12 + .28 * p) * forza; actx.lineWidth = 1; actx.strokeStyle = a.col; actx.stroke(); }
   actx.globalAlpha = 1;
 }
 function anima(t) {
@@ -228,7 +228,7 @@ function draw() {
   const sel = O.find(x => x.id === S.sel);
   if (sel && sel.o && visibile([sel.o.lon, sel.o.lat])) { const [x, y] = proj([sel.o.lon, sel.o.lat]); ctx.beginPath(); ctx.arc(x, y, 11, 0, 7); ctx.strokeStyle = fe; ctx.lineWidth = 2.5; ctx.stroke(); }
   evidenzia(fe);
-  prepAloni(co, cel); disegnaAloni(performance.now());
+  prepAloni(css('--alone'), css('--alone')); disegnaAloni(performance.now());
   chip(cf.anno);
 }
 /* Il segno scelto resta in risalto: doppio anello (chiaro fuori, colore d'accento dentro), leggibile su ogni sfondo. */
