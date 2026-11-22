@@ -63,10 +63,21 @@ Promise.all([j('opere.json'), j('luoghi.json'), j('periodi.json'), j('confini/an
   leggiVista(); route(); update();
 }).catch(e => { $('#ctx').innerHTML = `<p>Non riesco a caricare i dati (${esc(e.message)}).</p>`; });
 
+/* Dettaglio secondo l'ingrandimento: confini e coste più fini si caricano solo quando servono.
+   Finché il file dettagliato non è arrivato si disegna quello semplice. */
+const FINE = {confini: 4, terre: 2.5};
 function confini(y) {
-  const a = ANNI.filter(v => v <= y).pop() ?? ANNI[0];
-  if (!CONF[a]) { CONF[a] = 'caricamento'; j(`confini/${a}.json`).then(t => { const k = Object.keys(t.objects)[0]; CONF[a] = topojson.feature(t, t.objects[k]); draw(); }).catch(() => { CONF[a] = null; }); }
-  return {anno: a, geo: CONF[a] && CONF[a] !== 'caricamento' ? CONF[a] : null};
+  if (!ANNI.length) return {anno: null, geo: null};  // i dati non sono ancora arrivati
+  const a = ANNI.filter(v => v <= y).pop() ?? ANNI[0], fine = S.k >= FINE.confini, key = fine ? 'f' + a : a;
+  if (!CONF[key]) { CONF[key] = 'caricamento'; j(`confini/${fine ? 'fini/' : ''}${a}.json`).then(t => { const k = Object.keys(t.objects)[0]; CONF[key] = topojson.feature(t, t.objects[k]); draw(); }).catch(() => { CONF[key] = null; }); }
+  const ok = v => v && v !== 'caricamento';
+  return {anno: a, geo: ok(CONF[key]) ? CONF[key] : ok(CONF[a]) ? CONF[a] : null};
+}
+let TERRE50 = null;
+function terre() {
+  if (S.k < FINE.terre) return TERRE;
+  if (!TERRE50) { TERRE50 = 'caricamento'; j('terre50.json').then(t => { TERRE50 = topojson.feature(t, t.objects.land); draw(); }).catch(() => { TERRE50 = null; }); }
+  return TERRE50 && TERRE50 !== 'caricamento' ? TERRE50 : TERRE;
 }
 
 // luogo dichiarato; quello dedotto solo se lo strato e' acceso, e mai al posto del dichiarato
@@ -93,7 +104,10 @@ function setProj() {
   const R = Math.min(W, H) * 0.46;
   proj = S.proj === 'globo' ? d3.geoOrthographic().rotate(S.rot).scale(R * S.k).translate([W / 2, H / 2]).clipAngle(90)
     : d3.geoEqualEarth().rotate([S.rot[0], 0]).fitExtent([[12, 12], [W - 12, H - 12]], {type: 'Sphere'});
-  if (S.proj !== 'globo') proj.scale(proj.scale() * S.k);
+  if (S.proj !== 'globo' && S.k > 1) {  // carta piana: ingrandisce attorno al punto che si sta guardando
+    proj.scale(proj.scale() * S.k); const p = proj([-S.rot[0], -S.rot[1]]), t = proj.translate();
+    proj.translate([t[0] + W / 2 - p[0], t[1] + H / 2 - p[1]]);
+  }
   path = d3.geoPath(proj, ctx);
 }
 const visibile = c => S.proj !== 'globo' || d3.geoDistance(c, [-S.rot[0], -S.rot[1]]) < Math.PI / 2;
@@ -107,7 +121,7 @@ function draw() {
   ctx.beginPath(); path({type: 'Sphere'}); ctx.fillStyle = css('--glaze'); ctx.fill();
   ctx.lineWidth = 1.2; ctx.strokeStyle = co; ctx.globalAlpha = .55; ctx.stroke(); ctx.globalAlpha = 1;
   ctx.beginPath(); path(d3.geoGraticule10()); ctx.strokeStyle = co; ctx.globalAlpha = .08; ctx.lineWidth = .6; ctx.stroke();
-  ctx.beginPath(); path(TERRE); ctx.fillStyle = co; ctx.globalAlpha = .1; ctx.fill(); ctx.globalAlpha = 1;
+  ctx.beginPath(); path(terre()); ctx.fillStyle = co; ctx.globalAlpha = .1; ctx.fill(); ctx.globalAlpha = 1;
   const cf = confini(S.year);
   if (S.L.confini && cf.geo) { ctx.beginPath(); path(cf.geo); ctx.strokeStyle = co; ctx.globalAlpha = .42; ctx.lineWidth = .7; ctx.stroke(); ctx.globalAlpha = 1; }
   const hi = S.mode === 'percorso' ? new Set(TAPPE[S.tappa].hi) : null;
@@ -221,8 +235,14 @@ cv.addEventListener('pointerup', e => {
   drag = null; cv.style.cursor = 'grab';
 });
 cv.addEventListener('pointerleave', () => { $('#tip').style.display = 'none'; });
-cv.addEventListener('wheel', e => { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 1 / 1.15); }, {passive: false});
-const zoom = f => { S.k = Math.max(.7, Math.min(8, S.k * f)); draw(); };
+// la rotella ingrandisce verso il punto sotto il cursore: il globo si sposta un po' verso di lui a ogni scatto
+cv.addEventListener('wheel', e => { e.preventDefault(); const b = cv.getBoundingClientRect(), f = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+  const c = f > 1 && proj.invert ? proj.invert([e.clientX - b.left, e.clientY - b.top]) : null;
+  if (c && Number.isFinite(c[0]) && S.k < ZMAX) { const t = 1 - 1 / f; S.rot = [S.rot[0] + t * angolo(-c[0] - S.rot[0]), S.rot[1] + t * (-c[1] - S.rot[1])]; }
+  zoom(f); }, {passive: false});
+const angolo = d => ((d + 540) % 360) - 180;  // la via più corta attorno al globo
+const ZMAX = 40;
+const zoom = f => { S.k = Math.max(.7, Math.min(ZMAX, S.k * f)); draw(); };
 $('#zin').onclick = () => zoom(1.3); $('#zout').onclick = () => zoom(1 / 1.3);
 const misura = () => { const d = devicePixelRatio || 1; W = fig.clientWidth; H = fig.clientHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); draw(); };
 const roMap = new ResizeObserver(misura);
@@ -517,7 +537,7 @@ $('#commentabtn').onclick = () => window.open(`${MODULO}?vista=${encodeURICompon
 
 const VISITA = [
   {s: 'header .seg', t: 'Tre modi di usare l\'atlante', p: '<b>Ricerca</b>: esplori liberamente, scegliendo anno, luoghi e livelli. <b>Percorso</b>: un racconto in tappe, con le fonti di ogni frase. <b>Affidabilità</b>: che cosa sanno i dati, e dove tacciono.'},
-  {s: '#fig', t: 'Il globo', p: 'Trascina per ruotarlo, usa + e − per avvicinarti. Un clic su un segno apre la sua scheda a destra. <b>Cerchi</b>: pezzi per luogo d\'origine (pieno: città; anello: solo il paese). <b>Rombi</b>: quantità al V&amp;A. <b>Triangoli</b>: scavi archeologici. <b>Quadrati e nomi in corsivo</b>: stili, movimenti, scuole, dinastie.'},
+  {s: '#fig', t: 'Il globo', p: 'Trascina per ruotarlo; per avvicinarti usa + e −, oppure la rotella, che ingrandisce verso il punto sotto il cursore. Più ti avvicini, più coste e confini diventano dettagliati. Un clic su un segno apre la sua scheda a destra. <b>Cerchi</b>: pezzi per luogo d\'origine (pieno: città; anello: solo il paese). <b>Rombi</b>: quantità al V&amp;A. <b>Triangoli</b>: scavi archeologici. <b>Quadrati e nomi in corsivo</b>: stili, movimenti, scuole, dinastie.'},
   {s: '#tl', t: 'Il tempo', p: 'Clicca o trascina sulla barra per scegliere l\'anno; con «finestra ±» decidi quanti anni guardare insieme; «Scorri» fa avanzare il tempo da solo. Sotto, le <b>corsie</b>: chi divide il tempo e come lo chiama (PeriodO), le dinastie, i fenomeni artistici per regione.'},
   {s: '#lay', t: 'Livelli, in cartelle', p: 'Ogni cartella si accende e si spegne in blocco, e ricorda come l\'avevi lasciata; il nome la apre. Ogni voce dice che cosa mostra. I livelli si <b>sovrappongono per accostare</b>: vedere due cose nello stesso luogo e nello stesso tempo non significa che siano collegate. Le relazioni compaiono solo dove una fonte le dichiara.'},
   {s: '#ctx', t: 'Il pannello di destra', p: 'Senza nulla di scelto, riassume la finestra: quanti pezzi, da dove, quali fenomeni, chi nomina quegli anni. Con un luogo o una voce scelti, mostra la scheda: ogni dato con la sua fonte e il suo grado di certezza. «Indietro» torna al riassunto.'},
