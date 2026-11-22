@@ -105,7 +105,7 @@ function filtra() {
 const cv = $('#cv'), ctx = cv.getContext('2d'), fig = $('#fig');
 /* Alone: per ciò che ha un'estensione (paesi, regioni, continenti) un disco trasparente grande quanto
    l'area vera, che pulsa piano. Sta su un canvas suo, sopra la mappa e senza clic, così pulsare non
-   costringe a ridisegnare tutto. Fermo per chi chiede meno movimento. Le città non hanno alone. */
+   costringe a ridisegnare tutto. Le città non hanno alone. */
 const av = $('#alone'), actx = av.getContext('2d');
 let AREE = {}, ALONI = [], rafAlone = null, ultimoAlone = 0;
 const RIDOTTO = matchMedia('(prefers-reduced-motion: reduce)');
@@ -118,7 +118,8 @@ function prepAloni(co, cel) {
 }
 function disegnaAloni(t) {
   actx.clearRect(0, 0, W, H); if (!ALONI.length || !proj) return;
-  const p = RIDOTTO.matches ? .5 : .5 + .5 * Math.sin(t * 2 * Math.PI / 3600), pa = d3.geoPath(proj, actx);
+  // la pulsazione cambia solo la trasparenza, nulla si sposta: resta anche con «riduci movimento», più lenta e più tenue
+  const p = RIDOTTO.matches ? .5 + .25 * Math.sin(t * 2 * Math.PI / 7000) : .5 + .5 * Math.sin(t * 2 * Math.PI / 3600), pa = d3.geoPath(proj, actx);
   const forza = matchMedia('(prefers-color-scheme: dark)').matches ? 1 : .75;  // sul chiaro lo stesso velo pesa di più
   for (const a of ALONI) { actx.beginPath(); pa(a.g); actx.fillStyle = a.col; actx.globalAlpha = (.02 + .03 * p) * forza; actx.fill();
     actx.globalAlpha = (.07 + .1 * p) * forza; actx.lineWidth = 1; actx.strokeStyle = a.col; actx.stroke(); }
@@ -127,7 +128,7 @@ function disegnaAloni(t) {
 function anima(t) {
   rafAlone = null;
   if (t - ultimoAlone > 40) { ultimoAlone = t; disegnaAloni(t); }  // circa 25 immagini al secondo bastano
-  if (ALONI.length && !RIDOTTO.matches && !document.hidden) rafAlone = requestAnimationFrame(anima);
+  if (ALONI.length && !document.hidden) rafAlone = requestAnimationFrame(anima);
 }
 document.addEventListener('visibilitychange', () => { if (!document.hidden && !rafAlone) rafAlone = requestAnimationFrame(anima); });
 let W = 0, H = 0, proj, path;
