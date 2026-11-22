@@ -56,7 +56,7 @@ Promise.all([j('opere.json'), j('luoghi.json'), j('periodi.json'), j('confini/an
   if (v) { VAM = v; for (const x of v.luoghi) if (!LU[x.id]) LU[x.id] = {...x, lat: +x.lat, lon: +x.lon}; }
   NOD = o.filter(x => x.inizio == null);
   O = o.filter(x => x.inizio != null).map(x => ({...x, o: LU[x.origine], s: LU[x.sede], m: LU[x.mercato],
-    hay: (x.titolo + ' ' + x.cultura + ' ' + x.tecnica).toLowerCase()}));
+    hay: [x.titolo, x.cultura, x.tecnica, LU[x.origine]?.nome, LU[x.sede]?.nome].filter(Boolean).join(' ').toLowerCase()}));  // anche i luoghi: «iznik» trova i pezzi fatti a Iznik
   PER = p.map(x => ({...x, inizio: +x.inizio, fine: +x.fine}));
   ANNI = a; if (PO) $('#corsie').value = 'periodo'; TERRE = topojson.feature(t, t.objects.land);
   try { S.tav = JSON.parse(localStorage.getItem('armoni-tavolo') || '[]').filter(c => O.some(x => x.id === c.id)); } catch (e) { S.tav = []; }
@@ -113,7 +113,11 @@ function setProj() {
 const visibile = c => S.proj !== 'globo' || d3.geoDistance(c, [-S.rot[0], -S.rot[1]]) < Math.PI / 2;
 const rr = g => g.l.precisione === 'citta' ? 2.5 + Math.sqrt(g.n) * 1.5 : 6 + Math.sqrt(g.n) * 2.1;
 
+// spazio già occupato da un nome sulla mappa: chi arriva dopo non ci scrive sopra
+let OCC = [];
+const libero = b => !OCC.some(o => b[0] < o[2] && b[2] > o[0] && b[1] < o[3] && b[3] > o[1]);
 function draw() {
+  OCC = [];
   if (!W) return;
   setProj();
   const co = css('--co'), fe = css('--fe'), ink = css('--ink'), mute = css('--mute');
@@ -141,7 +145,8 @@ function draw() {
     if (S.L.silenzio && g.l.precisione !== 'citta') { ctx.beginPath(); ctx.arc(x, y, r + 16, 0, 7); ctx.fillStyle = mute; ctx.globalAlpha = .1; ctx.fill(); }
     if (S.place === g.id) { ctx.beginPath(); ctx.arc(x, y, r + 5, 0, 7); ctx.strokeStyle = fe; ctx.globalAlpha = 1; ctx.lineWidth = 2; ctx.stroke(); }
     ctx.globalAlpha = 1;
-    if (r > (W < 520 ? 15 : 9) || (hi && hi.has(g.id))) { ctx.font = '12px "Instrument Sans",sans-serif'; ctx.fillStyle = ink; ctx.fillText(g.l.nome, x + r + 4, y + 4); }
+    if (r > (W < 520 ? 15 : 9) || (hi && hi.has(g.id))) { ctx.font = '12px "Instrument Sans",sans-serif'; const w = ctx.measureText(g.l.nome).width, bx = [x + r + 4, y - 8, x + r + 4 + w, y + 6];
+      if (S.place === g.id || (hi && hi.has(g.id)) || libero(bx)) { OCC.push(bx); ctx.fillStyle = ink; ctx.fillText(g.l.nome, x + r + 4, y + 4); } }
   }
   if (S.L.vam) for (const g of vagg) {
     const c = [g.l.lon, g.l.lat]; if (!visibile(c)) continue; const [x, y] = proj(c), r = 3 + Math.sqrt(g.n) * 1.3;
@@ -179,25 +184,26 @@ function evidenzia(fe) {
 /* Stili e movimenti: quadrati vuoti (luogo), quadrati tratteggiati più grandi (paese), solo nome in corsivo (regione).
    Nomi scritti per i più noti (versioni linguistiche su Wikidata), senza sovrapporsi. */
 function drawContesti(ink, mute) {
-  const occ = [], sel = S.place && S.place.startsWith('mov:') ? S.place.slice(4) : null;
+  const occ = OCC, sel = S.place && S.place.startsWith('mov:') ? S.place.slice(4) : null;
   // relazioni dichiarate: fra voci attive se il livello è acceso; quelle della voce scelta sempre, anche fuori finestra
   const att = new Map(cagg.map(e => [e.id, e])), tutte = new Map(CX.map(e => [e.id, e]));
   const linea = (a, b, forte) => { const p = a.luoghi[0], q = b.luoghi[0]; if (p.id === q.id) return; ctx.beginPath(); path({type: 'LineString', coordinates: [[p.lon, p.lat], [q.lon, q.lat]]});
     ctx.strokeStyle = ink; ctx.globalAlpha = forte ? .85 : .35; ctx.lineWidth = forte ? 1.6 : .9; ctx.setLineDash([1, 3]); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1; };
   if (S.L.relazioni) for (const e of cagg) for (const r of e.relazioni) if (r.verso === '>' && att.has(r.id)) linea(e, att.get(r.id), false);
   if (sel && tutte.has(sel)) for (const r of tutte.get(sel).relazioni) if (r.collocata && tutte.has(r.id)) linea(tutte.get(sel), tutte.get(r.id), true);
-  ctx.font = 'italic 500 13px Newsreader,Georgia,serif';
+  ctx.font = 'italic 500 13px Newsreader,Georgia,serif'; let cnomi = 0;
   for (const e of cagg) for (const l of e.luoghi) {
     const c = [l.lon, l.lat]; if (!visibile(c)) continue; const [x, y] = proj(c), r = l.precisione === 'paese' ? 7 : 4.5;
     ctx.strokeStyle = ink; ctx.lineWidth = e.id === sel ? 2.2 : 1; ctx.globalAlpha = e.id === sel ? 1 : .7;
     if (l.precisione !== 'regione') { if (l.precisione === 'paese') ctx.setLineDash([2, 2]); ctx.strokeRect(x - r, y - r, 2 * r, 2 * r); ctx.setLineDash([]); }
     const t = e.nome, w = ctx.measureText(t).width, bx = [x + r + 3, y - 9, x + r + 3 + w, y + 4];
-    if (e.id === sel || (occ.length < (W < 520 ? 6 : 18) && !occ.some(o => bx[0] < o[2] && bx[2] > o[0] && bx[1] < o[3] && bx[3] > o[1]))) {
+    if (e.id === sel || (cnomi < (W < 520 ? 6 : 18) && libero(bx) && ++cnomi)) {
       occ.push(bx); ctx.fillStyle = ink; ctx.globalAlpha = e.id === sel ? 1 : .8; ctx.fillText(t, bx[0], y + 3); }
     ctx.globalAlpha = 1;
   }
 }
 function chip(anno) {
+  if (!O.length) { $('#chip').textContent = 'Carico opere, luoghi e confini…'; return; }
   const n = act.length, paese = act.filter(x => x.o && x.o.precisione !== 'citta').length, ipo = act.filter(x => x.grado === 'ipotetico').length;
   let h = `<b>${n}</b> pezzi attivi · confini del ${fmtY(anno)}`;
   if (S.L.silenzio && n) { const us = act.filter(x => x.fonte === 'met' || x.fonte === 'cma').length, sedi = new Set(act.map(x => x.sede).filter(Boolean)).size, pu = 100 * us / n;
@@ -306,12 +312,14 @@ function drawTlPO(w, src) {
   for (let t = 800; t < T1; t += w < 520 ? 400 : 100) s += `<text x="${x(t)}" y="${h - 3}" font-size="10.5" fill="var(--mute)" text-anchor="middle">${t}</text>`;
   s += `<line x1="${x(S.year)}" x2="${x(S.year)}" y1="0" y2="${h - 14}" stroke="var(--fe)" stroke-width="2"/>`;
   tls.innerHTML = s; $('#yr').textContent = fmtY(S.year);
+  tls.setAttribute('aria-valuemin', T0); tls.setAttribute('aria-valuemax', T1); tls.setAttribute('aria-valuenow', S.year);
+  tls.setAttribute('aria-valuetext', `${fmtY(S.year)}, finestra più o meno ${S.win} anni`);
   $('#tlinfo').textContent = `${src.info}${VAM && S.L.vam ? ' · linea rossa: V&A' : ''}`;
 }
 function nominato() {
   if (!PO) return '';
   const g = REG_PO.map(r => [r, PO.periodi.filter(p => p.r === r && p.a <= S.year && p.b >= S.year)]).filter(([, ps]) => ps.length);
-  return `<h3 style="margin:18px 0 6px">Il ${fmtY(S.year)}, nominato da chi</h3><p class="sub">Periodi di PeriodO che contengono l'anno, con la fonte che li definisce e la lingua del nome.</p>` +
+  return `<h3 style="margin:18px 0 6px">${articolo(S.year)}${fmtY(S.year)}, nominato da chi</h3><p class="sub">Periodi di PeriodO che contengono l'anno, con la fonte che li definisce e la lingua del nome.</p>` +
     g.map(([r, ps]) => { const lg = [...new Set(ps.map(p => LINGUE[p.lg] || p.lg))].join(', ');
       const una = [...new Map(ps.map(p => [p.au, p])).values()].sort((p, q) => (p.lg === 'en') - (q.lg === 'en'));  // una per autorità, prima le lingue non inglesi
       return `<div class="k">${esc(r)} · ${ps.length} definizioni da ${una.length} fonti · in ${esc(lg)}</div>` + una.slice(0, 4).map(p => { const a = PO.autorita[p.au] || {};
@@ -362,6 +370,19 @@ function schedaMov(e) {
   <p class="sub" style="margin-top:14px;border-top:1px solid var(--line, #ccc);padding-top:8px">Accostamento nello spazio e nel tempo, non relazione: nessuna opera dell'atlante è attribuita a questa voce. Fonte: Wikidata (CC0).</p>
   <div class="acts"><button data-back>Indietro</button></div>`;
 }
+// «l'820», «l'11», «il 1640»: l'articolo segue il suono del numero
+const articolo = y => { const t = String(Math.abs(y)); return /^8/.test(t) || t === '11' ? "L'" : 'Il '; };
+/* Con una ricerca attiva: quanti pezzi trova in tutto il tempo, quanti nella finestra, dove si addensano. */
+function cercaInfo() {
+  const q = S.q.trim().toLowerCase(); if (!q) return '';
+  const tutti = O.filter(x => S.F[x.fonte] && (S.L.ipotetici || x.grado === 'documentato') && x.hay.includes(q));
+  const fen = CX.filter(e => (e.nome + ' ' + (e.nome_en || '')).toLowerCase().includes(q)).length;
+  let picco = '';
+  if (tutti.length) { const dec = new Map(); for (const x of tutti) { const d = Math.floor((x.inizio + x.fine) / 20) * 10; dec.set(d, (dec.get(d) || 0) + 1); }
+    picco = [...dec].sort((a, b) => b[1] - a[1])[0][0]; }
+  return `<div class="cerca" role="status"><b>«${esc(S.q.trim())}»</b>: ${tutti.length} pezzi in tutto il tempo, ${act.length} in questa finestra${S.L.contesti ? `; ${fen} fenomeni artistici` : ''}.
+    <div class="acts" style="margin-top:8px">${picco !== '' && tutti.length > act.length && Math.abs(picco + 5 - S.year) > S.win ? `<button data-anno="${picco + 5}">Vai agli anni con più risultati (${fmtY(picco)}–${fmtY(picco + 9)})</button>` : ''}<button data-svuota>Togli la ricerca</button></div></div>`;
+}
 function renderCtx() {
   const c = $('#ctx'), sel = O.find(x => x.id === S.sel);
   if (sel) { c.innerHTML = scheda(sel); return; }
@@ -380,7 +401,7 @@ function renderCtx() {
     <div style="margin-top:12px">${xs.slice(0, 200).map(x => `<div class="row" data-sel="${x.id}"><span>${esc(x.titolo)}</span><span class="n sub">${fmtY(x.inizio)}–${fmtY(x.fine)}</span></div>`).join('')}</div>
     <div class="acts"><button data-back>Indietro</button></div>`; return; }
   const mx = agg[0]?.n || 1, n = act.length;
-  c.innerHTML = `<div class="sub">Fra ${fmtY(S.year - S.win)} e ${fmtY(S.year + S.win)}</div><div class="big" style="margin:4px 0">${n}</div>
+  c.innerHTML = cercaInfo() + `<div class="sub">Fra ${fmtY(S.year - S.win)} e ${fmtY(S.year + S.win)}</div><div class="big" style="margin:4px 0">${n}</div>
   <div class="sub">pezzi da ${agg.length} luoghi · ${act.filter(x => x.grado === 'documentato').length} documentati</div>
   <h3 style="margin:18px 0 6px">Da dove</h3>
   ${agg.slice(0, 14).map(g => `<div class="row" data-place="${g.id}"><span>${esc(g.l.nome)} <span class="sub">${g.l.precisione === 'citta' ? '' : '· ' + PREC[g.l.precisione]}</span><div class="bar" style="width:${100 * g.n / mx}%"></div></span><span class="n">${g.n}</span></div>`).join('') || '<p class="sub">Nessun pezzo in questa finestra.</p>'}
@@ -390,7 +411,15 @@ function renderCtx() {
   <h3 style="margin:18px 0 6px">Come leggere</h3>
   <p class="sub">Ogni punto è un luogo d'origine dichiarato dal catalogo. Il pieno indica una città; l'anello tratteggiato un paese, perché il record non dice di più. I pezzi «ipotetici» appartengono a una manifattura nota per il blu, ma il loro record non nomina il colore. Clicca un luogo per l'elenco, poi un pezzo per la scheda.</p>`;
 }
+// collegamenti per saltare: spostano il fuoco senza toccare l'indirizzo, che porta la vista
+document.querySelectorAll('.salta').forEach(l => l.onclick = e => { e.preventDefault(); const t = $(l.getAttribute('href')); t.focus(); t.scrollIntoView({block: 'nearest'}); });
+const CLIC = '[data-place],[data-sel],[data-go]:not(button)';
+new MutationObserver(() => document.querySelectorAll(`#ctx :is(${CLIC}), #nar :is(${CLIC})`).forEach(el => { if (!el.hasAttribute('tabindex')) { el.tabIndex = 0; el.setAttribute('role', 'button'); } }))
+  .observe(document.body, {childList: true, subtree: true});
+document.addEventListener('keydown', e => { const el = e.target.closest?.(CLIC); if (el && !/^(BUTTON|A|INPUT|SELECT|TEXTAREA)$/.test(el.tagName) && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); el.click(); } });
 document.addEventListener('click', e => {
+  if (e.target.closest('[data-svuota]')) { S.q = ''; $('#q').value = ''; update(); return; }
+  const an = e.target.closest('[data-anno]'); if (an) { S.year = +an.dataset.anno; update(); return; }
   const t = e.target.closest('[data-sel],[data-place],[data-back],[data-tav],[data-centra],[data-go]'); if (!t) return;
   if (t.dataset.sel) { S.sel = t.dataset.sel; }
   else if (t.dataset.place) { S.place = t.dataset.place; S.sel = null; }
@@ -472,6 +501,7 @@ function route() {
   document.body.classList.toggle('percorso', S.mode === 'percorso');
   document.body.classList.toggle('qualita', S.mode === 'qualita');
   for (const m of ['ricerca', 'percorso', 'qualita']) $('#m-' + m).setAttribute('aria-pressed', S.mode === m);
+  if (S.mode !== 'ricerca') $('#tavolo').classList.remove('open');  // negli altri modi il pulsante del Tavolo non c'è
   if (S.mode === 'qualita') { renderQual(); return; }
   if (S.mode === 'percorso') applyTappa(); else { if (Lr) { S.L = Lr; Lr = null; } syncChecks(); update(); }
   requestAnimationFrame(misura);  // dopo il cambio di griglia la mappa ha nuove misure
