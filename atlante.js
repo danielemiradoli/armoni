@@ -110,7 +110,9 @@ const av = $('#alone'), actx = av.getContext('2d');
 let AREE = {}, ALONI = [], rafAlone = null, ultimoAlone = 0;
 const RIDOTTO = matchMedia('(prefers-reduced-motion: reduce)');
 function prepAloni(co, cel) {
-  const v = new Map(), add = (id, c, col) => { const a = AREE[id]; if (a && !v.has(id + col)) v.set(id + col, {g: d3.geoCircle().center(c).radius(Math.sqrt(a.km2 / Math.PI) / 111.195)(), col}); };
+  const v = new Map(), add = (id, c, col) => { const a = AREE[id]; if (a && !v.has(id + col)) { const h = [...id].reduce((n, ch) => (n * 31 + ch.charCodeAt(0)) >>> 0, 7);
+    // ogni alone ha fase e ritmo suoi (2,4–3,6 s), ricavati dal nome: diversi fra loro, uguali da una visita all'altra
+    v.set(id + col, {g: d3.geoCircle().center(c).radius(Math.sqrt(a.km2 / Math.PI) / 111.195)(), col, fase: (h % 628) / 100, ritmo: 2400 + (h >>> 10) % 1200}); } };
   if (S.L.origini) for (const g of agg) if (['paese', 'regione', 'zona'].includes(g.l.precisione)) add(g.l.qid, [g.l.lon, g.l.lat], co);
   if (S.L.contesti) for (const e of cagg) for (const l of e.luoghi) if (l.precisione !== 'luogo') add(l.id, [l.lon, l.lat], cel);
   ALONI = [...v.values()];
@@ -119,9 +121,9 @@ function prepAloni(co, cel) {
 function disegnaAloni(t) {
   actx.clearRect(0, 0, W, H); if (!ALONI.length || !proj) return;
   // la pulsazione cambia solo la trasparenza, nulla si sposta: resta anche con «riduci movimento», più lenta e più tenue
-  const p = .5 + .5 * Math.sin(t * 2 * Math.PI / (RIDOTTO.matches ? 6000 : 3600)), pa = d3.geoPath(proj, actx);
+  const lento = RIDOTTO.matches ? 1.7 : 1, pa = d3.geoPath(proj, actx);
   const forza = matchMedia('(prefers-color-scheme: dark)').matches ? .7 : .9;  // il giallo si vede molto sullo scuro e poco sul chiaro
-  for (const a of ALONI) { actx.beginPath(); pa(a.g); actx.fillStyle = a.col; actx.globalAlpha = (.03 + .07 * p) * forza; actx.fill();
+  for (const a of ALONI) { const p = .5 + .5 * Math.sin(a.fase + t * 2 * Math.PI / (a.ritmo * lento)); actx.beginPath(); pa(a.g); actx.fillStyle = a.col; actx.globalAlpha = (.03 + .07 * p) * forza; actx.fill();
     actx.globalAlpha = (.12 + .28 * p) * forza; actx.lineWidth = 1; actx.strokeStyle = a.col; actx.stroke(); }
   actx.globalAlpha = 1;
 }
