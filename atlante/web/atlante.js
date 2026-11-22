@@ -160,7 +160,7 @@ function drawContesti(ink, mute) {
     ctx.strokeStyle = ink; ctx.globalAlpha = forte ? .85 : .35; ctx.lineWidth = forte ? 1.6 : .9; ctx.setLineDash([1, 3]); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1; };
   if (S.L.relazioni) for (const e of cagg) for (const r of e.relazioni) if (r.verso === '>' && att.has(r.id)) linea(e, att.get(r.id), false);
   if (sel && tutte.has(sel)) for (const r of tutte.get(sel).relazioni) if (r.collocata && tutte.has(r.id)) linea(tutte.get(sel), tutte.get(r.id), true);
-  ctx.font = 'italic 12.5px "Fraunces",Georgia,serif';
+  ctx.font = 'italic 500 13px Newsreader,Georgia,serif';
   for (const e of cagg) for (const l of e.luoghi) {
     const c = [l.lon, l.lat]; if (!visibile(c)) continue; const [x, y] = proj(c), r = l.precisione === 'paese' ? 7 : 4.5;
     ctx.strokeStyle = ink; ctx.lineWidth = e.id === sel ? 2.2 : 1; ctx.globalAlpha = e.id === sel ? 1 : .7;
