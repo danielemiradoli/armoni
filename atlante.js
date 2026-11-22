@@ -8,10 +8,10 @@ const PREC = {citta: 'città', paese: 'solo paese', regione: 'regione', zona: 'z
 const T0 = 700, T1 = 2000;
 
 const S = {corsie: 'wikidata', year: 1640, win: 25, proj: 'globo', rot: [-40, -28], k: 1, sel: null, place: null, q: '',
-  L: {confini: 1, origini: 1, sedi: 1, spostamenti: 0, mercati: 1, silenzio: 0, ipotetici: 1, dedotti: 0, vam: 1, letteratura: 1, contesti: 0}, F: {met: 1, cma: 1, wd: 1, colbase: 1},
+  L: {confini: 1, origini: 1, sedi: 1, spostamenti: 0, mercati: 1, silenzio: 0, ipotetici: 1, dedotti: 0, vam: 1, letteratura: 1, contesti: 0}, CT: new Set(['movimento', 'scuola', 'stile', 'periodizzazione']), F: {met: 1, cma: 1, wd: 1, colbase: 1},
   tav: [], mode: 'ricerca', tappa: 0};
 // CX: stili e movimenti (livello Contesti); APERTO: anni mostrati quando la fine non è dichiarata
-let CX = [], cagg = [], CXR = null; const APERTO = 30;
+let CX = [], cagg = [], CXR = null; const APERTO = 30, TIPI_CX = ['movimento', 'scuola', 'stile', 'periodizzazione'];
 let QU = null, qmet = 'doc', LET = null, lagg = [], PO = null, VAM = null, vagg = [], NOD = [], O = [], LU = {}, PER = [], ANNI = [], TERRE = null, CONF = {}, act = [], agg = [];
 
 const TAPPE = [
@@ -82,7 +82,7 @@ function filtra() {
   const lm = new Map(); if (LET) for (const a of LET.asserzioni) if (a.fine >= S.year - S.win && a.inizio <= S.year + S.win) { const k = 'sito:' + a.sito_id; lm.set(k, [...(lm.get(k) || []), a]); }
   lagg = [...lm].map(([id, as]) => ({id, l: LU[id], as, n: as.length}));
   vagg = [...vm].map(([id, n]) => ({id, l: LU[id], n})).filter(g => g.n >= .5).sort((a, b) => b.n - a.n);
-  cagg = S.L.contesti ? CX.filter(e => e.quando.da <= S.year + S.win && e.fv >= S.year - S.win && (!q || (e.nome + ' ' + (e.nome_en || '')).toLowerCase().includes(q))) : [];
+  cagg = S.L.contesti ? CX.filter(e => S.CT.has(e.tipo) && e.quando.da <= S.year + S.win && e.fv >= S.year - S.win && (!q || (e.nome + ' ' + (e.nome_en || '')).toLowerCase().includes(q))) : [];
 }
 
 /* ---------- mappa ---------- */
@@ -170,7 +170,7 @@ function chip(anno) {
   if (S.L.silenzio && n) { const us = act.filter(x => x.fonte === 'met' || x.fonte === 'cma').length, sedi = new Set(act.map(x => x.sede).filter(Boolean)).size, pu = 100 * us / n;
     if (VAM && S.L.vam) { const tv = vagg.reduce((a, g) => a + g.n, 0), cv = vagg.filter(g => g.l.precisione === 'citta').reduce((a, g) => a + g.n, 0); h += `<br>V&A (rombi, tutti conservati a Londra): ~${Math.round(tv)} pezzi, ${tv ? Math.round(100 * cv / tv) : 0}% localizzati per città`; }
     h += `<br>${Math.round(100 * paese / n)}% localizzati solo per paese · ${ipo} ipotetici · ${act.filter(x => !x.o).length} senza luogo<br>${sedi} sedi di conservazione · ${pu > 99 && pu < 100 ? pu.toFixed(1) : Math.round(pu)}% delle schede negli Stati Uniti<br>${NOD.filter(x => S.F[x.fonte]).length} pezzi senza data: esistono nei dati, non nel tempo`; }
-  if (S.L.contesti) h += `<br>${cagg.length} stili e movimenti in questa finestra (quadrati e nomi in corsivo)`;
+  if (S.L.contesti) h += `<br>${cagg.length} fenomeni artistici in questa finestra (quadrati e nomi in corsivo)`;
   $('#chip').innerHTML = h;
 }
 
@@ -193,7 +193,7 @@ cv.addEventListener('pointermove', e => {
   let pol = '';
   if (!g && S.L.confini) { const c = proj.invert([e.clientX - b.left, e.clientY - b.top]), cf = confini(S.year); if (c && cf.geo) { const f = cf.geo.features.find(f => f.properties.NAME && d3.geoContains(f, c)); if (f) pol = f.properties.NAME; } }
   if (g || pol) { tip.style.display = 'block'; tip.style.left = (e.clientX - b.left + 14) + 'px'; tip.style.top = (e.clientY - b.top + 10) + 'px';
-    tip.innerHTML = g && g.mov ? `<b>${esc(g.e.nome)}</b> · ${g.e.tipo}<br><span class="sub">${fmtY(g.e.quando.da)}–${g.e.quando.a != null ? fmtY(g.e.quando.a) : 'fine non dichiarata'} · ${esc(g.l.oggi)}</span>` : g && g.let ? `<b>${esc(g.l.nome)}</b> · ${g.n} dati dalla letteratura<br><span class="sub">sito archeologico: consumo, non produzione</span>` : g && g.vam ? `<b>${esc(g.l.nome)}</b> · V&A ~${Math.round(g.n)} pezzi<br><span class="sub">solo conteggio aggregato</span>` : g ? `<b>${esc(g.l.nome)}</b> · ${g.n} pezzi<br><span class="sub">${PREC[g.l.precisione]}${g.inc ? ' · ' + g.inc + ' attribuzioni incerte' : ''}${g.ded ? ' · ' + g.ded + ' con luogo dedotto' : ''}</span>` : `${esc(pol)}<br><span class="sub">confini del ${fmtY(confini(S.year).anno)}</span>`; }
+    tip.innerHTML = g && g.mov ? `<b>${esc(g.e.nome)}</b> · ${g.e.tipo}${g.e.sottotipo ? ' (' + g.e.sottotipo + ')' : ''}<br><span class="sub">${fmtY(g.e.quando.da)}–${g.e.quando.a != null ? fmtY(g.e.quando.a) : 'fine non dichiarata'} · ${esc(g.l.oggi)}</span>` : g && g.let ? `<b>${esc(g.l.nome)}</b> · ${g.n} dati dalla letteratura<br><span class="sub">sito archeologico: consumo, non produzione</span>` : g && g.vam ? `<b>${esc(g.l.nome)}</b> · V&A ~${Math.round(g.n)} pezzi<br><span class="sub">solo conteggio aggregato</span>` : g ? `<b>${esc(g.l.nome)}</b> · ${g.n} pezzi<br><span class="sub">${PREC[g.l.precisione]}${g.inc ? ' · ' + g.inc + ' attribuzioni incerte' : ''}${g.ded ? ' · ' + g.ded + ' con luogo dedotto' : ''}</span>` : `${esc(pol)}<br><span class="sub">confini del ${fmtY(confini(S.year).anno)}</span>`; }
   else tip.style.display = 'none';
 });
 cv.addEventListener('pointerup', e => {
@@ -245,12 +245,13 @@ function drawTl() {
 const REG_PO = ['Cina', 'Corea', 'Giappone', 'Sud-est asiatico', 'Iran e Asia centrale', 'Asia meridionale', 'Anatolia e Mediterraneo', 'Africa', 'Europa', 'Americhe'];
 const LINGUE = {en: 'inglese', fr: 'francese', nl: 'olandese', ja: 'giapponese', tr: 'turco', de: 'tedesco', it: 'italiano', zh: 'cinese', es: 'spagnolo'};
 // Corsie di densità: per ogni regione, quanti elementi coprono ogni anno (PeriodO, oppure stili e movimenti).
-const ORD_CX = ['Asia', 'Eurasia', 'Europa', 'Africa', 'America settentrionale', 'America centrale', 'Americhe', 'America meridionale', 'Oceania', 'più continenti', 'non determinato'];
-const corsieCX = () => ({reg: ORD_CX.filter(r => CX.some(e => e.corsia === r)), periodi: CX.map(e => ({r: e.corsia, a: e.quando.da, b: e.fv})), vuoto: '',
-  info: `corsie: quanti stili e movimenti (Wikidata) sono attivi in ogni anno, per continente; il numero: quanti nell'anno scelto. Fine non dichiarata: ${APERTO} anni`});
+const ORD_CX = ['Asia orientale', 'Sud-Est asiatico', 'Asia meridionale', 'Asia centrale', 'Medio Oriente e Nord Africa', 'Africa subsahariana', 'Europa', 'Nord America', 'Mesoamerica e Caraibi', 'Sud America', 'Oceania'];
+const regCX = () => [...ORD_CX, ...[...new Set(CX.map(e => e.corsia))].filter(r => !ORD_CX.includes(r)).sort()].filter(r => CX.some(e => e.corsia === r && S.CT.has(e.tipo)));
+const corsieCX = () => ({reg: regCX(), periodi: CX.filter(e => S.CT.has(e.tipo)).map(e => ({r: e.corsia, a: e.quando.da, b: e.fv})), vuoto: '',
+  info: `corsie: quanti fenomeni (${[...S.CT].join(', ')}; Wikidata) sono attivi in ogni anno, per macro-regione del luogo d'origine; il numero: quanti nell'anno scelto. Fine non dichiarata: ${APERTO} anni`});
 function drawTlPO(w, src) {
   const REG_PO = src.reg, P = src.periodi;
-  const lh = 13, top = 46, h = top + REG_PO.length * (lh + 3) + 18, x = d3.scaleLinear([T0, T1], [0, w]), x0 = w > 520 ? 150 : 0;
+  const lh = 13, top = 46, h = top + REG_PO.length * (lh + 3) + 18, x = d3.scaleLinear([T0, T1], [0, w]), x0 = w > 520 ? 205 : 0;
   tls.style.height = h + 'px';
   const c = dec(), mx = Math.max(...[...c.values()].map(v => v[0] + v[1]), 1);
   let s = '';
@@ -308,14 +309,14 @@ const PRECM = {luogo: 'luogo dentro un paese', paese: 'solo il paese', regione: 
 const VIA = {territorio: 'nel paese', partecipante: 'il paese vi partecipa, combattuta altrove'};
 function schedaMov(e) {
   const q = e.quando, fine = q.a != null ? fmtY(q.a) : 'fine non dichiarata';
-  return `<h2>${esc(e.nome)}</h2><div class="sub" style="margin-top:4px">${e.tipo}${e.nome_en && e.nome_en !== e.nome ? ' · ' + esc(e.nome_en) : ''} · <a href="https://www.wikidata.org/wiki/${e.id}">${e.id}</a></div>
+  return `<h2>${esc(e.nome)}</h2><div class="sub" style="margin-top:4px">${e.tipo}${e.sottotipo ? ' (' + e.sottotipo + ')' : ''}${!['it', 'en'].includes(e.nome_lingua) ? ' · nome in ' + esc(e.nome_lingua) + ', l\'unico su Wikidata' : ''}${e.nome_en && e.nome_en !== e.nome ? ' · ' + esc(e.nome_en) : ''} · <a href="https://www.wikidata.org/wiki/${e.id}">${e.id}</a></div>
   ${e.descr ? `<p style="margin-top:10px">${esc(e.descr)}${e.descr_lingua === 'en' ? ' <span class="sub">(descrizione di Wikidata in inglese)</span>' : ''}</p>` : ''}
   <h3>Quando</h3><p><b>${fmtY(q.da)}–${fine}</b><br><span class="sub">${esc(q.metodo)}${q.a == null ? ` · sulla mappa resta visibile ${APERTO} anni` : ''}</span></p>
-  <h3>Dove: oggi e allora</h3>${e.luoghi.map(l => `<div class="row" style="cursor:default;display:block"><b>${esc(l.oggi)}</b>${l.paese_oggi && l.paese_oggi !== l.oggi ? ' · ' + esc(l.paese_oggi) : ''} <span class="sub">(${PRECM[l.precisione]})</span>
-    ${l.stato_allora ? `<br>allora: <b>${esc(l.stato_allora)}</b> <span class="sub">nei confini del ${fmtY(l.istantanea)}, historical-basemaps</span>` : ''}${l.nome_allora ? `<br>nome di allora: ${esc(l.nome_allora)}` : ''}</div>`).join('')}
+  <h3>Dove: oggi e allora</h3>${e.luoghi.map(l => `<div class="row" style="cursor:default;display:block"><span class="sub">${l.via}:</span> <b>${esc(l.oggi)}</b>${l.paese_oggi && l.paese_oggi !== l.oggi ? ' · ' + esc(l.paese_oggi) : ''} <span class="sub">(${PRECM[l.precisione]}${l.macroregione ? ' · ' + l.macroregione : ''})</span>
+    ${l.stato_allora ? `<br>allora: <b>${esc(l.stato_allora)}</b> <span class="sub">nei confini del ${fmtY(l.istantanea)}, historical-basemaps</span>` : l.precisione !== 'regione' ? `<br><span class="sub">allora: nessuna carta dei confini entro 50 anni${l.istantanea ? ' (la più vicina è del ' + fmtY(l.istantanea) + ')' : ''}</span>` : ''}${l.nome_allora ? `<br>nome di allora: ${esc(l.nome_allora)}` : ''}</div>`).join('')}
   <h3>Negli anni della nascita (±${CXR.finestra})</h3>${e.contesto.length ? e.contesto.map(c => `<div class="row" style="cursor:default;display:block">${esc(c.nome)} <span class="sub">· ${c.tipo}, ${fmtY(c.da)}–${fmtY(c.a)} · ${VIA[c.via]}</span></div>`).join('')
     : '<p class="sub">Nessuna guerra o rivoluzione registrata (solo eventi con almeno 20 versioni linguistiche su Wikidata: l\'assenza non è una prova).</p>'}
-  <p class="sub" style="margin-top:14px;border-top:1px solid var(--line, #ccc);padding-top:8px">Accostamento nello spazio e nel tempo, non relazione: nessuna opera dell'atlante è attribuita a questo ${e.tipo}. Fonte: Wikidata (CC0).</p>
+  <p class="sub" style="margin-top:14px;border-top:1px solid var(--line, #ccc);padding-top:8px">Accostamento nello spazio e nel tempo, non relazione: nessuna opera dell'atlante è attribuita a questa voce. Fonte: Wikidata (CC0).</p>
   <div class="acts"><button data-back>Indietro</button></div>`;
 }
 function renderCtx() {
@@ -341,7 +342,7 @@ function renderCtx() {
   <h3 style="margin:18px 0 6px">Da dove</h3>
   ${agg.slice(0, 14).map(g => `<div class="row" data-place="${g.id}"><span>${esc(g.l.nome)} <span class="sub">${g.l.precisione === 'citta' ? '' : '· ' + PREC[g.l.precisione]}</span><div class="bar" style="width:${100 * g.n / mx}%"></div></span><span class="n">${g.n}</span></div>`).join('') || '<p class="sub">Nessun pezzo in questa finestra.</p>'}
   ${VAM && S.L.vam && vagg.length ? `<h3 style="margin:18px 0 6px">V&A, solo conteggi</h3>${vagg.slice(0, 8).map(g => `<div class="row" data-place="${g.id}"><span>${esc(g.l.nome)} <span class="sub">${g.l.precisione === 'citta' ? '' : '· ' + PREC[g.l.precisione]}</span></span><span class="n">~${Math.round(g.n)}</span></div>`).join('')}` : ''}
-  ${S.L.contesti ? `<h3 style="margin:18px 0 6px">Stili e movimenti in questa finestra</h3>${cagg.length ? cagg.slice(0, 12).map(e => `<div class="row" data-place="mov:${e.id}"><span><i>${esc(e.nome)}</i> <span class="sub">· ${e.tipo}, ${esc(e.luoghi[0].oggi)}</span></span><span class="n">${fmtY(e.quando.da)}</span></div>`).join('') + (cagg.length > 12 ? `<p class="sub">e altri ${cagg.length - 12}: li trovi sulla mappa</p>` : '') : '<p class="sub">Nessuno: Wikidata ne colloca pochi prima del 1800, e quasi tutti in Europa.</p>'}` : ''}
+  ${S.L.contesti ? `<h3 style="margin:18px 0 6px">Fenomeni artistici in questa finestra</h3>${cagg.length ? cagg.slice(0, 12).map(e => `<div class="row" data-place="mov:${e.id}"><span><i>${esc(e.nome)}</i> <span class="sub">· ${e.tipo}, ${esc(e.luoghi[0].oggi)}</span></span><span class="n">${fmtY(e.quando.da)}</span></div>`).join('') + (cagg.length > 12 ? `<p class="sub">e altri ${cagg.length - 12}: li trovi sulla mappa</p>` : '') : '<p class="sub">Nessuno con data e luogo su Wikidata in questa finestra, per i tipi scelti.</p>'}` : ''}
   ${nominato()}
   <h3 style="margin:18px 0 6px">Come leggere</h3>
   <p class="sub">Ogni punto è un luogo d'origine dichiarato dal catalogo. Il pieno indica una città; l'anello tratteggiato un paese, perché il record non dice di più. I pezzi «ipotetici» appartengono a una manifattura nota per il blu, ma il loro record non nomina il colore. Clicca un luogo per l'elenco, poi un pezzo per la scheda.</p>`;
@@ -441,6 +442,7 @@ document.addEventListener('click', e => { const b = e.target.closest('[data-qm]'
 /* ---------- controlli ---------- */
 const syncChecks = () => { document.querySelectorAll('[data-l]').forEach(i => { i.checked = !!S.L[i.dataset.l]; }); };
 document.querySelectorAll('[data-l]').forEach(i => i.onchange = () => { S.L[i.dataset.l] = i.checked ? 1 : 0; update(); });
+document.querySelectorAll('[data-ct]').forEach(i => i.onchange = () => { S.CT[i.checked ? 'add' : 'delete'](i.dataset.ct); update(); });
 document.querySelectorAll('[data-f]').forEach(i => i.onchange = () => { S.F[i.dataset.f] = i.checked ? 1 : 0; update(); });
 for (const p of ['globo', 'piano']) $('#p-' + p).onclick = () => { S.proj = p; S.k = 1; $('#p-globo').setAttribute('aria-pressed', p === 'globo'); $('#p-piano').setAttribute('aria-pressed', p === 'piano'); draw(); };
 let qt; $('#q').oninput = e => { clearTimeout(qt); qt = setTimeout(() => { S.q = e.target.value.trim(); update(); }, 180); };
