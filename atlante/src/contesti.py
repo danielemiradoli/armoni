@@ -68,6 +68,22 @@ def intervallo(t, prec):
     return y - 500, y + 499
 
 
+# Relazioni dichiarate su Wikidata, normalizzate in un verso solo: (proprieta', inversa?) -> etichetta.
+# Per P156 e P1366 i due capi si scambiano: «A seguito da B» diventa «B segue A».
+RELAZIONI = {'P737': ('influenzato da', False), 'P361': ('parte di', False), 'P279': ('caso particolare di', False),
+             'P155': ('segue', False), 'P156': ('segue', True), 'P1365': ('sostituisce', False), 'P1366': ('sostituisce', True)}
+
+
+def relazioni(nomi_voci):
+    archi = set()
+    for r in leggi('relazioni.csv'):
+        et, inv = RELAZIONI[r['prop']]
+        a, b = q(r['a']), q(r['b'])
+        if a != b:
+            archi.add((b, et, a) if inv else (a, et, b))
+    return sorted(archi)
+
+
 def confini():
     anni = sorted(int(p.stem.split('_')[1]) for p in (ROOT / 'data/raw/confini').glob('world_*.geojson'))
     snap = {}
@@ -260,6 +276,16 @@ def main():
                         descr=r['dit'] or r['den'] or None, descr_lingua='it' if r['dit'] else 'en' if r['den'] else None,
                         quando=quando, luoghi=luoghi_out, continenti=continenti, corsia=corsia, sitelinks=sl.get(m, 0),
                         contesto=[{k: e[k] for k in ('id', 'nome', 'tipo', 'da', 'a', 'via')} for e in contesto]))
+    # relazioni: ogni voce collocata riceve quelle in cui compare, in entrambi i versi; l'altro capo puo' non essere collocato
+    collocate = {x['id'] for x in out}
+    nome_di = {m: (r['it'] or r['en'] or next(iter(altre.get(m, {}).values()), m)) for m, r in lab.items()}
+    archi = relazioni(nome_di)
+    per_voce = defaultdict(list)
+    for a, et, b in archi:
+        per_voce[a].append(dict(rel=et, verso='>', id=b, nome=nome_di.get(b, b), collocata=b in collocate))
+        per_voce[b].append(dict(rel=et, verso='<', id=a, nome=nome_di.get(a, a), collocata=a in collocate))
+    for x in out:
+        x['relazioni'] = per_voce.get(x['id'], [])
     out.sort(key=lambda x: -x['sitelinks'])
     json.dump({'elementi': out, 'regola_data': regola, 'finestra': FINESTRA}, open(ROOT / 'web/contesti.json', 'w', encoding='utf-8'),
               ensure_ascii=False, separators=(',', ':'))
@@ -277,6 +303,8 @@ def metriche(lab, tipo, out, scarto, regola):
     diverso = sum(1 for x in out if any(l['diverso'] for l in x['luoghi']))
     nomi = sum(1 for x in out if any(l['nome_allora'] for l in x['luoghi']))
     ctx = sum(1 for x in out if x['contesto'])
+    rel = Counter(r['rel'] for x in out for r in x['relazioni'] if r['verso'] == '>' and r['collocata'])
+    con_rel = sum(1 for x in out if x['relazioni'])
     ctx_t = sum(1 for x in out if any(c['via'] == 'territorio' for c in x['contesto']))
     prec = Counter(l['precisione'] for x in out for l in x['luoghi'])
     righe = ['# Livello «Contesti»: stili e movimenti', '',
@@ -292,7 +320,9 @@ def metriche(lab, tipo, out, scarto, regola):
              f'- Stato di allora dai confini storici: {allora}; diverso dal nome di oggi in {diverso}. Nome storico del luogo (Wikidata P1448 con data di fine): {nomi}.',
              f'- Luoghi per precisione: ' + ', '.join(f'{k} {v}' for k, v in prec.most_common()) + '. Alle regioni e ai continenti non si assegna uno Stato.',
              f'- Con almeno una guerra o rivoluzione entro ±{FINESTRA} anni dalla nascita: {ctx}; combattuta sul territorio del paese: {ctx_t} '
-             '(le altre sono guerre a cui il paese partecipa altrove). Eventi da Wikidata con almeno 20 versioni linguistiche.', '',
+             '(le altre sono guerre a cui il paese partecipa altrove). Eventi da Wikidata con almeno 20 versioni linguistiche.',
+             f'- Relazioni dichiarate su Wikidata: {con_rel} voci collocate ne hanno almeno una. Fra due voci entrambe collocate: '
+             + ', '.join(f'{k} {v}' for k, v in rel.most_common()) + '. Mai dedotte dalla vicinanza.', '',
              '## Per macro-regione (del primo luogo; paesi di oggi, confini 2010)', '', '| macro-regione | voci |', '| --- | ---: |']
     righe += [f'| {c} | {n} |' for c, n in perc.most_common()]
     righe += ['', '## Per secolo d\'inizio (prima dell\'anno 0: per millennio)', '', '| da | voci |', '| --- | ---: |']

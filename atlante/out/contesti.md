@@ -14,6 +14,7 @@ Rigenerato da `src/contesti.py`. Fonte: Wikidata (CC0). Classi: movimento artist
 - Stato di allora dai confini storici: 800; diverso dal nome di oggi in 350. Nome storico del luogo (Wikidata P1448 con data di fine): 14.
 - Luoghi per precisione: paese 908, luogo 380, regione 69. Alle regioni e ai continenti non si assegna uno Stato.
 - Con almeno una guerra o rivoluzione entro ±3 anni dalla nascita: 427; combattuta sul territorio del paese: 178 (le altre sono guerre a cui il paese partecipa altrove). Eventi da Wikidata con almeno 20 versioni linguistiche.
+- Relazioni dichiarate su Wikidata: 257 voci collocate ne hanno almeno una. Fra due voci entrambe collocate: sostituisce 38, segue 35, parte di 34, influenzato da 32, caso particolare di 12. Mai dedotte dalla vicinanza.
 
 ## Per macro-regione (del primo luogo; paesi di oggi, confini 2010)
 

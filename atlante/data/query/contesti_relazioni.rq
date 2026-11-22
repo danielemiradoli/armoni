@@ -1,0 +1,6 @@
+# Relazioni dichiarate fra fenomeni artistici: influenzato da, parte di, segue, seguito da, sostituisce, sostituito da, sottoclasse di.
+SELECT ?a ?prop ?b WHERE {
+  VALUES ?ta { wd:Q968159 wd:Q1792644 wd:Q4502119 wd:Q2736610 wd:Q1887220 wd:Q164950 wd:Q12857432 }
+  VALUES ?tb { wd:Q968159 wd:Q1792644 wd:Q4502119 wd:Q2736610 wd:Q1887220 wd:Q164950 wd:Q12857432 }
+  VALUES (?p ?prop) { (wdt:P737 "P737") (wdt:P361 "P361") (wdt:P155 "P155") (wdt:P156 "P156") (wdt:P1365 "P1365") (wdt:P1366 "P1366") (wdt:P279 "P279") }
+  ?a wdt:P31 ?ta . ?a ?p ?b . ?b wdt:P31 ?tb . }

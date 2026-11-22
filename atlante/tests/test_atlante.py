@@ -183,3 +183,15 @@ def test_macroregioni_e_tipi():
     el = json.load(open(ROOT / 'web/contesti.json', encoding='utf-8'))['elementi']
     assert {e['tipo'] for e in el} <= {'movimento', 'scuola', 'stile', 'periodizzazione'}
     assert all(e['nome'] for e in el)
+
+
+def test_relazioni_solo_dichiarate():
+    el = json.load(open(ROOT / 'web/contesti.json', encoding='utf-8'))['elementi']
+    rel = [(e['id'], r) for e in el for r in e['relazioni']]
+    assert rel and all(r['verso'] in '<>' and r['id'] != i for i, r in rel)
+    assert {r['rel'] for _, r in rel} <= {'influenzato da', 'parte di', 'caso particolare di', 'segue', 'sostituisce'}
+    ids = {e['id'] for e in el}  # ogni arco fra voci collocate compare da entrambi i lati
+    for i, r in rel:
+        if r['collocata']:
+            altra = next(e for e in el if e['id'] == r['id'])
+            assert any(x['id'] == i and x['verso'] != r['verso'] for x in altra['relazioni'])
