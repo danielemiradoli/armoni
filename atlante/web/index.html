@@ -139,6 +139,12 @@ header .sub{font-size:12.5px}
 .salta{position:absolute;left:8px;top:-60px;z-index:60;background:var(--co);color:var(--vetro);padding:8px 12px;border-radius:6px}
 .salta:focus{top:8px}
 #ctx:focus,#tls:focus{outline:2px solid var(--fe);outline-offset:-2px}
+/* Colore d'identità dello strumento: dice dove sei, non cambia il significato dei segni (blu dati, rosso selezione).
+   Ogni strumento di ArMoni avrà il suo, dalla famiglia della ceramica; l'Atlante è cobalto. */
+[data-strumento=atlante]{--strumento:light-dark(#1f3c96,#8fa9ff)}
+header{border-top:4px solid var(--strumento)}
+header h1 .strumento{color:var(--strumento)}
+.seg button[aria-pressed=true]{background:var(--strumento);border-color:var(--strumento)}
 @media(max-width:900px){
  body{overflow:auto}
  .app,body.percorso .app{height:auto;grid-template:"top" auto "map" 62vh "tl" auto "ctx" auto "nar" auto "lay" auto/minmax(0,1fr)}
@@ -179,11 +185,11 @@ header .sub{font-size:12.5px}
 @media(prefers-reduced-motion:reduce){#guida .gd-luce{transition:none}}
 </style>
 </head>
-<body>
+<body data-strumento="atlante">
 <div class="app">
  <a class="salta" href="#ctx">Vai ai risultati</a><a class="salta" href="#tls">Vai alla barra del tempo</a>
  <header>
-  <h1>ArMoni · Atlante</h1>
+  <h1>ArMoni · <span class="strumento">Atlante</span></h1>
   <span class="sub">prototipo · primo filo: la porcellana blu e bianca nel mondo</span>
   <span class="sp"></span>
   <input id="q" type="search" placeholder="Cerca titolo, luogo, cultura, tecnica" aria-label="Cerca">

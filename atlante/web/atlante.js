@@ -65,7 +65,7 @@ Promise.all([j('opere.json'), j('luoghi.json'), j('periodi.json'), j('confini/an
 
 /* Dettaglio secondo l'ingrandimento: confini e coste più fini si caricano solo quando servono.
    Finché il file dettagliato non è arrivato si disegna quello semplice. */
-const FINE = {confini: 4, terre: 2.5};
+const FINE = {confini: 4, terre: 2.5, terre10: 12};
 function confini(y) {
   if (!ANNI.length) return {anno: null, geo: null};  // i dati non sono ancora arrivati
   const a = ANNI.filter(v => v <= y).pop() ?? ANNI[0], fine = S.k >= FINE.confini, key = fine ? 'f' + a : a;
@@ -73,9 +73,13 @@ function confini(y) {
   const ok = v => v && v !== 'caricamento';
   return {anno: a, geo: ok(CONF[key]) ? CONF[key] : ok(CONF[a]) ? CONF[a] : null};
 }
-let TERRE50 = null;
+let TERRE50 = null, TERRE10 = null;
 function terre() {
   if (S.k < FINE.terre) return TERRE;
+  if (S.k >= FINE.terre10) {  // coste 1:10 milioni, solo da molto vicino
+    if (!TERRE10) { TERRE10 = 'caricamento'; j('terre10.json').then(t => { TERRE10 = topojson.feature(t, t.objects.land); draw(); }).catch(() => { TERRE10 = null; }); }
+    if (TERRE10 && TERRE10 !== 'caricamento') return TERRE10;
+  }
   if (!TERRE50) { TERRE50 = 'caricamento'; j('terre50.json').then(t => { TERRE50 = topojson.feature(t, t.objects.land); draw(); }).catch(() => { TERRE50 = null; }); }
   return TERRE50 && TERRE50 !== 'caricamento' ? TERRE50 : TERRE;
 }
@@ -116,10 +120,37 @@ const rr = g => g.l.precisione === 'citta' ? 2.5 + Math.sqrt(g.n) * 1.5 : 6 + Ma
 // spazio già occupato da un nome sulla mappa: chi arriva dopo non ci scrive sopra
 let OCC = [];
 const libero = b => !OCC.some(o => b[0] < o[2] && b[2] > o[0] && b[1] < o[3] && b[3] > o[1]);
+/* Ventaglio: quando ci si avvicina, i segni di livelli diversi che cadono nello stesso punto (un luogo
+   d'origine, i suoi conteggi V&A, uno scavo, un museo, i fenomeni nati lì) si aprono a raggiera attorno
+   al punto vero, collegati da un filo. Il segno più grande resta al centro. Sotto VENTAGLIO volte di
+   ingrandimento non si apre nulla: a scala mondo i segni restano sul loro punto. */
+const VENTAGLIO = 2.5;
+let OFF = new Map();
+const P = (k, id, c) => { const p = proj(c), o = OFF.get(k + ':' + id); return o ? [p[0] + o[0], p[1] + o[1]] : p; };
+function ventaglio() {
+  OFF = new Map(); if (S.k < VENTAGLIO) return [];
+  const it = [], add = (k, id, c, r) => { if (visibile(c)) { const [x, y] = proj(c); it.push({k, id, x, y, r}); } };
+  if (S.L.origini) for (const g of agg) add('o', g.id, [g.l.lon, g.l.lat], rr(g));
+  if (S.L.vam) for (const g of vagg) add('v', g.id, [g.l.lon, g.l.lat], 3 + Math.sqrt(g.n) * 1.3);
+  if (S.L.letteratura) for (const g of lagg) add('l', g.id, [g.l.lon, g.l.lat], 7);
+  if (S.L.sedi) for (const k of new Set(act.map(x => x.sede).filter(Boolean))) { const l = LU[k]; if (l) add('s', k, [l.lon, l.lat], 5); }
+  if (S.L.contesti) for (const e of cagg) for (const l of e.luoghi) add('m', e.id + '|' + l.id, [l.lon, l.lat], l.precisione === 'paese' ? 7 : 4.5);
+  it.sort((a, b) => b.r - a.r);
+  const gruppi = [];
+  for (const m of it) { const g = gruppi.find(g => Math.hypot(g[0].x - m.x, g[0].y - m.y) < 6); g ? g.push(m) : gruppi.push([m]); }
+  const fili = [];
+  for (const g of gruppi) if (g.length > 1) {
+    const [c, ...resto] = g, R = Math.max(c.r + Math.max(...resto.map(m => m.r)) + 8, resto.length * 5.5, 22);  // nessun segno tocca quello centrale
+    resto.forEach((m, i) => { const a = -Math.PI / 2 + 2 * Math.PI * i / resto.length, dx = R * Math.cos(a), dy = R * Math.sin(a);
+      OFF.set(m.k + ':' + m.id, [m.x - c.x + dx, m.y - c.y + dy]); fili.push([c.x, c.y, c.x + dx, c.y + dy]); });
+  }
+  return fili;
+}
 function draw() {
   OCC = [];
   if (!W) return;
   setProj();
+  const fili = ventaglio();
   const co = css('--co'), fe = css('--fe'), ink = css('--ink'), mute = css('--mute');
   ctx.clearRect(0, 0, W, H);
   ctx.beginPath(); path({type: 'Sphere'}); ctx.fillStyle = css('--glaze'); ctx.fill();
@@ -129,6 +160,7 @@ function draw() {
   const cf = confini(S.year);
   if (S.L.confini && cf.geo) { ctx.beginPath(); path(cf.geo); ctx.strokeStyle = co; ctx.globalAlpha = .42; ctx.lineWidth = .7; ctx.stroke(); ctx.globalAlpha = 1; }
   const hi = S.mode === 'percorso' ? new Set(TAPPE[S.tappa].hi) : null;
+  if (fili.length) { ctx.beginPath(); for (const [a, b, c2, d] of fili) { ctx.moveTo(a, b); ctx.lineTo(c2, d); } ctx.strokeStyle = mute; ctx.globalAlpha = .5; ctx.lineWidth = .8; ctx.stroke(); ctx.globalAlpha = 1; }
   if (S.L.spostamenti) {
     const m = new Map(); for (const x of act) if (x.o && x.s) { const k = x.origine + '>' + x.sede; m.set(k, (m.get(k) || 0) + 1); }
     for (const [k, n] of m) { const [a, b] = k.split('>'); ctx.beginPath(); path({type: 'LineString', coordinates: [[LU[a].lon, LU[a].lat], [LU[b].lon, LU[b].lat]]}); ctx.strokeStyle = co; ctx.globalAlpha = Math.min(.5, .06 + n / 120); ctx.lineWidth = 1 + Math.sqrt(n) / 3; ctx.stroke(); }
@@ -136,7 +168,7 @@ function draw() {
   }
   if (S.L.mercati) for (const x of act) if (x.m && x.o) { ctx.beginPath(); path({type: 'LineString', coordinates: [[x.o.lon, x.o.lat], [x.m.lon, x.m.lat]]}); ctx.strokeStyle = fe; ctx.setLineDash([4, 3]); ctx.lineWidth = 1.4; ctx.stroke(); ctx.setLineDash([]); }
   if (S.L.origini) for (const g of agg) {
-    const c = [g.l.lon, g.l.lat]; if (!visibile(c)) continue; const [x, y] = proj(c), r = rr(g);
+    const c = [g.l.lon, g.l.lat]; if (!visibile(c)) continue; const [x, y] = P('o', g.id, c), r = rr(g);
     const dim = hi && hi.size && !hi.has(g.id) ? .25 : 1;
     ctx.globalAlpha = dim; ctx.beginPath(); ctx.arc(x, y, r, 0, 7);
     if (g.l.precisione === 'citta') { ctx.fillStyle = co; ctx.globalAlpha = dim * (.35 + .6 * g.doc / g.n); ctx.fill(); }
@@ -149,19 +181,19 @@ function draw() {
       if (S.place === g.id || (hi && hi.has(g.id)) || libero(bx)) { OCC.push(bx); ctx.fillStyle = ink; ctx.fillText(g.l.nome, x + r + 4, y + 4); } }
   }
   if (S.L.vam) for (const g of vagg) {
-    const c = [g.l.lon, g.l.lat]; if (!visibile(c)) continue; const [x, y] = proj(c), r = 3 + Math.sqrt(g.n) * 1.3;
+    const c = [g.l.lon, g.l.lat]; if (!visibile(c)) continue; const [x, y] = P('v', g.id, c), r = 3 + Math.sqrt(g.n) * 1.3;
     ctx.beginPath(); ctx.moveTo(x, y - r); ctx.lineTo(x + r, y); ctx.lineTo(x, y + r); ctx.lineTo(x - r, y); ctx.closePath();
     ctx.strokeStyle = fe; ctx.globalAlpha = .75; ctx.lineWidth = 1.1; ctx.stroke(); ctx.globalAlpha = 1;
   }
   if (S.L.letteratura) for (const g of lagg) {
-    const c = [g.l.lon, g.l.lat]; if (!visibile(c)) continue; const [x, y] = proj(c), r = 7;
+    const c = [g.l.lon, g.l.lat]; if (!visibile(c)) continue; const [x, y] = P('l', g.id, c), r = 7;
     ctx.beginPath(); ctx.moveTo(x, y - r); ctx.lineTo(x + r * .9, y + r * .6); ctx.lineTo(x - r * .9, y + r * .6); ctx.closePath();
     ctx.fillStyle = ink; ctx.globalAlpha = .85; ctx.fill(); ctx.globalAlpha = 1;
     ctx.font = '12px "Instrument Sans",sans-serif'; ctx.fillStyle = ink; ctx.fillText(g.l.nome, x + 10, y + 4);
   }
   if (S.L.contesti) drawContesti(ink, mute);
   if (S.L.sedi) for (const k of new Set(act.map(x => x.sede).filter(Boolean))) {
-    const l = LU[k]; if (!l || !visibile([l.lon, l.lat])) continue; const [x, y] = proj([l.lon, l.lat]);
+    const l = LU[k]; if (!l || !visibile([l.lon, l.lat])) continue; const [x, y] = P('s', k, [l.lon, l.lat]);
     ctx.fillStyle = ink; ctx.fillRect(x - 4, y - 4, 8, 8);
   }
   const sel = O.find(x => x.id === S.sel);
@@ -172,10 +204,10 @@ function draw() {
 /* Il segno scelto resta in risalto: doppio anello (chiaro fuori, colore d'accento dentro), leggibile su ogni sfondo. */
 function evidenzia(fe) {
   if (!S.place) return;
-  const punti = S.place.startsWith('mov:') ? (CX.find(e => e.id === S.place.slice(4))?.luoghi || []).map(l => [l.lon, l.lat, 10])
+  const punti = S.place.startsWith('mov:') ? (CX.find(e => e.id === S.place.slice(4))?.luoghi || []).map(l => [l.lon, l.lat, 10, 'm', S.place.slice(4) + '|' + l.id])
     : (() => { const id = S.place.replace(/^sito:/, ''), l = LU[id], g = agg.find(g => g.id === id); return l ? [[l.lon, l.lat, g ? rr(g) + 6 : 12]] : []; })();
-  for (const [lon, lat, r] of punti) {
-    if (!visibile([lon, lat])) continue; const [x, y] = proj([lon, lat]);
+  for (const [lon, lat, r, k, id] of punti) {
+    if (!visibile([lon, lat])) continue; const [x, y] = k ? P(k, id, [lon, lat]) : proj([lon, lat]);
     ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.strokeStyle = css('--bg'); ctx.lineWidth = 6; ctx.stroke();
     ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.strokeStyle = fe; ctx.lineWidth = 2.5; ctx.stroke();
   }
@@ -193,11 +225,11 @@ function drawContesti(ink, mute) {
   if (sel && tutte.has(sel)) for (const r of tutte.get(sel).relazioni) if (r.collocata && tutte.has(r.id)) linea(tutte.get(sel), tutte.get(r.id), true);
   ctx.font = 'italic 500 13px Newsreader,Georgia,serif'; let cnomi = 0;
   for (const e of cagg) for (const l of e.luoghi) {
-    const c = [l.lon, l.lat]; if (!visibile(c)) continue; const [x, y] = proj(c), r = l.precisione === 'paese' ? 7 : 4.5;
+    const c = [l.lon, l.lat]; if (!visibile(c)) continue; const [x, y] = P('m', e.id + '|' + l.id, c), r = l.precisione === 'paese' ? 7 : 4.5;
     ctx.strokeStyle = ink; ctx.lineWidth = e.id === sel ? 2.2 : 1; ctx.globalAlpha = e.id === sel ? 1 : .7;
     if (l.precisione !== 'regione') { if (l.precisione === 'paese') ctx.setLineDash([2, 2]); ctx.strokeRect(x - r, y - r, 2 * r, 2 * r); ctx.setLineDash([]); }
     const t = e.nome, w = ctx.measureText(t).width, bx = [x + r + 3, y - 9, x + r + 3 + w, y + 4];
-    if (e.id === sel || (cnomi < (W < 520 ? 6 : 18) && libero(bx) && ++cnomi)) {
+    if (e.id === sel || (cnomi < (S.k >= VENTAGLIO ? 80 : W < 520 ? 6 : 18) && libero(bx) && ++cnomi)) {
       occ.push(bx); ctx.fillStyle = ink; ctx.globalAlpha = e.id === sel ? 1 : .8; ctx.fillText(t, bx[0], y + 3); }
     ctx.globalAlpha = 1;
   }
@@ -215,10 +247,10 @@ function chip(anno) {
 
 function hit(px, py) {
   let best = null, bd = 1e9;
-  for (const g of agg) { const c = [g.l.lon, g.l.lat]; if (!visibile(c)) continue; const [x, y] = proj(c), d = Math.hypot(x - px, y - py); if (d < rr(g) + 5 && d < bd) { bd = d; best = g; } }
-  if (!best && S.L.letteratura) for (const g of lagg) { const c = [g.l.lon, g.l.lat]; if (!visibile(c)) continue; const [x, y] = proj(c), d = Math.hypot(x - px, y - py); if (d < 11 && d < bd) { bd = d; best = {...g, let: true}; } }
-  if (!best && S.L.vam) for (const g of vagg) { const c = [g.l.lon, g.l.lat]; if (!visibile(c)) continue; const [x, y] = proj(c), d = Math.hypot(x - px, y - py); if (d < 3 + Math.sqrt(g.n) * 1.3 + 4 && d < bd) { bd = d; best = {...g, vam: true}; } }
-  if (!best && S.L.contesti) for (const e of cagg) for (const l of e.luoghi) { const c = [l.lon, l.lat]; if (!visibile(c)) continue; const [x, y] = proj(c), d = Math.hypot(x - px, y - py); if (d < 10 && d < bd) { bd = d; best = {id: 'mov:' + e.id, e, l, mov: true}; } }
+  for (const g of agg) { const c = [g.l.lon, g.l.lat]; if (!visibile(c)) continue; const [x, y] = P('o', g.id, c), d = Math.hypot(x - px, y - py); if (d < rr(g) + 5 && d < bd) { bd = d; best = g; } }
+  if (!best && S.L.letteratura) for (const g of lagg) { const c = [g.l.lon, g.l.lat]; if (!visibile(c)) continue; const [x, y] = P('l', g.id, c), d = Math.hypot(x - px, y - py); if (d < 11 && d < bd) { bd = d; best = {...g, let: true}; } }
+  if (!best && S.L.vam) for (const g of vagg) { const c = [g.l.lon, g.l.lat]; if (!visibile(c)) continue; const [x, y] = P('v', g.id, c), d = Math.hypot(x - px, y - py); if (d < 3 + Math.sqrt(g.n) * 1.3 + 4 && d < bd) { bd = d; best = {...g, vam: true}; } }
+  if (!best && S.L.contesti) for (const e of cagg) for (const l of e.luoghi) { const c = [l.lon, l.lat]; if (!visibile(c)) continue; const [x, y] = P('m', e.id + '|' + l.id, c), d = Math.hypot(x - px, y - py); if (d < 10 && d < bd) { bd = d; best = {id: 'mov:' + e.id, e, l, mov: true}; } }
   return best;
 }
 
@@ -247,7 +279,7 @@ cv.addEventListener('wheel', e => { e.preventDefault(); const b = cv.getBounding
   if (c && Number.isFinite(c[0]) && S.k < ZMAX) { const t = 1 - 1 / f; S.rot = [S.rot[0] + t * angolo(-c[0] - S.rot[0]), S.rot[1] + t * (-c[1] - S.rot[1])]; }
   zoom(f); }, {passive: false});
 const angolo = d => ((d + 540) % 360) - 180;  // la via più corta attorno al globo
-const ZMAX = 40;
+const ZMAX = 200;
 const zoom = f => { S.k = Math.max(.7, Math.min(ZMAX, S.k * f)); draw(); };
 $('#zin').onclick = () => zoom(1.3); $('#zout').onclick = () => zoom(1 / 1.3);
 const misura = () => { const d = devicePixelRatio || 1; W = fig.clientWidth; H = fig.clientHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); draw(); };
