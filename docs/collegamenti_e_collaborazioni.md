@@ -55,7 +55,9 @@ I collegamenti si controllano periodicamente: un collegamento rotto viene segnal
 
 Progetto didattico indipendente di Nicola Moscardi, insegnante di liceo: circa 197 capitoli di storia dell'arte, 1.757 opere nell'indice. È profondo e italiano dove Armoni è largo e mondiale. Proposta: collegare le voci di Armoni ai suoi capitoli e, se è d'accordo, ricevere i collegamenti inversi.
 
-## Decisioni aperte
+## Decisioni (22 novembre 2026)
 
-- **A.** Si collegano solo fonti con una collaborazione attiva, oppure anche fonti autorevoli «segnalate» senza accordo (per esempio la pagina di un museo nazionale), distinguendo le due nella scheda?
-- **B.** Chi scrive la riga di presentazione: il partner, oppure Armoni con il solo titolo della pagina?
+- **A. Entrambe.** Si collegano sia le fonti in collaborazione attiva sia le fonti autorevoli «segnalate» senza accordo. La scheda le distingue.
+- **B. La riga di presentazione** la scrive il partner quando c'è una collaborazione; altrimenti si usa il solo titolo della pagina. Si cambia approccio se servirà.
+- **L'inserimento lo gestisce sempre Armoni**, a livello tecnico. Se servirà, uno strumento riservato ai collaboratori li aiuterà a fornire i materiali nel formato richiesto.
+- **Tempi:** le collaborazioni partono dopo che il prototipo sarà online per i test reali. Il messaggio ad Atlante dell'Arte è pronto ma resta in attesa.
