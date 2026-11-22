@@ -1,2 +1,2 @@
-SELECT ?m ?per ?a ?b ?sl WHERE { VALUES ?tipo { wd:Q968159 wd:Q1792644 } ?m wdt:P31 ?tipo . OPTIONAL { ?m wikibase:sitelinks ?sl }
+SELECT ?m ?per ?a ?b ?sl WHERE { VALUES ?tipo { wd:Q968159 wd:Q1792644 wd:Q4502119 wd:Q2736610 wd:Q1887220 wd:Q164950 wd:Q12857432 wd:Q11514315 } ?m wdt:P31 ?tipo . OPTIONAL { ?m wikibase:sitelinks ?sl }
  OPTIONAL { ?m wdt:P2348 ?per . OPTIONAL { ?per wdt:P580 ?a } OPTIONAL { ?per wdt:P582 ?b } } }

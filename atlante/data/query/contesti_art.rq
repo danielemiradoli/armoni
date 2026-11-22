@@ -1,1 +1,1 @@
-SELECT ?m ?p ?y WHERE { VALUES ?tipo { wd:Q968159 wd:Q1792644 } ?m wdt:P31 ?tipo . ?p wdt:P135 ?m . ?p wdt:P569 ?nasc . BIND(YEAR(?nasc) AS ?y) }
+SELECT ?m ?p ?y WHERE { VALUES ?tipo { wd:Q968159 wd:Q1792644 wd:Q4502119 wd:Q2736610 wd:Q1887220 wd:Q164950 wd:Q12857432 wd:Q11514315 } ?m wdt:P31 ?tipo . ?p wdt:P135 ?m . ?p wdt:P569 ?nasc . BIND(YEAR(?nasc) AS ?y) }

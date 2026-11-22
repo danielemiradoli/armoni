@@ -1,0 +1,2 @@
+# Etichette in qualunque lingua per le voci senza nome in italiano o inglese (#VOCI#: gli identificativi).
+SELECT ?m ?l (LANG(?l) AS ?lg) WHERE { VALUES ?m { #VOCI# } ?m rdfs:label ?l }

@@ -17,17 +17,27 @@ from shapely.strtree import STRtree
 
 ROOT = Path(__file__).resolve().parent.parent
 RAW = ROOT / 'data/raw/contesti'
-TIPI = {'Q968159': 'movimento', 'Q1792644': 'stile'}
+# Cinque tipi di fenomeno; un elemento con piu' classi prende la prima di questo ordine.
+# La macro-tendenza non ha ancora una classe Wikidata affidabile: resta vuota, e lo si dichiara.
+TIPI = {'Q968159': 'movimento', 'Q4502119': 'movimento',  # movimento artistico; gruppo di artisti
+        'Q2736610': 'scuola', 'Q1887220': 'scuola',       # scuola artistica; scuola di pittura
+        'Q1792644': 'stile',
+        'Q12857432': 'periodizzazione', 'Q164950': 'periodizzazione'}  # dinastia cinese, dinastia
+# «periodo storico» (Q11514315) e' stato provato e scartato: mescola guerre, rivoluzioni e voci come «Wallis e Futuna nella seconda guerra mondiale»
+ORDINE_TIPI = ['movimento', 'scuola', 'stile', 'periodizzazione']
+SOTTO = {'Q4502119': 'gruppo di artisti', 'Q164950': 'dinastia', 'Q12857432': 'dinastia'}
 CONTINENTI = {'Q46': 'Europa', 'Q48': 'Asia', 'Q15': 'Africa', 'Q49': 'America settentrionale',
               'Q18': 'America meridionale', 'Q538': 'Oceania', 'Q55643': 'Oceania', 'Q3960': 'Oceania',
               'Q27611': 'America centrale', 'Q828': 'Americhe', 'Q5401': 'Eurasia'}
 # Tipi di evento tenuti per il contesto: guerra, rivoluzione, guerra civile, guerra mondiale, conflitto, ribellione.
 EVENTI = {'Q198': 'guerra', 'Q10931': 'rivoluzione', 'Q8465': 'guerra civile', 'Q103495': 'guerra mondiale',
           'Q180684': 'conflitto', 'Q124734': 'ribellione'}
+DISTANZA_MAX = 50  # anni massimi fra l'istantanea dei confini e l'anno di nascita
 FINESTRA = 3       # anni attorno alla nascita del movimento in cui un evento conta come contesto
 MIN_ARTISTI = 5    # artisti associati necessari per dedurre la datazione
 ETA = (25, 50)     # attivita' dedotta: dalla mediana delle nascite +25 alla +50
-ORDINE_LUOGO = ['P740', 'P276', 'P17', 'P495']  # luogo di formazione, luogo, paese, paese d'origine
+ORDINE_LUOGO = ['P740', 'P495', 'P276', 'P36', 'P17']  # luogo di formazione, paese d'origine, luogo, capitale, paese
+VIA_LUOGO = {'P740': 'luogo di formazione', 'P276': 'luogo', 'P36': 'capitale', 'P17': 'paese', 'P495': 'paese d\'origine'}
 
 
 def q(u):
@@ -68,9 +78,28 @@ def confini():
     return anni, snap
 
 
+def macroregioni(snap):
+    """Undici macro-regioni, assegnate con il paese di oggi (confini 2010) che contiene il punto."""
+    tab = {r['paese_2010']: r['macroregione'] for r in csv.DictReader(open(ROOT / 'data/macroregioni.csv', encoding='utf-8'))}
+    tree, geo = snap[max(snap)]
+    def reg(lon, lat):
+        p = Point(lon, lat)
+        for i in tree.query(p):
+            g, nome = geo[i]
+            if nome and g.covers(p):
+                return tab.get(nome)
+        near = tree.nearest(p)  # punti sulla costa che cadono in mare per la semplificazione
+        return tab.get(geo[near][1]) if geo[near][0].distance(p) < .5 else None
+    return reg
+
+
 def stato_allora(lon, lat, y, anni, snap):
     """Nome dello Stato nell'ultima istantanea non successiva all'anno: la stessa che la mappa disegna."""
-    a = max([x for x in anni if x <= y] or [anni[0]])
+    if y < anni[0]:  # prima della prima istantanea non si assegna nessuno Stato
+        return None, None
+    a = max(x for x in anni if x <= y)
+    if y - a > DISTANZA_MAX:  # istantanea troppo lontana (es. 1815 per il 1870): meglio nessuno Stato che uno sbagliato
+        return None, a
     tree, geo = snap[a]
     p = Point(lon, lat)
     for i in tree.query(p):
@@ -81,8 +110,15 @@ def stato_allora(lon, lat, y, anni, snap):
 
 
 def main():
-    lab = {q(r['m']): r for r in leggi('lab.csv')}
-    tipo = {k: TIPI.get(q(r['tipo'])) for k, r in lab.items()}
+    lab, classi = {}, defaultdict(set)
+    for r in leggi('lab.csv'):
+        lab[q(r['m'])] = r
+        classi[q(r['m'])].add(q(r['tipo']))
+    tipo, sotto = {}, {}
+    for m, cs in classi.items():
+        t = min((TIPI[c] for c in cs if c in TIPI), key=ORDINE_TIPI.index, default=None)
+        tipo[m] = t
+        sotto[m] = next((SOTTO[c] for c in cs if c in SOTTO and TIPI[c] == t), None)
 
     # quando: dichiarato
     ini, fin = {}, {}
@@ -152,10 +188,22 @@ def main():
     regola = dict(n=len(scarti), mediana=statistics.median(scarti) if scarti else None,
                   entro20=sum(s <= 20 for s in scarti))
 
+    altre = defaultdict(dict)
+    for r in leggi('altre_lingue.csv'):
+        altre[q(r['m'])][r['lg']] = r['l']
     anni, snap = confini()
+    regione_di = macroregioni(snap)
     out, scarto = [], Counter()
     for m, r in lab.items():
         if not tipo.get(m):
+            continue
+        nome, lingua = r['it'] or r['en'], 'it' if r['it'] else 'en'
+        if not nome:  # nome nella lingua disponibile: 'mul' (nome valido in ogni lingua) e poi le altre, in ordine fisso
+            ls = altre.get(m, {})
+            lingua = next((lg for lg in ('mul', 'fr', 'es', 'de', 'pt') if lg in ls), min(ls) if ls else None)
+            nome = ls.get(lingua)
+        if not nome:
+            scarto['senza nome'] += 1
             continue
         quando = None
         if m in ini:
@@ -188,7 +236,8 @@ def main():
             cx, cy = capitale.get(x, (lon, lat)) if paese else (lon, lat)
             st, sa = stato_allora(cx, cy, y, anni, snap) if prec != 'regione' else (None, None)
             nome_allora = next((n for a, b, n, _ in nomi.get(x, []) if (a is None or a <= y) and y <= b), None)
-            luoghi_out.append(dict(id=x, oggi=lr.get('it') or lr.get('en') or x, paese_oggi=lr.get('pl') or None,
+            luoghi_out.append(dict(id=x, via=VIA_LUOGO[prop], macroregione=regione_di(cx, cy) if prec != 'regione' else None,
+                                   oggi=lr.get('it') or lr.get('en') or x, paese_oggi=lr.get('pl') or None,
                                    _en={lr.get('en'), lr.get('pe')} - {None, ''},
                                    precisione=prec, lon=lon, lat=lat,
                                    stato_allora=st, istantanea=sa, nome_allora=nome_allora if not paese else None))
@@ -204,10 +253,10 @@ def main():
                            if e['da'] <= y + FINESTRA and e['a'] >= y - FINESTRA and via(e['id'])),
                           key=lambda e: (e['via'] != 'territorio', -e['sl']))[:3]
         continenti = sorted({c for l in luoghi_out for c in cont.get(l['id'], ())})
-        # corsia nel tempo: il continente del primo luogo; un paese su due continenti (Russia, Turchia) va in «Eurasia»
-        c0 = cont.get(luoghi_out[0]['id'], set()) - {'Eurasia'}
-        corsia = 'Eurasia' if {'Europa', 'Asia'} <= c0 or cont.get(luoghi_out[0]['id'], set()) == {'Eurasia'} else min(c0) if len(c0) == 1 else 'più continenti' if c0 else 'non determinato'
-        out.append(dict(id=m, nome=r['it'] or r['en'], nome_en=r['en'] or None, tipo=tipo[m],
+        # corsia nel tempo: la macro-regione del primo luogo; per un continente usato come luogo, il continente stesso
+        l0 = luoghi_out[0]
+        corsia = l0['macroregione'] or (f'{min(cont[l0["id"]])} (indistinto)' if cont.get(l0['id']) else 'non determinato')
+        out.append(dict(id=m, nome=nome, nome_lingua=lingua, nome_en=r['en'] or None, tipo=tipo[m], sottotipo=sotto[m],
                         descr=r['dit'] or r['den'] or None, descr_lingua='it' if r['dit'] else 'en' if r['den'] else None,
                         quando=quando, luoghi=luoghi_out, continenti=continenti, corsia=corsia, sitelinks=sl.get(m, 0),
                         contesto=[{k: e[k] for k in ('id', 'nome', 'tipo', 'da', 'a', 'via')} for e in contesto]))
@@ -220,8 +269,10 @@ def main():
 def metriche(lab, tipo, out, scarto, regola):
     tot = sum(1 for m in lab if tipo.get(m))
     ded = sum(1 for x in out if x['quando'].get('dedotto'))
-    perc = Counter(c for x in out for c in (x['continenti'] or ['non determinato']))
-    secoli = Counter(x['quando']['da'] // 100 * 100 for x in out)
+    perc = Counter(x['corsia'] for x in out)
+    per_tipo = Counter(x['tipo'] for x in out)
+    tot_tipo = Counter(t for m, t in tipo.items() if t)
+    secoli = Counter(x['quando']['da'] // 100 * 100 if x['quando']['da'] >= 0 else -((-x['quando']['da'] - 1) // 1000 + 1) * 1000 for x in out)
     allora = sum(1 for x in out if any(l['stato_allora'] for l in x['luoghi']))
     diverso = sum(1 for x in out if any(l['diverso'] for l in x['luoghi']))
     nomi = sum(1 for x in out if any(l['nome_allora'] for l in x['luoghi']))
@@ -229,18 +280,22 @@ def metriche(lab, tipo, out, scarto, regola):
     ctx_t = sum(1 for x in out if any(c['via'] == 'territorio' for c in x['contesto']))
     prec = Counter(l['precisione'] for x in out for l in x['luoghi'])
     righe = ['# Livello «Contesti»: stili e movimenti', '',
-             'Rigenerato da `src/contesti.py`. Fonte: Wikidata (CC0), voci con istanza «movimento artistico» (Q968159) o «stile artistico» (Q1792644).', '',
+             'Rigenerato da `src/contesti.py`. Fonte: Wikidata (CC0). Classi: movimento artistico e gruppo di artisti (movimento), '
+             'scuola artistica e scuola di pittura (scuola), stile artistico (stile), dinastia, dinastia cinese e periodo storico (periodizzazione). '
+             'Macro-tendenza: nessuna classe Wikidata affidabile, tipo ancora vuoto.', '',
+             '| tipo | voci su Wikidata | collocate |', '| --- | ---: | ---: |'] + [
+             f'| {t} | {tot_tipo[t]} | {per_tipo[t]} |' for t in ORDINE_TIPI] + ['',
              f'- Voci su Wikidata: **{tot}**. Collocate nello spazio e nel tempo: **{len(out)}** ({round(100 * len(out) / tot)}%). '
-             f'Escluse: senza data {scarto["senza data"]}, con data ma senza luogo {scarto["senza luogo"]}.',
+             f'Nome non in italiano né in inglese: {sum(x["nome_lingua"] not in ("it", "en") for x in out)} (mostrato nella lingua disponibile). Escluse: senza nome {scarto["senza nome"]}, senza data {scarto["senza data"]}, con data ma senza luogo {scarto["senza luogo"]}.',
              f'- Datazione dedotta dagli artisti associati: {ded}. Regola misurata su {regola["n"]} voci con data dichiarata: '
              f'scarto mediano {regola["mediana"]} anni, entro 20 anni in {regola["entro20"]} casi.',
              f'- Stato di allora dai confini storici: {allora}; diverso dal nome di oggi in {diverso}. Nome storico del luogo (Wikidata P1448 con data di fine): {nomi}.',
              f'- Luoghi per precisione: ' + ', '.join(f'{k} {v}' for k, v in prec.most_common()) + '. Alle regioni e ai continenti non si assegna uno Stato.',
              f'- Con almeno una guerra o rivoluzione entro ±{FINESTRA} anni dalla nascita: {ctx}; combattuta sul territorio del paese: {ctx_t} '
              '(le altre sono guerre a cui il paese partecipa altrove). Eventi da Wikidata con almeno 20 versioni linguistiche.', '',
-             '## Per continente (una voce può stare in più continenti)', '', '| continente | voci |', '| --- | ---: |']
+             '## Per macro-regione (del primo luogo; paesi di oggi, confini 2010)', '', '| macro-regione | voci |', '| --- | ---: |']
     righe += [f'| {c} | {n} |' for c, n in perc.most_common()]
-    righe += ['', '## Per secolo d\'inizio', '', '| secolo | voci |', '| --- | ---: |']
+    righe += ['', '## Per secolo d\'inizio (prima dell\'anno 0: per millennio)', '', '| da | voci |', '| --- | ---: |']
     righe += [f'| {s} | {n} |' for s, n in sorted(secoli.items())]
     (ROOT / 'out/contesti.md').write_text('\n'.join(righe) + '\n', encoding='utf-8')
     print('\n'.join(righe))

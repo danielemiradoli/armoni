@@ -14,7 +14,7 @@ Atlante storico e geografico della storia dell'arte globale, costruito sul model
 | 3b · densità V&A | 6.396 ceramiche del V&A ridotte a conteggi per luogo e decennio, senza schede (condizioni d'uso del museo) | `web/densita_vam.json` |
 | 3c · consumo dalla letteratura | siti archeologici (costa swahili e oltre) con i numeri dei frammenti cinesi ricavati da articoli; ogni numero con autore e pagina; `src/letteratura.py` rifiuta righe senza provenienza | `data/siti_consumo.csv`, `data/bibliografia.csv`, `data/letteratura.csv` |
 | 5 · analisi | densità per decennio, silenzio delle fonti (precisione, ipotesi, assenze) | calcolate nella pagina |
-| C · contesti | **stili e movimenti** di Wikidata collocati nello spazio e nel tempo, con lo Stato di allora (dai confini storici), il nome di oggi e le guerre o rivoluzioni negli anni della nascita. Livello di **accostamento**: non è collegato alle opere. 293 voci su 1.440 hanno data e luogo; misure in `out/contesti.md` | `src/contesti.py`, `web/contesti.json` |
+| C · contesti | **fenomeni artistici** di Wikidata in quattro dei cinque tipi previsti (movimento, scuola, stile, periodizzazione dinastica; la macro-tendenza è ancora vuota), collocati nello spazio e nel tempo, con lo Stato di allora (dai confini storici), il nome di oggi, la macro-regione (11, `data/macroregioni.csv`) e le guerre o rivoluzioni negli anni della nascita. Livello di **accostamento**: non è collegato alle opere. 1.035 voci su 4.116 hanno data e luogo; misure in `out/contesti.md` | `src/contesti.py`, `web/contesti.json` |
 
 Ogni pezzo porta il **grado d'inclusione** (`documentato`: il record nomina il blu; `ipotetico`: manifattura nota per il blu, record muto sul colore) e il **criterio** con cui è entrato.
 
@@ -34,7 +34,7 @@ python3 src/periodo.py && python3 src/letteratura.py && python3 src/qualita.py
 python3 src/fetch_vam.py && python3 src/densita_vam.py   # V&A: solo conteggi; cancellare data/raw/vam.csv entro 4 settimane
 # contesti: eseguire le query data/query/contesti_*.rq su query.wikidata.org, CSV in data/raw/contesti/
 python3 src/contesti.py    # richiede shapely; scrive web/contesti.json e out/contesti.md
-python3 -m pytest tests    # 24 guardie
+python3 -m pytest tests    # 25 guardie
 cd web && python3 -m http.server
 ```
 

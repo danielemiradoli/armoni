@@ -174,3 +174,12 @@ def test_contesti_accostano_non_collegano():
     assert all(l['stato_allora'] is None for e in el for l in e['luoghi'] if l['precisione'] == 'regione')
     assert all(x['via'] in ('territorio', 'partecipante') for e in el for x in e['contesto'])
     assert all('dedotto' in e['quando']['metodo'] for e in el if e['quando'].get('dedotto'))
+
+
+def test_macroregioni_e_tipi():
+    tab = {r['paese_2010']: r['macroregione'] for r in csv.DictReader(open(ROOT / 'data/macroregioni.csv', encoding='utf-8'))}
+    assert tab['United States'] == 'Nord America' and tab['Netherlands'] == 'Europa' and tab['Guinea'] == 'Africa subsahariana'
+    assert len(set(tab.values())) == 11 and all(tab.values())
+    el = json.load(open(ROOT / 'web/contesti.json', encoding='utf-8'))['elementi']
+    assert {e['tipo'] for e in el} <= {'movimento', 'scuola', 'stile', 'periodizzazione'}
+    assert all(e['nome'] for e in el)
