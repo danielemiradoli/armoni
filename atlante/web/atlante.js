@@ -328,7 +328,8 @@ function nominato() {
 const setYear = v => { S.year = Math.round(Math.max(T0, Math.min(T1, v))); update(); };
 let tdrag = false;
 const tx = e => { const b = tls.getBoundingClientRect(); return T0 + (T1 - T0) * (e.clientX - b.left) / b.width; };
-tls.addEventListener('pointerdown', e => { tdrag = true; tls.setPointerCapture(e.pointerId); setYear(tx(e)); });
+tls.addEventListener('pointerdown', e => { e.preventDefault(); tdrag = true;  // niente selezione di testo trascinando sul tempo
+  tls.setPointerCapture(e.pointerId); setYear(tx(e)); });
 tls.addEventListener('pointermove', e => { if (tdrag) setYear(tx(e)); });
 tls.addEventListener('pointerup', () => { tdrag = false; });
 tls.addEventListener('keydown', e => { if (e.key === 'ArrowLeft') setYear(S.year - 5); if (e.key === 'ArrowRight') setYear(S.year + 5); });
