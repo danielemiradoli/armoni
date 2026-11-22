@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Atlante del blu e bianco</title>
+<title>ArMoni · Atlante (prototipo)</title>
 <link href="lib/fonts.css" rel="stylesheet">
 <style>
 /* VOICE: strumento di studio, calmo e preciso; dichiara sempre da dove viene ogni dato.
@@ -92,7 +92,12 @@ body.percorso #nar{display:block}
  body{overflow:auto}
  .app,body.percorso .app{height:auto;grid-template:"top" auto "map" 62vh "tl" auto "ctx" auto "nar" auto "lay" auto/minmax(0,1fr)}
  #lay,#ctx,#nar{border:0;border-top:1px solid var(--line)}
- #q{width:100%}
+ #q{width:100%;order:9}
+ header{flex-wrap:wrap;gap:8px}
+ header .sub{display:none}
+ header h1{font-size:22px}
+ #guida .gd-card{bottom:12px}
+ #guida .gd-card.in-alto{top:12px}
 }
 @media(prefers-reduced-motion:reduce){#tavolo{transition:none}}
 .grp{border-top:1px solid var(--line);padding:6px 0}
@@ -103,18 +108,35 @@ body.percorso #nar{display:block}
 .ghead button:focus-visible{outline:2px solid var(--co)}
 .grp:not(.open) .gbody{display:none}
 .gbody{padding:4px 0 2px 4px}
+#guida{position:fixed;inset:0;z-index:50}
+#guida .gd-ombra{position:absolute;inset:0;background:rgb(10 16 40 / .45)}
+#guida .gd-luce{position:absolute;border-radius:10px;box-shadow:0 0 0 9999px rgb(10 16 40 / .45);outline:3px solid var(--fe);pointer-events:none;transition:all .2s}
+#guida .gd-card{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);width:min(560px,calc(100vw - 24px));max-height:calc(100vh - 48px);overflow:auto;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:16px 18px;box-shadow:0 12px 40px rgb(0 0 0 / .25)}
+#guida .gd-card.in-alto{bottom:auto;top:24px}
+#guida .gd-tabs{display:flex;gap:6px;margin-bottom:10px}
+#guida .gd-tabs [aria-selected=true]{background:var(--co);color:var(--bg);border-color:var(--co)}
+#guida .gd-x{margin-left:auto;font-size:20px;line-height:1;padding:4px 12px}
+#guida .gd-step{color:var(--mute);font-size:13px;margin-bottom:2px}
+#guida h2{font-size:24px;margin:2px 0 8px}
+#guida .acts{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+#guida .pri{background:var(--co);color:var(--bg);border-color:var(--co)}
+#guida .gd-dom{display:grid;gap:6px;margin-top:10px}
+#guida .gd-dom button{text-align:left;padding:10px 12px}
+#guida .gd-dom button:hover{border-color:var(--co)}
+@media(prefers-reduced-motion:reduce){#guida .gd-luce{transition:none}}
 </style>
 </head>
 <body>
 <div class="app">
  <header>
-  <h1>Atlante del blu e bianco</h1>
-  <span class="sub">Armoni · prototipo sperimentale · primo taglio dell'atlante globale</span>
+  <h1>ArMoni · Atlante</h1>
+  <span class="sub">prototipo · primo filo: la porcellana blu e bianca nel mondo</span>
   <span class="sp"></span>
   <input id="q" type="search" placeholder="Cerca titolo, cultura, tecnica" aria-label="Cerca">
   <div class="seg" role="group" aria-label="Modalità">
    <button id="m-ricerca" aria-pressed="true">Ricerca</button><button id="m-percorso" aria-pressed="false">Percorso</button><button id="m-qualita" aria-pressed="false">Affidabilità</button>
   </div>
+  <button id="guidabtn">Guida</button>
   <button id="tavbtn">Tavolo <span id="tavn">0</span></button>
  </header>
 
@@ -162,6 +184,7 @@ body.percorso #nar{display:block}
   </div>
   <h3>Vista</h3>
   <div class="seg"><button id="p-globo" aria-pressed="true">Globo</button><button id="p-piano" aria-pressed="false">Piano</button></div>
+  <p class="sub" style="margin-top:18px"><a href="fonti.html">Fonti e licenze</a> · <a href="https://github.com/danielemiradoli/armoni">Codice e dati</a></p>
  </aside>
 
  <div class="fig" id="fig"><canvas id="cv" aria-label="Mappa del mondo navigabile"></canvas><div id="tip"></div><div id="chip"></div>

@@ -127,7 +127,7 @@ function draw() {
     if (S.L.silenzio && g.l.precisione !== 'citta') { ctx.beginPath(); ctx.arc(x, y, r + 16, 0, 7); ctx.fillStyle = mute; ctx.globalAlpha = .1; ctx.fill(); }
     if (S.place === g.id) { ctx.beginPath(); ctx.arc(x, y, r + 5, 0, 7); ctx.strokeStyle = fe; ctx.globalAlpha = 1; ctx.lineWidth = 2; ctx.stroke(); }
     ctx.globalAlpha = 1;
-    if (r > 9 || (hi && hi.has(g.id))) { ctx.font = '12px "Instrument Sans",sans-serif'; ctx.fillStyle = ink; ctx.fillText(g.l.nome, x + r + 4, y + 4); }
+    if (r > (W < 520 ? 15 : 9) || (hi && hi.has(g.id))) { ctx.font = '12px "Instrument Sans",sans-serif'; ctx.fillStyle = ink; ctx.fillText(g.l.nome, x + r + 4, y + 4); }
   }
   if (S.L.vam) for (const g of vagg) {
     const c = [g.l.lon, g.l.lat]; if (!visibile(c)) continue; const [x, y] = proj(c), r = 3 + Math.sqrt(g.n) * 1.3;
@@ -166,7 +166,7 @@ function drawContesti(ink, mute) {
     ctx.strokeStyle = ink; ctx.lineWidth = e.id === sel ? 2.2 : 1; ctx.globalAlpha = e.id === sel ? 1 : .7;
     if (l.precisione !== 'regione') { if (l.precisione === 'paese') ctx.setLineDash([2, 2]); ctx.strokeRect(x - r, y - r, 2 * r, 2 * r); ctx.setLineDash([]); }
     const t = e.nome, w = ctx.measureText(t).width, bx = [x + r + 3, y - 9, x + r + 3 + w, y + 4];
-    if (e.id === sel || (occ.length < 18 && !occ.some(o => bx[0] < o[2] && bx[2] > o[0] && bx[1] < o[3] && bx[3] > o[1]))) {
+    if (e.id === sel || (occ.length < (W < 520 ? 6 : 18) && !occ.some(o => bx[0] < o[2] && bx[2] > o[0] && bx[1] < o[3] && bx[3] > o[1]))) {
       occ.push(bx); ctx.fillStyle = ink; ctx.globalAlpha = e.id === sel ? 1 : .8; ctx.fillText(t, bx[0], y + 3); }
     ctx.globalAlpha = 1;
   }
@@ -473,4 +473,84 @@ $('#corsie').onchange = e => { S.corsie = e.target.value; drawTl(); };
 function update() { if (!O.length) return; const ws = $('#win'); if (![...ws.options].some(o => +o.value === S.win)) ws.add(new Option(String(S.win))); ws.value = String(S.win); filtra(); draw(); drawTl(); if (S.mode === 'ricerca') renderCtx(); renderTavCount(); }
 const renderTavCount = () => { $('#tavn').textContent = S.tav.length; };
 new MutationObserver(() => { draw(); drawTl(); }).observe(document.documentElement, {attributes: true, attributeFilter: ['data-theme']});
+
+/* ── Guida: visita dell'interfaccia e domande da provare ─────────────────────────────
+   La visita evidenzia una zona alla volta; le domande impostano da sole la vista che risponde.
+   Si apre da sola alla prima visita (se il browser lo permette) e sempre dal pulsante «Guida». */
+const VISITA = [
+  {s: 'header .seg', t: 'Tre modi di usare l\'atlante', p: '<b>Ricerca</b>: esplori liberamente, scegliendo anno, luoghi e livelli. <b>Percorso</b>: un racconto in tappe, con le fonti di ogni frase. <b>Affidabilità</b>: che cosa sanno i dati, e dove tacciono.'},
+  {s: '#fig', t: 'Il globo', p: 'Trascina per ruotarlo, usa + e − per avvicinarti. Un clic su un segno apre la sua scheda a destra. <b>Cerchi</b>: pezzi per luogo d\'origine (pieno: città; anello: solo il paese). <b>Rombi</b>: quantità al V&amp;A. <b>Triangoli</b>: scavi archeologici. <b>Quadrati e nomi in corsivo</b>: stili, movimenti, scuole, dinastie.'},
+  {s: '#tl', t: 'Il tempo', p: 'Clicca o trascina sulla barra per scegliere l\'anno; con «finestra ±» decidi quanti anni guardare insieme; «Scorri» fa avanzare il tempo da solo. Sotto, le <b>corsie</b>: chi divide il tempo e come lo chiama (PeriodO), le dinastie, i fenomeni artistici per regione.'},
+  {s: '#lay', t: 'Livelli, in cartelle', p: 'Ogni cartella si accende e si spegne in blocco, e ricorda come l\'avevi lasciata; il nome la apre. Ogni voce dice che cosa mostra. I livelli si <b>sovrappongono per accostare</b>: vedere due cose nello stesso luogo e nello stesso tempo non significa che siano collegate. Le relazioni compaiono solo dove una fonte le dichiara.'},
+  {s: '#ctx', t: 'Il pannello di destra', p: 'Senza nulla di scelto, riassume la finestra: quanti pezzi, da dove, quali fenomeni, chi nomina quegli anni. Con un luogo o una voce scelti, mostra la scheda: ogni dato con la sua fonte e il suo grado di certezza. «Indietro» torna al riassunto.'},
+  {s: '#q', t: 'Cerca', p: 'Filtra opere e fenomeni per parola: un titolo, una cultura, una tecnica, un nome.'},
+  {s: '#tavbtn', t: 'Il Tavolo', p: 'Dalla scheda di un pezzo puoi metterlo sul Tavolo, per tenere insieme cose lontane e confrontarle. Il Tavolo resta in questo browser.'},
+  {s: null, t: 'Un principio, per leggere tutto il resto', p: 'L\'atlante non decide che cosa è vero: riporta che cosa dice ogni fonte, con quale certezza, e mostra dove le fonti tacciono. Un vuoto sulla mappa può essere un vuoto della storia o un vuoto dei dati: la vista Affidabilità aiuta a distinguerli.'},
+];
+const DOMANDE = [
+  {t: 'Da dove arriva la porcellana blu e bianca che oggi sta nei musei, intorno al 1640?', y: 1640, w: 25, rot: [-60, -30], L: {origini: 1, sedi: 1, spostamenti: 1, mercati: 1}},
+  {t: 'Che cosa succedeva nell\'arte, nel mondo, mentre Delft imitava la porcellana cinese?', y: 1650, w: 25, rot: [-40, -35], L: {origini: 1, contesti: 1}},
+  {t: 'Quali dinastie regnavano in Asia nel 1450?', y: 1450, w: 10, rot: [-90, -25], L: {contesti: 1}, CT: ['periodizzazione'], corsie: 'contesti'},
+  {t: 'Che cosa viene prima e dopo la dinastia Song, secondo le fonti?', y: 980, w: 40, rot: [-110, -32], L: {contesti: 1, relazioni: 1}, CT: ['periodizzazione'], place: 'mov:Q7462'},
+  {t: 'Chi decide come si chiama un\'epoca? Il 1500, nominato da storici diversi', y: 1500, w: 25, rot: [-60, -30], L: {origini: 1}, corsie: 'periodo'},
+  {t: 'Dove gli scavi hanno trovato porcellana cinese, lontano dalla Cina?', y: 1450, w: 100, rot: [-40, 0], L: {letteratura: 1}},
+  {t: 'Quanto sono affidabili questi dati, e dove tacciono?', modo: '#qualita'},
+  {t: 'Preferisco un racconto guidato, tappa per tappa', modo: '#percorso'},
+];
+function vai(d) {
+  chiudiGuida();
+  if (d.modo) { location.hash = d.modo; return; }
+  Lr = null; if (location.hash !== '#ricerca') location.hash = '#ricerca';
+  S.year = d.y; S.win = d.w; S.rot = [...d.rot]; S.k = 1; S.sel = null; S.place = d.place || null;
+  S.L = {confini: 1, origini: 0, sedi: 0, spostamenti: 0, mercati: 0, silenzio: 0, ipotetici: 1, dedotti: 0, vam: 0, letteratura: 0, contesti: 0, relazioni: 0, ...d.L};
+  S.CT = new Set(d.CT || TIPI_CX); document.querySelectorAll('[data-ct]').forEach(i => { i.checked = S.CT.has(i.dataset.ct); });
+  if (d.corsie) { S.corsie = d.corsie; $('#corsie').value = d.corsie; }
+  G.on = {}; G.mem = {}; syncChecks(); update();
+}
+const gd = document.createElement('div'); gd.id = 'guida'; gd.hidden = true; document.body.appendChild(gd);
+let passo = 0, ultimoFuoco = null;
+function chiudiGuida() { gd.hidden = true; gd.innerHTML = ''; ultimoFuoco?.focus(); }
+function apriGuida(scheda = 'visita') {
+  ultimoFuoco = document.activeElement; gd.hidden = false;
+  if (scheda === 'visita' && location.hash === '#qualita') location.hash = '#ricerca';
+  scheda === 'visita' ? mostraPasso() : mostraDomande();
+}
+function cornice(corpo) {
+  gd.innerHTML = `<div class="gd-ombra"></div><div class="gd-luce" hidden></div><div class="gd-card" role="dialog" aria-modal="true" aria-labelledby="gd-t">
+    <div class="gd-tabs" role="tablist"><button role="tab" data-gs="visita">Come si usa</button><button role="tab" data-gs="domande">Domande da provare</button><button class="gd-x" data-gx aria-label="Chiudi la guida">×</button></div>${corpo}</div>`;
+  gd.querySelectorAll('[data-gs]').forEach(b => b.onclick = () => { passo = 0; b.dataset.gs === 'visita' ? mostraPasso() : mostraDomande(); });
+  gd.querySelector('[data-gx]').onclick = chiudiGuida;
+}
+function mostraPasso() {
+  const v = VISITA[passo];
+  cornice(`<div class="gd-step">${passo + 1} di ${VISITA.length}</div><h2 id="gd-t">${v.t}</h2><p>${v.p}</p>
+    <div class="acts"><button data-gp="-1" ${passo ? '' : 'disabled'}>← Indietro</button>${passo < VISITA.length - 1 ? '<button data-gp="1" class="pri">Avanti →</button>' : '<button data-gd class="pri">Prova una domanda →</button>'}</div>`);
+  gd.querySelector('[data-gs="visita"]').setAttribute('aria-selected', 'true');
+  gd.querySelectorAll('[data-gp]').forEach(b => b.onclick = () => { passo += +b.dataset.gp; mostraPasso(); });
+  gd.querySelector('[data-gd]')?.addEventListener('click', mostraDomande);
+  const luce = gd.querySelector('.gd-luce'), el = v.s && document.querySelector(v.s), card = gd.querySelector('.gd-card');
+  if (el && el.offsetParent !== null) {
+    el.scrollIntoView({block: 'nearest'}); const r = el.getBoundingClientRect();
+    Object.assign(luce.style, {left: r.left - 4 + 'px', top: r.top - 4 + 'px', width: r.width + 8 + 'px', height: r.height + 8 + 'px'}); luce.hidden = false;
+    gd.querySelector('.gd-ombra').hidden = true;
+    // la scheda della guida si mette dal lato opposto alla zona evidenziata
+    card.classList.toggle('in-alto', r.top + r.height / 2 > innerHeight / 2);
+  }
+  card.querySelector('.pri, [data-gp]')?.focus();
+}
+function mostraDomande() {
+  cornice(`<h2 id="gd-t">Domande da provare</h2><p class="sub">Ogni domanda imposta da sola anno, luogo e livelli. Poi la vista è tua: cambiala come vuoi.</p>
+    <div class="gd-dom">${DOMANDE.map((d, i) => `<button data-gq="${i}">${esc(d.t)}</button>`).join('')}</div>`);
+  gd.querySelector('[data-gs="domande"]').setAttribute('aria-selected', 'true');
+  gd.querySelectorAll('[data-gq]').forEach(b => b.onclick = () => vai(DOMANDE[+b.dataset.gq]));
+  gd.querySelector('[data-gq]').focus();
+}
+gd.addEventListener('keydown', e => {
+  if (e.key === 'Escape') chiudiGuida();
+  if (e.key === 'Tab') { const f = [...gd.querySelectorAll('button:not([disabled])')]; const i = f.indexOf(document.activeElement);
+    if (e.shiftKey && i <= 0) { f.at(-1).focus(); e.preventDefault(); } else if (!e.shiftKey && i === f.length - 1) { f[0].focus(); e.preventDefault(); } }
+});
+$('#guidabtn').onclick = () => apriGuida();
+addEventListener('resize', () => { if (!gd.hidden && gd.querySelector('.gd-step')) mostraPasso(); });
+try { if (!localStorage.getItem('armoni-guida-vista')) { localStorage.setItem('armoni-guida-vista', '1'); setTimeout(() => apriGuida(), 900); } } catch (e) { /* senza memoria del browser la guida resta sul pulsante */ }
 }
