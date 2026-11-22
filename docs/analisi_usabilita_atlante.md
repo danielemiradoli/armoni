@@ -43,3 +43,7 @@
 - Nessuna richiesta a server di terzi.
 - La guida, le domande da provare, le cartelle dei livelli, il segno scelto in risalto, il puntatore che distingue cosa è cliccabile.
 - Il principio di lettura (fonte, grado, silenzio) è visibile in ogni scheda.
+
+## Decisioni
+
+- **Precisione geografica (22 novembre 2026).** ArMoni non è uno strumento cartografico: confini e coste servono a orientarsi nello spazio, non a misurarlo. I limiti di precisione dei confini storici non sono un problema da risolvere; il dettaglio si alza ingrandendo solo quanto basta alla lettura.
