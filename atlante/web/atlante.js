@@ -147,7 +147,19 @@ function draw() {
   }
   const sel = O.find(x => x.id === S.sel);
   if (sel && sel.o && visibile([sel.o.lon, sel.o.lat])) { const [x, y] = proj([sel.o.lon, sel.o.lat]); ctx.beginPath(); ctx.arc(x, y, 11, 0, 7); ctx.strokeStyle = fe; ctx.lineWidth = 2.5; ctx.stroke(); }
+  evidenzia(fe);
   chip(cf.anno);
+}
+/* Il segno scelto resta in risalto: doppio anello (chiaro fuori, colore d'accento dentro), leggibile su ogni sfondo. */
+function evidenzia(fe) {
+  if (!S.place) return;
+  const punti = S.place.startsWith('mov:') ? (CX.find(e => e.id === S.place.slice(4))?.luoghi || []).map(l => [l.lon, l.lat, 10])
+    : (() => { const id = S.place.replace(/^sito:/, ''), l = LU[id], g = agg.find(g => g.id === id); return l ? [[l.lon, l.lat, g ? rr(g) + 6 : 12]] : []; })();
+  for (const [lon, lat, r] of punti) {
+    if (!visibile([lon, lat])) continue; const [x, y] = proj([lon, lat]);
+    ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.strokeStyle = css('--bg'); ctx.lineWidth = 6; ctx.stroke();
+    ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.strokeStyle = fe; ctx.lineWidth = 2.5; ctx.stroke();
+  }
 }
 
 /* Stili e movimenti: quadrati vuoti (luogo), quadrati tratteggiati più grandi (paese), solo nome in corsivo (regione).
@@ -191,12 +203,13 @@ function hit(px, py) {
 }
 
 let drag = null;
-cv.addEventListener('pointerdown', e => { drag = {x: e.clientX, y: e.clientY, r: [...S.rot], moved: 0}; cv.setPointerCapture(e.pointerId); });
+cv.addEventListener('pointerdown', e => { drag = {x: e.clientX, y: e.clientY, r: [...S.rot], moved: 0}; cv.setPointerCapture(e.pointerId); cv.style.cursor = 'grabbing'; });
 cv.addEventListener('pointermove', e => {
   const b = cv.getBoundingClientRect();
   if (drag) { const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag.moved = Math.max(drag.moved, Math.abs(dx) + Math.abs(dy));
     const f = 0.25 / S.k; S.rot = [drag.r[0] + dx * f, Math.max(-90, Math.min(90, drag.r[1] - dy * f))]; draw(); return; }
   const g = hit(e.clientX - b.left, e.clientY - b.top), tip = $('#tip');
+  cv.style.cursor = g ? 'pointer' : 'grab';  // la mano diventa un dito sopra ciò che si può cliccare
   let pol = '';
   if (!g && S.L.confini) { const c = proj.invert([e.clientX - b.left, e.clientY - b.top]), cf = confini(S.year); if (c && cf.geo) { const f = cf.geo.features.find(f => f.properties.NAME && d3.geoContains(f, c)); if (f) pol = f.properties.NAME; } }
   if (g || pol) { tip.style.display = 'block'; tip.style.left = (e.clientX - b.left + 14) + 'px'; tip.style.top = (e.clientY - b.top + 10) + 'px';
@@ -205,7 +218,7 @@ cv.addEventListener('pointermove', e => {
 });
 cv.addEventListener('pointerup', e => {
   if (drag && drag.moved < 4) { const b = cv.getBoundingClientRect(), g = hit(e.clientX - b.left, e.clientY - b.top); S.place = g ? g.id : null; S.sel = null; if (S.mode === 'ricerca') renderCtx(); draw(); }
-  drag = null;
+  drag = null; cv.style.cursor = 'grab';
 });
 cv.addEventListener('pointerleave', () => { $('#tip').style.display = 'none'; });
 cv.addEventListener('wheel', e => { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 1 / 1.15); }, {passive: false});
