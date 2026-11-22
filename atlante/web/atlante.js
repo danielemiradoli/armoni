@@ -471,13 +471,12 @@ function route() {
   S.mode = m === 'percorso' ? 'percorso' : m === 'qualita' ? 'qualita' : 'ricerca';
   document.body.classList.toggle('percorso', S.mode === 'percorso');
   document.body.classList.toggle('qualita', S.mode === 'qualita');
-  $('#m-qualita').setAttribute('aria-pressed', S.mode === 'qualita');
+  for (const m of ['ricerca', 'percorso', 'qualita']) $('#m-' + m).setAttribute('aria-pressed', S.mode === m);
   if (S.mode === 'qualita') { renderQual(); return; }
-  $('#m-ricerca').setAttribute('aria-pressed', S.mode === 'ricerca'); $('#m-percorso').setAttribute('aria-pressed', S.mode === 'percorso');
   if (S.mode === 'percorso') applyTappa(); else { if (Lr) { S.L = Lr; Lr = null; } syncChecks(); update(); }
   requestAnimationFrame(misura);  // dopo il cambio di griglia la mappa ha nuove misure
 }
-window.addEventListener('hashchange', route);
+window.addEventListener('hashchange', () => { if (location.hash.includes('&y=')) leggiVista(); route(); });
 $('#m-ricerca').onclick = () => { location.hash = 'ricerca'; };
 $('#m-percorso').onclick = () => { location.hash = 'percorso'; };
 $('#m-qualita').onclick = () => { location.hash = 'qualita'; };

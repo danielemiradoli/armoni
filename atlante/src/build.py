@@ -259,9 +259,15 @@ EPOCHE = [('Periodo Meiji', r'明治|meiji'), ('Periodo Taishō', r'大正|taish
 def intervallo_cb(testi, periodi):
     """Anni espliciti > secolo (con meta') > epoca; secolo ed epoca si intersecano se si sovrappongono."""
     t = ' '.join(testi)
-    m = re.search(r'(\d{4})\s*[～~–-]\s*(\d{4})', t)
+    m = re.search(r'(\d{4})\s*[～~〜–-]\s*(\d{4})', t)
     if m:
         return int(m.group(1)), int(m.group(2)), 'anni'
+    # anno finale abbreviato, come scrivono le ere giapponesi e cinesi: «1522～66» vale 1522–1566
+    m = re.search(r'(\d{4})\s*[～~〜–-]\s*(\d{1,2})(?!\d)', t)
+    if m:
+        a, fine = m.group(1), m.group(2)
+        b = int(a[:4 - len(fine)] + fine)
+        return int(a), b if b >= int(a) else b + 100, 'anni'
     sec = None
     m = re.search(r'(\d{1,2})(?:世紀|st|nd|rd|th)(?:\s*[～~–-]\s*(\d{1,2})(?:世紀|st|nd|rd|th))?', t)
     if m:

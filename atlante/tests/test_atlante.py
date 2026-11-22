@@ -195,3 +195,11 @@ def test_relazioni_solo_dichiarate():
         if r['collocata']:
             altra = next(e for e in el if e['id'] == r['id'])
             assert any(x['id'] == i and x['verso'] != r['verso'] for x in altra['relazioni'])
+
+
+def test_anno_finale_abbreviato():
+    import sys; sys.path.insert(0, str(ROOT / 'src'))
+    import build as B
+    assert B.intervallo_cb(['明時代・嘉靖年間(1522～66)'], {})[:2] == (1522, 1566)
+    assert B.intervallo_cb(['江戸時代･天明年間(1781～89)'], {'明': (1368, 1644)})[:2] == (1781, 1789)
+    assert B.intervallo_cb(['(1795～05)'], {})[:2] == (1795, 1805)
