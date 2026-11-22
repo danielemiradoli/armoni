@@ -8,9 +8,10 @@ const PREC = {citta: 'città', paese: 'solo paese', regione: 'regione', zona: 'z
 const T0 = 700, T1 = 2000;
 
 const S = {corsie: 'wikidata', year: 1640, win: 25, proj: 'globo', rot: [-40, -28], k: 1, sel: null, place: null, q: '',
-  L: {confini: 1, origini: 1, sedi: 1, spostamenti: 0, mercati: 1, silenzio: 0, ipotetici: 1, dedotti: 0, vam: 1, letteratura: 1, contesti: 0}, CT: new Set(['movimento', 'scuola', 'stile', 'periodizzazione']), F: {met: 1, cma: 1, wd: 1, colbase: 1},
+  L: {confini: 1, origini: 1, sedi: 1, spostamenti: 0, mercati: 1, silenzio: 0, ipotetici: 1, dedotti: 0, vam: 1, letteratura: 1, contesti: 0, relazioni: 0}, CT: new Set(['movimento', 'scuola', 'stile', 'periodizzazione']), F: {met: 1, cma: 1, wd: 1, colbase: 1},
   tav: [], mode: 'ricerca', tappa: 0};
 // CX: stili e movimenti (livello Contesti); APERTO: anni mostrati quando la fine non è dichiarata
+const G = {on: {}, mem: {}};
 let CX = [], cagg = [], CXR = null; const APERTO = 30, TIPI_CX = ['movimento', 'scuola', 'stile', 'periodizzazione'];
 let QU = null, qmet = 'doc', LET = null, lagg = [], PO = null, VAM = null, vagg = [], NOD = [], O = [], LU = {}, PER = [], ANNI = [], TERRE = null, CONF = {}, act = [], agg = [];
 
@@ -153,6 +154,12 @@ function draw() {
    Nomi scritti per i più noti (versioni linguistiche su Wikidata), senza sovrapporsi. */
 function drawContesti(ink, mute) {
   const occ = [], sel = S.place && S.place.startsWith('mov:') ? S.place.slice(4) : null;
+  // relazioni dichiarate: fra voci attive se il livello è acceso; quelle della voce scelta sempre, anche fuori finestra
+  const att = new Map(cagg.map(e => [e.id, e])), tutte = new Map(CX.map(e => [e.id, e]));
+  const linea = (a, b, forte) => { const p = a.luoghi[0], q = b.luoghi[0]; if (p.id === q.id) return; ctx.beginPath(); path({type: 'LineString', coordinates: [[p.lon, p.lat], [q.lon, q.lat]]});
+    ctx.strokeStyle = ink; ctx.globalAlpha = forte ? .85 : .35; ctx.lineWidth = forte ? 1.6 : .9; ctx.setLineDash([1, 3]); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1; };
+  if (S.L.relazioni) for (const e of cagg) for (const r of e.relazioni) if (r.verso === '>' && att.has(r.id)) linea(e, att.get(r.id), false);
+  if (sel && tutte.has(sel)) for (const r of tutte.get(sel).relazioni) if (r.collocata && tutte.has(r.id)) linea(tutte.get(sel), tutte.get(r.id), true);
   ctx.font = 'italic 12.5px "Fraunces",Georgia,serif';
   for (const e of cagg) for (const l of e.luoghi) {
     const c = [l.lon, l.lat]; if (!visibile(c)) continue; const [x, y] = proj(c), r = l.precisione === 'paese' ? 7 : 4.5;
@@ -306,6 +313,7 @@ function scheda(x) {
   <div class="acts"><button data-tav="${x.id}" ${inT ? 'disabled' : ''}>${inT ? 'Già sul tavolo' : 'Metti sul tavolo'}</button><button data-centra="${x.id}">Centra sul luogo</button><button data-back>Indietro</button></div>`;
 }
 const PRECM = {luogo: 'luogo dentro un paese', paese: 'solo il paese', regione: 'regione o continente: nessuno Stato'};
+const INVERSA = {'influenzato da': 'ha influenzato', 'parte di': 'comprende', 'caso particolare di': 'ha come caso particolare', segue: 'seguito da', sostituisce: 'sostituito da'};
 const VIA = {territorio: 'nel paese', partecipante: 'il paese vi partecipa, combattuta altrove'};
 function schedaMov(e) {
   const q = e.quando, fine = q.a != null ? fmtY(q.a) : 'fine non dichiarata';
@@ -314,6 +322,8 @@ function schedaMov(e) {
   <h3>Quando</h3><p><b>${fmtY(q.da)}–${fine}</b><br><span class="sub">${esc(q.metodo)}${q.a == null ? ` · sulla mappa resta visibile ${APERTO} anni` : ''}</span></p>
   <h3>Dove: oggi e allora</h3>${e.luoghi.map(l => `<div class="row" style="cursor:default;display:block"><span class="sub">${l.via}:</span> <b>${esc(l.oggi)}</b>${l.paese_oggi && l.paese_oggi !== l.oggi ? ' · ' + esc(l.paese_oggi) : ''} <span class="sub">(${PRECM[l.precisione]}${l.macroregione ? ' · ' + l.macroregione : ''})</span>
     ${l.stato_allora ? `<br>allora: <b>${esc(l.stato_allora)}</b> <span class="sub">nei confini del ${fmtY(l.istantanea)}, historical-basemaps</span>` : l.precisione !== 'regione' ? `<br><span class="sub">allora: nessuna carta dei confini entro 50 anni${l.istantanea ? ' (la più vicina è del ' + fmtY(l.istantanea) + ')' : ''}</span>` : ''}${l.nome_allora ? `<br>nome di allora: ${esc(l.nome_allora)}` : ''}</div>`).join('')}
+  <h3>Relazioni dichiarate su Wikidata</h3>${e.relazioni.length ? e.relazioni.map(r => `<div class="row" ${r.collocata ? `data-place="mov:${r.id}"` : 'style="cursor:default"'}><span><span class="sub">${r.verso === '>' ? r.rel : INVERSA[r.rel]}</span> ${esc(r.nome)}</span><span class="n sub">${r.collocata ? '' : 'senza data o luogo'}</span></div>`).join('')
+    : '<p class="sub">Nessuna. L\'atlante non ne deduce dalla vicinanza nello spazio o nel tempo.</p>'}
   <h3>Negli anni della nascita (±${CXR.finestra})</h3>${e.contesto.length ? e.contesto.map(c => `<div class="row" style="cursor:default;display:block">${esc(c.nome)} <span class="sub">· ${c.tipo}, ${fmtY(c.da)}–${fmtY(c.a)} · ${VIA[c.via]}</span></div>`).join('')
     : '<p class="sub">Nessuna guerra o rivoluzione registrata (solo eventi con almeno 20 versioni linguistiche su Wikidata: l\'assenza non è una prova).</p>'}
   <p class="sub" style="margin-top:14px;border-top:1px solid var(--line, #ccc);padding-top:8px">Accostamento nello spazio e nel tempo, non relazione: nessuna opera dell'atlante è attribuita a questa voce. Fonte: Wikidata (CC0).</p>
@@ -391,7 +401,7 @@ let Lr = null;
 function applyTappa() {
   const t = TAPPE[S.tappa]; if (!Lr) Lr = {...S.L};
   S.year = t.y; S.win = t.w; S.rot = [...t.rot]; S.k = 1; S.place = null; S.sel = null;
-  S.L = {confini: 1, origini: 1, sedi: 0, spostamenti: 0, mercati: 0, silenzio: 0, ipotetici: 1, dedotti: 0, vam: 0, letteratura: 0, contesti: 0, ...t.L};
+  S.L = {confini: 1, origini: 1, sedi: 0, spostamenti: 0, mercati: 0, silenzio: 0, ipotetici: 1, dedotti: 0, vam: 0, letteratura: 0, contesti: 0, relazioni: 0, ...t.L}; G.on = {}; G.mem = {};
   update();
   const inHi = act.filter(x => t.hi.includes(x.origine)), ipo = inHi.filter(x => x.grado === 'ipotetico').length;
   const poDati = () => { if (!PO) return 'PeriodO non caricato.'; return 'Nel ' + fmtY(t.y) + ': ' + REG_PO.map(r => { const ps = PO.periodi.filter(p => p.r === r && p.a <= t.y && p.b >= t.y); if (!ps.length) return ''; const lg = {}; for (const p of ps) lg[p.lg] = (lg[p.lg] || 0) + 1;
@@ -440,8 +450,20 @@ $('#m-qualita').onclick = () => { location.hash = 'qualita'; };
 document.addEventListener('click', e => { const b = e.target.closest('[data-qm]'); if (b) { qmet = b.dataset.qm; renderQual(); } });
 
 /* ---------- controlli ---------- */
-const syncChecks = () => { document.querySelectorAll('[data-l]').forEach(i => { i.checked = !!S.L[i.dataset.l]; }); };
-document.querySelectorAll('[data-l]').forEach(i => i.onchange = () => { S.L[i.dataset.l] = i.checked ? 1 : 0; update(); });
+/* Cartelle di livelli: spegnere una cartella ne ricorda le voci; riaccenderla le rimette com'erano.
+   Accendere una voce dentro una cartella spenta riaccende la cartella. */
+const figli = g => [...document.querySelectorAll(`[data-grp="${g}"] [data-l]:not([data-keep])`)].map(i => i.dataset.l);
+const syncChecks = () => {
+  document.querySelectorAll('[data-l]').forEach(i => { i.checked = !!S.L[i.dataset.l]; });
+  document.querySelectorAll('[data-g]').forEach(i => { const g = i.dataset.g, f = figli(g), n = f.filter(k => S.L[k]).length;
+    i.checked = G.on[g] !== false; i.indeterminate = false; $(`[data-gn="${g}"]`).textContent = G.on[g] === false ? 'spenta' : `${n} di ${f.length} attivi`; });
+};
+document.querySelectorAll('[data-l]').forEach(i => i.onchange = () => { S.L[i.dataset.l] = i.checked ? 1 : 0; const g = i.closest('[data-grp]')?.dataset.grp; if (g && i.checked) G.on[g] = true; syncChecks(); update(); });
+document.querySelectorAll('[data-g]').forEach(i => i.onchange = () => { const g = i.dataset.g;
+  if (i.checked) { G.on[g] = true; const m = G.mem[g]; if (m) for (const k of figli(g)) S.L[k] = m[k]; }
+  else { G.on[g] = false; G.mem[g] = Object.fromEntries(figli(g).map(k => [k, S.L[k]])); for (const k of figli(g)) S.L[k] = 0; }
+  syncChecks(); update(); });
+document.querySelectorAll('[data-gt]').forEach(b => b.onclick = () => { const d = b.closest('.grp'), o = d.classList.toggle('open'); b.setAttribute('aria-expanded', o); });
 document.querySelectorAll('[data-ct]').forEach(i => i.onchange = () => { S.CT[i.checked ? 'add' : 'delete'](i.dataset.ct); update(); });
 document.querySelectorAll('[data-f]').forEach(i => i.onchange = () => { S.F[i.dataset.f] = i.checked ? 1 : 0; update(); });
 for (const p of ['globo', 'piano']) $('#p-' + p).onclick = () => { S.proj = p; S.k = 1; $('#p-globo').setAttribute('aria-pressed', p === 'globo'); $('#p-piano').setAttribute('aria-pressed', p === 'piano'); draw(); };
