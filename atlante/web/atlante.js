@@ -60,7 +60,7 @@ Promise.all([j('opere.json'), j('luoghi.json'), j('periodi.json'), j('confini/an
   PER = p.map(x => ({...x, inizio: +x.inizio, fine: +x.fine}));
   ANNI = a; if (PO) $('#corsie').value = 'periodo'; TERRE = topojson.feature(t, t.objects.land);
   try { S.tav = JSON.parse(localStorage.getItem('armoni-tavolo') || '[]').filter(c => O.some(x => x.id === c.id)); } catch (e) { S.tav = []; }
-  route(); update();
+  leggiVista(); route(); update();
 }).catch(e => { $('#ctx').innerHTML = `<p>Non riesco a caricare i dati (${esc(e.message)}).</p>`; });
 
 function confini(y) {
@@ -434,7 +434,8 @@ function renderQual() {
   <p class="sub" style="margin-top:12px">Fuori dalla tabella: ${Object.entries(QU.fuori).map(([k, v]) => `${esc(k)} ${v}`).join(' · ')}. Regione dal paese su Wikidata (P17).</p>${(QU.mancanti || []).length ? `<h3 style="margin-top:18px">Fonti cercate e non raggiunte</h3><p class="sub">Un vuoto nella tabella può essere un vuoto delle fonti, non della storia.</p><ul>${QU.mancanti.map(m => `<li><b>${esc(m.fonte)}</b> · ${esc(m.regione)}, ${esc(m.ultimo_tentativo)}<br>${esc(m.esito)}. Ripiego: ${esc(m.ripiego_misurato)}. Prossimo passo: ${esc(m.prossimo_passo)}.</li>`).join('')}</ul>` : ''}`;
 }
 function route() {
-  S.mode = location.hash === '#percorso' ? 'percorso' : location.hash === '#qualita' ? 'qualita' : 'ricerca';
+  const m = location.hash.slice(1).split('&')[0];  // dopo il modo possono seguire i parametri di una vista condivisa
+  S.mode = m === 'percorso' ? 'percorso' : m === 'qualita' ? 'qualita' : 'ricerca';
   document.body.classList.toggle('percorso', S.mode === 'percorso');
   document.body.classList.toggle('qualita', S.mode === 'qualita');
   $('#m-qualita').setAttribute('aria-pressed', S.mode === 'qualita');
@@ -477,6 +478,30 @@ new MutationObserver(() => { draw(); drawTl(); }).observe(document.documentEleme
 /* ── Guida: visita dell'interfaccia e domande da provare ─────────────────────────────
    La visita evidenzia una zona alla volta; le domande impostano da sole la vista che risponde.
    Si apre da sola alla prima visita (se il browser lo permette) e sempre dal pulsante «Guida». */
+/* Vista condivisibile: modo, anno, finestra, rotazione, livelli, tipi, corsie, scheda aperta, tappa.
+   Scritta nell'indirizzo solo quando serve (commenti, link); letta una volta all'apertura. */
+function vistaURL() {
+  const r = S.rot.map(x => Math.round(x)).join(','), l = Object.keys(S.L).filter(k => S.L[k]).join(',');
+  let h = `${S.mode}&y=${S.year}&w=${S.win}&r=${r}&l=${l}&ct=${[...S.CT].join(',')}&c=${S.corsie || ''}`;
+  if (S.place) h += '&p=' + encodeURIComponent(S.place);
+  if (S.mode === 'percorso') h += '&t=' + S.tappa;
+  return location.origin + location.pathname + '#' + h;
+}
+function leggiVista() {
+  const q = new URLSearchParams(location.hash.slice(1).split('&').slice(1).join('&'));
+  if (!q.has('y')) return;
+  const n = (k, d) => Number.isFinite(+q.get(k)) && q.get(k) !== '' ? +q.get(k) : d;
+  S.year = n('y', S.year); S.win = n('w', S.win);
+  const r = (q.get('r') || '').split(',').map(Number); if (r.length === 2 && r.every(Number.isFinite)) S.rot = r;
+  if (q.has('l')) { const on = new Set(q.get('l').split(',')); for (const k of Object.keys(S.L)) S.L[k] = on.has(k) ? 1 : 0; }
+  if (q.get('ct')) { S.CT = new Set(q.get('ct').split(',').filter(t => TIPI_CX.includes(t))); document.querySelectorAll('[data-ct]').forEach(i => { i.checked = S.CT.has(i.dataset.ct); }); }
+  if (q.get('c')) { S.corsie = q.get('c'); $('#corsie').value = S.corsie; }
+  if (q.get('p')) S.place = q.get('p');
+  if (q.has('t')) S.tappa = Math.max(0, Math.min(TAPPE.length - 1, n('t', 0)));
+}
+const MODULO = 'https://tally.so/r/Z92Jpz';
+$('#commentabtn').onclick = () => window.open(`${MODULO}?vista=${encodeURIComponent(vistaURL())}&schermo=${innerWidth}x${innerHeight}`, '_blank', 'noopener');
+
 const VISITA = [
   {s: 'header .seg', t: 'Tre modi di usare l\'atlante', p: '<b>Ricerca</b>: esplori liberamente, scegliendo anno, luoghi e livelli. <b>Percorso</b>: un racconto in tappe, con le fonti di ogni frase. <b>Affidabilità</b>: che cosa sanno i dati, e dove tacciono.'},
   {s: '#fig', t: 'Il globo', p: 'Trascina per ruotarlo, usa + e − per avvicinarti. Un clic su un segno apre la sua scheda a destra. <b>Cerchi</b>: pezzi per luogo d\'origine (pieno: città; anello: solo il paese). <b>Rombi</b>: quantità al V&amp;A. <b>Triangoli</b>: scavi archeologici. <b>Quadrati e nomi in corsivo</b>: stili, movimenti, scuole, dinastie.'},
@@ -545,12 +570,13 @@ function mostraDomande() {
   gd.querySelectorAll('[data-gq]').forEach(b => b.onclick = () => vai(DOMANDE[+b.dataset.gq]));
   gd.querySelector('[data-gq]').focus();
 }
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !gd.hidden) chiudiGuida(); });
 gd.addEventListener('keydown', e => {
-  if (e.key === 'Escape') chiudiGuida();
   if (e.key === 'Tab') { const f = [...gd.querySelectorAll('button:not([disabled])')]; const i = f.indexOf(document.activeElement);
     if (e.shiftKey && i <= 0) { f.at(-1).focus(); e.preventDefault(); } else if (!e.shiftKey && i === f.length - 1) { f[0].focus(); e.preventDefault(); } }
 });
 $('#guidabtn').onclick = () => apriGuida();
 addEventListener('resize', () => { if (!gd.hidden && gd.querySelector('.gd-step')) mostraPasso(); });
-try { if (!localStorage.getItem('armoni-guida-vista')) { localStorage.setItem('armoni-guida-vista', '1'); setTimeout(() => apriGuida(), 900); } } catch (e) { /* senza memoria del browser la guida resta sul pulsante */ }
+// chi arriva da una vista condivisa la vede subito, senza la guida davanti
+try { if (!location.hash.includes('&y=') && !localStorage.getItem('armoni-guida-vista')) { localStorage.setItem('armoni-guida-vista', '1'); setTimeout(() => apriGuida(), 900); } } catch (e) { /* senza memoria del browser la guida resta sul pulsante */ }
 }
