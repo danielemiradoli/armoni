@@ -329,7 +329,7 @@ cv.addEventListener('pointermove', e => {
   else tip.style.display = 'none';
 });
 cv.addEventListener('pointerup', e => {
-  if (drag && drag.moved < 4) { const b = cv.getBoundingClientRect(), g = hit(e.clientX - b.left, e.clientY - b.top); S.place = g ? g.id : null; S.sel = null; if (S.mode === 'ricerca') renderCtx(); draw(); }
+  if (drag && drag.moved < 4) { const b = cv.getBoundingClientRect(), g = hit(e.clientX - b.left, e.clientY - b.top); S.place = g ? g.id : null; S.intorno = null; S.sel = null; if (S.mode === 'ricerca') renderCtx(); draw(); }
   drag = null; cv.style.cursor = 'grab';
 });
 cv.addEventListener('pointerleave', () => { $('#tip').style.display = 'none'; });
@@ -456,19 +456,74 @@ $('#play').onclick = () => { const b = $('#play'); if (timer) { clearInterval(ti
   b.setAttribute('aria-pressed', 'true'); b.textContent = '❚❚ Ferma'; timer = setInterval(() => setYear(S.year >= T1 ? T0 : S.year + 5), 140); };
 
 /* ---------- contesto ---------- */
+/* Scheda: accanto a ogni dato, chi lo dice. «catalogo» = il museo che conserva il pezzo, parola per parola;
+   «ArMoni» = una nostra lettura del catalogo, con la regola; «Wikidata» = le coordinate e l'identità del luogo. */
+const FONTE_LUNGA = {met: 'Met', cma: 'Cleveland', aic: 'Chicago', colbase: 'ColBase', wd: 'Wikidata', emuseum: 'eMuseum'};
+const src = (t, tit = '') => `<span class="src${t === 'ArMoni' ? ' nostra' : ''}"${tit ? ` title="${esc(tit)}"` : ''}>${esc(t)}</span>`;
 function scheda(x) {
-  const o = x.o, inT = S.tav.some(c => c.id === x.id);
+  const o = x.o, inT = S.tav.some(c => c.id === x.id), cat = FONTE_LUNGA[x.fonte] || x.fonte;
+  // l'intervallo è nostro quando la scheda dà solo un'epoca o un secolo (ColBase, eMuseum); è del catalogo quando dà gli anni
+  const daEpoca = /\((?:epoca \(Wikidata\)|secolo|secolo ∩ epoca)\)$/.test(x.data_testo || '');
+  const convenz = daEpoca || /convenzional/.test(x.criterio) || (x.fonte === 'emuseum' && !/dichiarat[oa] nella descrizione/.test(x.criterio));
   return `<h2>${esc(x.titolo)}</h2>
-  <div style="margin-top:8px"><span class="tag ${x.grado === 'documentato' ? 'doc' : 'ipo'}">${x.grado}</span>${x.origine_incerta ? '<span class="tag ipo">attribuzione incerta</span>' : ''}${!x.origine && x.origine_dedotta ? `<span class="tag ipo" title="${esc(x.criterio_luogo)}">luogo dedotto</span>` : ''}${x.mercato ? '<span class="tag fe">per un mercato</span>' : ''}</div>
-  <div class="k">Cultura, come la scrive il catalogo</div><div class="v">${esc(x.cultura) || '—'}</div>
-  <div class="k">Data</div><div class="v">${esc(x.data_testo) || '—'} <span class="sub">(intervallo ${fmtY(x.inizio)}–${fmtY(x.fine)})</span></div>
-  <div class="k">Tecnica</div><div class="v">${esc(x.tecnica) || '—'}</div>
-  <div class="k">Luogo d'origine</div><div class="v">${o ? `${esc(o.nome)} <span class="sub">· ${PREC[o.precisione]} · <a href="https://www.wikidata.org/wiki/${o.qid}">${o.qid}</a></span>` : 'non determinabile dal record'}</div>
-  ${x.m ? `<div class="k">Mercato di destinazione</div><div class="v">${esc(x.m.nome)} <span class="sub">· dichiarato dal catalogo</span></div>` : ''}
-  <div class="k">Dove si trova oggi</div><div class="v">${x.s ? esc(x.s.nome) : 'sede senza coordinate'}</div>
-  <div class="k">Perché è nell'atlante</div><div class="v">${esc(x.criterio)}</div>
+  <div style="margin-top:8px"><span class="tag ${x.grado === 'documentato' ? 'doc' : 'ipo'}">${x.grado}</span>${x.origine_incerta ? '<span class="tag ipo">attribuzione incerta</span>' : ''}${!x.origine && x.origine_dedotta ? `<span class="tag ipo" title="${esc(x.criterio_luogo)}">luogo dedotto</span>` : ''}${x.fl ? `<span class="tag">${NOMI_FILO[x.fl]}</span>` : ''}</div>
+  <p class="sub" style="margin:8px 0 0">Accanto a ogni dato: chi lo dice. ${src(cat)} il catalogo del museo · ${src('ArMoni')} una nostra lettura, con la regola.</p>
+  <div class="k">Cultura, come la scrive il catalogo ${src(cat)}</div><div class="v">${esc(x.cultura) || '—'}</div>
+  <div class="k">Data ${src(cat)}</div><div class="v">${esc(x.data_testo) || '—'}</div>
+  <div class="k">Intervallo usato sulla barra del tempo ${convenz ? src('ArMoni', 'anni convenzionali dell\'epoca nominata dalla scheda') : src(cat)}</div><div class="v">${fmtY(x.inizio)}–${fmtY(x.fine)}${convenz ? ` <span class="sub">· la scheda nomina solo ${daEpoca ? 'l\'epoca o il secolo: anni da Wikidata o dal secolo' : 'l\'epoca: anni convenzionali dei manuali'}</span>` : ''}</div>
+  <div class="k">Tecnica ${src(cat)}</div><div class="v">${esc(x.tecnica) || '—'}</div>
+  <div class="k">Tipo di oggetto ${src('ArMoni', 'letto per parole chiave dal nome')}</div><div class="v">${x.tipo ? `${esc(x.tipo)} <span class="sub">· dalla parola «${esc(x.tipo_parola)}» nel nome</span>` : '<span class="sub">non riconosciuto dal nome</span>'}</div>
+  <div class="k">Luogo d'origine ${src('ArMoni', 'il nome di luogo letto nel testo del catalogo')} ${o ? src('Wikidata', 'identità e coordinate del luogo') : ''}</div><div class="v">${o ? `${esc(o.nome)} <span class="sub">· ${PREC[o.precisione]} · letto in «${esc(x.cultura || x.titolo)}» · <a href="https://www.wikidata.org/wiki/${o.qid}">${o.qid}</a></span>` : 'non determinabile dal record'}</div>
+  ${x.m ? `<div class="k">Mercato di destinazione ${src(cat)}</div><div class="v">${esc(x.m.nome)} <span class="sub">· dichiarato dal catalogo</span></div>` : ''}
+  <div class="k">Dove si trova oggi ${src(cat)}</div><div class="v">${x.s ? esc(x.s.nome) : 'sede senza coordinate'}</div>
+  <div class="k">Perché è nell'atlante ${src('ArMoni', 'regola di inclusione del filo')}</div><div class="v">${esc(x.criterio)}</div>
   <div class="k">Fonte e licenza</div><div class="v"><a href="${esc(x.url)}">scheda del museo</a>${x.wikidata ? ` · <a href="https://www.wikidata.org/wiki/${esc(x.wikidata)}">${esc(x.wikidata)}</a>` : ''} · ${esc(x.licenza)}</div>
+  ${intornoPezzo(x)}
   <div class="acts"><button data-tav="${x.id}" ${inT ? 'disabled' : ''}>${inT ? 'Già sul tavolo' : 'Metti sul tavolo'}</button><button data-centra="${x.id}">Centra sul luogo</button><button data-back>Indietro</button></div>`;
+}
+/* Cerca intorno: strade di esplorazione a partire da un pezzo o da un contesto. Accostamenti nello spazio e nel
+   tempo, mai relazioni: le liste dicono con quale regola sono state fatte. */
+const MARGINE = 25;
+const sovrap = (a0, a1, b0, b1) => a0 <= b1 + MARGINE && a1 >= b0 - MARGINE;
+const regLuogo = id => LU[id]?.macroregione;
+function trovaIntorno(k, x) {
+  if (k === 'tipo') return O.filter(y => y.id !== x.id && y.tipo && y.tipo === x.tipo && (y.fl || '') === (x.fl || '') && sovrap(y.inizio, y.fine, x.inizio, x.fine) && luogo(y) && luogo(y) !== luogo(x));
+  if (k === 'ctxdi') { const r = regLuogo(luogo(x)); return CX.filter(e => sovrap(e.quando.da, e.fv, x.inizio, x.fine) && e.luoghi.some(l => l.id === luogo(x) || (r && l.macroregione === r))); }
+  if (k === 'opere') { const ids = new Set(x.luoghi.map(l => l.id)), rs = new Set(x.luoghi.map(l => l.macroregione).filter(Boolean));
+    return O.filter(y => passa(y) && sovrap(y.inizio, y.fine, x.quando.da, x.fv) && (ids.has(luogo(y)) || rs.has(regLuogo(luogo(y))))); }
+  if (k === 'ctxvicini') { const rs = new Set(x.luoghi.map(l => l.macroregione).filter(Boolean));
+    return CX.filter(e => e.id !== x.id && sovrap(e.quando.da, e.fv, x.quando.da, x.fv) && e.luoghi.some(l => rs.has(l.macroregione))); }
+  return [];
+}
+const REGOLA_INT = {
+  tipo: x => `Pezzi dello stesso tipo («${x.tipo}»), in date che si sovrappongono a quelle di questo (±${MARGINE} anni), fatti in altri luoghi.`,
+  ctxdi: x => `Contesti attivi negli stessi anni (±${MARGINE}) nello stesso luogo o nella stessa macro-regione (${regLuogo(luogo(x)) || '—'}).`,
+  opere: e => `Oggetti del filo fatti negli anni del fenomeno (±${MARGINE}), nello stesso luogo o nella stessa macro-regione.`,
+  ctxvicini: e => `Altri contesti attivi negli stessi anni (±${MARGINE}) nella stessa macro-regione.`};
+const NOMI_INT = {tipo: 'Stesso tipo, stessa epoca, altrove', ctxdi: 'Contesti qui e allora', opere: 'Oggetti del filo qui e allora', ctxvicini: 'Contesti vicini, negli stessi anni'};
+function bottoniIntorno(voci) {
+  return `<h3>Cerca intorno</h3><p class="sub" style="margin:0 0 6px">Strade per esplorare: accostamenti nello spazio e nel tempo, non legami.</p><div class="intorno">${voci.map(([k, n, extra]) => `<button ${extra || `data-intorno="${k}"`} ${n === 0 ? 'disabled' : ''}>${NOMI_INT[k] || k}${n != null ? ` <span class="sub">${n}</span>` : ''}</button>`).join('')}</div>`;
+}
+function intornoPezzo(x) {
+  const v = [['tipo', x.tipo ? trovaIntorno('tipo', x).length : 0], ['ctxdi', luogo(x) ? trovaIntorno('ctxdi', x).length : 0]];
+  if (luogo(x)) v.push(['Tutti i pezzi di ' + (LU[luogo(x)]?.nome || 'questo luogo'), null, `data-place="${luogo(x)}"`]);
+  if (!CONFRONTO && luogo(x)) v.push(['Questo luogo nel confronto fra fili', null, `data-confronto="${luogo(x)}"`]);
+  return bottoniIntorno(v);
+}
+function intornoMov(e) {
+  return bottoniIntorno([['opere', S.L.opere ? trovaIntorno('opere', e).length : 0], ['ctxvicini', trovaIntorno('ctxvicini', e).length], ['Le sue relazioni nel grafo', null, `data-grafo="${e.id}"`]]);
+}
+function listaIntorno() {
+  const {k, da} = S.intorno, x = da.startsWith('mov:') ? CX.find(e => e.id === da.slice(4)) : O.find(y => y.id === da); if (!x) return '';
+  const xs = trovaIntorno(k, x), nome = x.titolo || x.nome, dimo = ['tipo', 'opere'].includes(k);
+  const righe = dimo ? xs.sort((a, b) => a.inizio - b.inizio).slice(0, 200).map(y => `<div class="row" data-sel="${y.id}"><span>${esc(y.titolo)} <span class="sub">· ${esc(LU[luogo(y)]?.nome || 'senza luogo')}</span></span><span class="n sub">${fmtY(y.inizio)}–${fmtY(y.fine)}</span></div>`)
+    : xs.sort((a, b) => a.quando.da - b.quando.da).map(e => `<div class="row" data-place="mov:${e.id}"><span><i>${esc(e.nome)}</i> <span class="sub">· ${e.tipo}, ${esc(e.luoghi[0].oggi)}</span></span><span class="n">${fmtY(e.quando.da)}</span></div>`);
+  const per = new Map(); if (dimo) for (const y of xs) { const n = LU[luogo(y)]?.nome || '?'; per.set(n, (per.get(n) || 0) + 1); }
+  return `<div class="sub">Cerca intorno a</div><h2 style="margin-top:2px">${esc(nome)}</h2><h3>${NOMI_INT[k]}: ${xs.length}</h3>
+  <p class="sub" style="margin:0 0 8px">${REGOLA_INT[k](x)} Stare vicini non vuol dire essere legati.</p>
+  ${per.size ? `<p class="sub">${[...per].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([n, c]) => `${esc(n)} ${c}`).join(' · ')}</p>` : ''}
+  ${righe.join('') || '<p class="sub">Niente.</p>'}${xs.length > 200 && dimo ? `<p class="sub">e altri ${xs.length - 200}.</p>` : ''}
+  <div class="acts"><button data-back>Indietro</button></div>`;
 }
 const PRECM = {luogo: 'luogo dentro un paese', paese: 'solo il paese', regione: 'regione o continente: nessuno Stato'};
 const INVERSA = {'influenzato da': 'ha influenzato', 'parte di': 'comprende', 'caso particolare di': 'ha come caso particolare', segue: 'seguito da', sostituisce: 'sostituito da'};
@@ -485,6 +540,7 @@ function schedaMov(e) {
   <h3>Negli anni della nascita (±${CXR.finestra})</h3>${e.contesto.length ? e.contesto.map(c => `<div class="row" style="cursor:default;display:block">${esc(c.nome)} <span class="sub">· ${c.tipo}, ${fmtY(c.da)}–${fmtY(c.a)} · ${VIA[c.via]}</span></div>`).join('')
     : '<p class="sub">Nessuna guerra o rivoluzione registrata (solo eventi con almeno 20 versioni linguistiche su Wikidata: l\'assenza non è una prova).</p>'}
   <p class="sub" style="margin-top:14px;border-top:1px solid var(--line, #ccc);padding-top:8px">Accostamento nello spazio e nel tempo, non relazione: nessuna opera dell'atlante è attribuita a questa voce. Fonte: Wikidata (CC0).</p>
+  ${intornoMov(e)}
   <div class="acts"><button data-back>Indietro</button></div>`;
 }
 // «l'820», «l'11», «il 1640»: l'articolo segue il suono del numero
@@ -503,6 +559,7 @@ function cercaInfo() {
 function renderCtx() {
   const c = $('#ctx'), sel = O.find(x => x.id === S.sel);
   if (sel) { c.innerHTML = scheda(sel); return; }
+  if (S.intorno) { c.innerHTML = listaIntorno(); return; }
   if (S.place && S.place.startsWith('mov:')) { const e = CX.find(e => e.id === S.place.slice(4)); if (e) { c.innerHTML = schedaMov(e); return; } }
   if (S.place && S.place.startsWith('sito:')) { const g = lagg.find(g => g.id === S.place), l = LU[S.place];
     c.innerHTML = `<h2>${esc(l.nome)}</h2><div class="sub" style="margin-top:4px">sito archeologico · <a href="https://www.wikidata.org/wiki/${l.qid}">${l.qid}</a></div>
@@ -541,10 +598,13 @@ document.addEventListener('click', e => {
   const tg = e.target.closest('[data-togli]'); if (tg) { const k = tg.dataset.togli; CAT[k] = ''; update(); return; }
   const cr = e.target.closest('[data-ctxreg]'); if (cr) { CAT.ctx = cr.dataset.ctxreg; update(); return; }
   const an = e.target.closest('[data-anno]'); if (an) { S.year = +an.dataset.anno; update(); return; }
-  const t = e.target.closest('[data-sel],[data-place],[data-back],[data-tav],[data-centra],[data-go]'); if (!t) return;
-  if (t.dataset.sel) { S.sel = t.dataset.sel; }
-  else if (t.dataset.place) { S.place = t.dataset.place; S.sel = null; }
-  else if ('back' in t.dataset) { if (S.sel) S.sel = null; else S.place = null; }
+  const t = e.target.closest('[data-sel],[data-place],[data-back],[data-tav],[data-centra],[data-go],[data-intorno],[data-grafo],[data-confronto]'); if (!t) return;
+  if (t.dataset.intorno) { S.intorno = {k: t.dataset.intorno, da: S.sel || S.place}; S.sel = null; }
+  else if (t.dataset.grafo) { location.href = 'relazioni.html?id=' + t.dataset.grafo; return; }
+  else if (t.dataset.confronto) { location.href = location.pathname + '?filo=confronto#ricerca&y=' + S.year + '&w=' + S.win + '&p=' + encodeURIComponent(t.dataset.confronto); return; }
+  else if (t.dataset.sel) { S.sel = t.dataset.sel; }
+  else if (t.dataset.place) { S.place = t.dataset.place; S.sel = null; S.intorno = null; }
+  else if ('back' in t.dataset) { if (S.sel) S.sel = null; else if (S.intorno) S.intorno = null; else S.place = null; }
   else if (t.dataset.tav) { addTav(t.dataset.tav); }
   else if (t.dataset.centra) { const x = O.find(o => o.id === t.dataset.centra); if (x.o) S.rot = [-x.o.lon, -x.o.lat]; }
   else if (t.dataset.go) { S.tappa = +t.dataset.go; applyTappa(); return; }

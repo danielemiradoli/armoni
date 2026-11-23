@@ -70,7 +70,7 @@ Con mercato riconosciuto: 9. «Export» senza destinazione: 3.
 
 ## Date
 
-Senza intervallo utilizzabile: 1483.
+Senza intervallo utilizzabile: 1482.
 
 ## Licenze
 

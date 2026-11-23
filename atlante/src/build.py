@@ -271,6 +271,10 @@ def intervallo_cb(testi, periodi):
         a, fine = m.group(1), m.group(2)
         b = int(a[:4 - len(fine)] + fine)
         return int(a), b if b >= int(a) else b + 100, 'anni'
+    # un solo anno dichiarato («1618年», «dated 1618») vale più dell'epoca
+    m = re.search(r'(?<!\d)(1\d{3})\s*年', t)
+    if m:
+        return int(m.group(1)), int(m.group(1)), 'anno'
     sec = None
     m = re.search(r'(\d{1,2})(?:世紀|st|nd|rd|th)(?:\s*[～~–-]\s*(\d{1,2})(?:世紀|st|nd|rd|th))?', t)
     if m:

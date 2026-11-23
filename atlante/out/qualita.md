@@ -4,7 +4,7 @@ Rigenerato da `src/qualita.py`. Cella: pezzi · % documentati (blu nel record) �
 
 | regione | 800 | 900 | 1000 | 1100 | 1200 | 1300 | 1400 | 1500 | 1600 | 1700 | 1800 | 1900 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Cina | — | — | — | 2 · 100% · 0% | 1 · 100% · 0% | 29 · 100% · 28% | 58 · 97% · 45% | 223 · 92% · 32% | 436 · 94% · 41% | 389 · 96% · 18% | 50 · 92% · 12% | 1 · 100% · 0% |
+| Cina | — | — | — | 2 · 100% · 0% | 1 · 100% · 0% | 29 · 100% · 28% | 58 · 97% · 45% | 222 · 92% · 32% | 437 · 95% · 41% | 389 · 96% · 18% | 50 · 92% · 12% | 1 · 100% · 0% |
 | Corea | — | — | — | 12 · 100% · 0% | — | — | — | 3 · 100% · 0% | 3851 · 100% · 0% | 33 · 100% · 0% | 238 · 100% · 0% | 161 · 100% · 0% |
 | Giappone | — | — | — | — | — | — | — | — | 126 · 100% · 1% | 240 · 99% · 10% | 196 · 99% · 10% | 113 · 100% · 14% |
 | Sud-est asiatico | — | — | — | — | — | 7 · 100% · 0% | 26 · 100% · 0% | 22 · 100% · 5% | — | — | — | — |
@@ -12,10 +12,10 @@ Rigenerato da `src/qualita.py`. Cella: pezzi · % documentati (blu nel record) �
 | Asia meridionale | — | — | — | — | — | — | — | — | — | — | — | — |
 | Anatolia e Mediterraneo | — | — | — | — | 6 · 100% · 0% | 10 · 100% · 0% | 3 · 100% · 0% | 70 · 7% · 100% | 37 · 3% · 100% | 10 · 10% · 100% | 2 · 0% · 100% | 1 · 0% · 100% |
 | Africa | — | — | — | — | — | — | — | — | — | — | — | — |
-| Europa | — | — | — | — | — | — | 3 · 100% · 33% | 4 · 100% · 100% | 86 · 17% · 65% | 222 · 15% · 78% | 27 · 30% · 63% | 3 · 0% · 100% |
+| Europa | — | — | — | — | — | — | 3 · 100% · 33% | 4 · 100% · 100% | 86 · 17% · 65% | 222 · 15% · 78% | 28 · 32% · 64% | 3 · 0% · 100% |
 | Americhe | — | — | — | — | — | — | — | — | 3 · 0% · 100% | 7 · 29% · 86% | 5 · 100% · 0% | 1 · 100% · 0% |
 
-Fuori dalla tabella: senza luogo 613, di cui con luogo dedotto 267, senza data 1483, regione non determinata 0, fuori scala (prima dell'800) 4.
+Fuori dalla tabella: senza luogo 613, di cui con luogo dedotto 267, senza data 1482, regione non determinata 0, fuori scala (prima dell'800) 4.
 Asserzioni bibliografiche (consumo): 35, in `data/letteratura.csv`.
 
 ## Fonti cercate e non raggiunte
