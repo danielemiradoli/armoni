@@ -380,6 +380,17 @@ def test_gli_aloni_ripiegati_possono_solo_diminuire():
               f"abbassare ALONI_RIPIEGATI_RESIDUI]")
 
 
+def test_comune_e_coerente_con_se_stesso():
+    """Due sessioni modificano comune.py senza vedersi: git fonde il testo, non
+    il significato. Questo test sta in ENTRAMBI i moduli di proposito, cosi' chi
+    tocca l'accordo lo scopre da qualunque lato stia lavorando.
+    """
+    import sys as _s
+    _s.path.insert(0, str(ROOT.parent))
+    import comune
+    assert not comune.incoerenze(), comune.incoerenze()
+
+
 if __name__ == "__main__":
     # Senza questo blocco il file, lanciato direttamente, definiva i test e non
     # ne eseguiva nessuno, uscendo 0.

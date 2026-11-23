@@ -128,6 +128,38 @@ PRECISIONE_CON_RIPIEGO_PAESE = ("paese",)
 TIPI_FENOMENO = ("movimento", "periodizzazione", "stile", "scuola")
 
 
+# Non tutti i domini descrivono un'asserzione intera. Alcuni sono il vocabolario
+# di UN CAMPO dentro un'altra asserzione: 'atlante/datazione' gradua il campo
+# `quando.metodo` di un contesto, e non ha fonte e licenza proprie. Dichiararlo
+# serve all'invariante qui sotto.
+DOMINI_DI_CAMPO = ("atlante/datazione",)
+
+
+def incoerenze() -> list[str]:
+    """Controlla che questo file sia coerente con se stesso. Lista vuota = ok.
+
+    Serve perche' due sessioni diverse modificano questo file senza vedersi: git
+    fonde il testo, non il significato, e due aggiunte in righe lontane possono
+    produrre un file che sembra sano e non lo e'. E' successo: 'atlante/datazione'
+    e' stato aggiunto a GRADI e non a CAMPI_LOCALI, e `problemi_asserzione`
+    sollevava su quel dominio. Nessuno se n'era accorto perche' nessuno lo
+    chiamava con quel dominio: il difetto aspettava il primo che l'avrebbe fatto.
+    """
+    out = []
+    for d in GRADI:
+        if d not in CAMPI_LOCALI and d not in DOMINI_DI_CAMPO:
+            out.append(f"{d}: in GRADI ma ne' in CAMPI_LOCALI ne' in DOMINI_DI_CAMPO")
+    for d in CAMPI_LOCALI:
+        if d not in GRADI:
+            out.append(f"{d}: in CAMPI_LOCALI ma non in GRADI")
+    for d in DOMINI_DI_CAMPO:
+        if d not in GRADI:
+            out.append(f"{d}: in DOMINI_DI_CAMPO ma non in GRADI")
+        if d in CAMPI_LOCALI:
+            out.append(f"{d}: non puo' essere sia di campo sia un'asserzione intera")
+    return out
+
+
 def gradi(dominio: str) -> set[str]:
     """I termini ammessi per un dominio. Solleva se il dominio non esiste."""
     if dominio not in GRADI:

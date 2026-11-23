@@ -221,6 +221,17 @@ def test_le_chiavi_latine_non_cambiano():
         assert r.name_key(nome) == chiave, f"{nome}: {r.name_key(nome)!r} != {chiave!r}"
 
 
+def test_comune_e_coerente_con_se_stesso():
+    """Due sessioni modificano comune.py senza vedersi: git fonde il testo, non
+    il significato. Questo test sta in ENTRAMBI i moduli di proposito, cosi' chi
+    tocca l'accordo lo scopre da qualunque lato stia lavorando.
+    """
+    import sys as _s, pathlib as _p
+    _s.path.insert(0, str(_p.Path(__file__).resolve().parent.parent))
+    import comune
+    assert not comune.incoerenze(), comune.incoerenze()
+
+
 if __name__ == "__main__":
     rossi = []
     for name, f in list(globals().items()):
