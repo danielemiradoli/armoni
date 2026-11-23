@@ -297,6 +297,15 @@
 "metodo": "etichetta, max sitelinks (luoghi.rq)"
 },
 {
+"id": "National Museum of Korea",
+"nome": "Museo nazionale di Corea",
+"qid": "Q494407",
+"lat": "37.5239",
+"lon": "126.9803",
+"precisione": "istituzione",
+"metodo": "etichetta (eMuseum)"
+},
+{
 "id": "Netherlands",
 "nome": "Paesi Bassi",
 "qid": "Q55",

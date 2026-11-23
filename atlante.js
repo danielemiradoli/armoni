@@ -8,7 +8,7 @@ const PREC = {citta: 'città', paese: 'solo paese', regione: 'regione', zona: 'z
 const T0 = 700, T1 = 2000;
 
 const S = {corsie: 'wikidata', year: 1640, win: 25, proj: 'globo', rot: [-40, -28], k: 1, sel: null, place: null, q: '',
-  L: {confini: 1, origini: 1, sedi: 1, spostamenti: 0, mercati: 1, silenzio: 0, ipotetici: 1, dedotti: 0, vam: 1, letteratura: 1, contesti: 0, relazioni: 0}, CT: new Set(['movimento', 'scuola', 'stile', 'periodizzazione']), F: {met: 1, cma: 1, wd: 1, colbase: 1},
+  L: {confini: 1, origini: 1, sedi: 1, spostamenti: 0, mercati: 1, silenzio: 0, ipotetici: 1, dedotti: 0, vam: 1, letteratura: 1, contesti: 0, relazioni: 0}, CT: new Set(['movimento', 'scuola', 'stile', 'periodizzazione']), F: {met: 1, cma: 1, wd: 1, colbase: 1, emuseum: 1},
   tav: [], mode: 'ricerca', tappa: 0};
 // CX: stili e movimenti (livello Contesti); APERTO: anni mostrati quando la fine non è dichiarata
 const G = {on: {}, mem: {}};
@@ -47,7 +47,13 @@ const TAPPE = [
 
 /* ---------- dati ---------- */
 const j = u => fetch(u).then(r => { if (!r.ok) throw new Error(u); return r.json(); });
-Promise.all([j('opere.json'), j('luoghi.json'), j('periodi.json'), j('confini/anni.json'), j('terre.json'), j('densita_vam.json').catch(() => null), j('periodo.json').catch(() => null), j('letteratura.json').catch(() => null), j('qualita.json').catch(() => null), j('contesti.json').catch(() => null), j('aree.json').catch(() => ({}))]).then(([o, l, p, a, t, v, po, le, qu, cx, ar]) => {
+/* Filo tematico: ?filo=lacca carica i dati in fili/lacca/. Il primo filo (blu e bianco) resta alla radice
+   e ha strati suoi (V&A, letteratura, percorso, riepilogo di affidabilità) che gli altri fili non hanno ancora. */
+const FILO = /^[a-z]+$/.test(new URLSearchParams(location.search).get('filo') || '') ? new URLSearchParams(location.search).get('filo') : 'blu';
+const TAVK = 'armoni-tavolo' + (FILO === 'blu' ? '' : '-' + FILO);
+const BASE = FILO === 'blu' ? '' : `fili/${FILO}/`, PRIMO = FILO === 'blu';
+const solo1 = (u, d = null) => PRIMO ? j(u).catch(() => d) : Promise.resolve(d);
+Promise.all([j(BASE + 'opere.json'), j(BASE + 'luoghi.json'), j('periodi.json'), j('confini/anni.json'), j('terre.json'), solo1('densita_vam.json'), j('periodo.json').catch(() => null), solo1('letteratura.json'), solo1('qualita.json'), j('contesti.json').catch(() => null), j('aree.json').catch(() => ({}))]).then(([o, l, p, a, t, v, po, le, qu, cx, ar]) => {
   QU = qu; AREE = ar || {};
   if (cx) { CXR = cx; CX = cx.elementi.map(e => ({...e, fv: e.quando.a ?? e.quando.da + APERTO})); }
   LET = le; if (LET) for (const x of LET.siti) LU['sito:' + x.id] = {...x, lat: +x.lat, lon: +x.lon};
@@ -59,7 +65,14 @@ Promise.all([j('opere.json'), j('luoghi.json'), j('periodi.json'), j('confini/an
     hay: [x.titolo, x.cultura, x.tecnica, LU[x.origine]?.nome, LU[x.sede]?.nome].filter(Boolean).join(' ').toLowerCase()}));  // anche i luoghi: «iznik» trova i pezzi fatti a Iznik
   PER = p.map(x => ({...x, inizio: +x.inizio, fine: +x.fine}));
   ANNI = a; if (PO) $('#corsie').value = 'periodo'; TERRE = topojson.feature(t, t.objects.land);
-  try { S.tav = JSON.parse(localStorage.getItem('armoni-tavolo') || '[]').filter(c => O.some(x => x.id === c.id)); } catch (e) { S.tav = []; }
+  try { S.tav = JSON.parse(localStorage.getItem(TAVK) || '[]').filter(c => O.some(x => x.id === c.id)); } catch (e) { S.tav = []; }
+  // filtri per fonte e strati che in questo filo non hanno dati: nascosti, non spenti in silenzio
+  const fonti = new Set(o.map(x => x.fonte));
+  document.querySelectorAll('[data-f]').forEach(i => { if (!fonti.has(i.dataset.f)) i.closest('label').hidden = true; });
+  if (!VAM) $('[data-l="vam"]').closest('label').hidden = true;
+  if (!LET) $('[data-l="letteratura"]').closest('label').hidden = true;
+  if (!o.some(x => x.grado === 'ipotetico')) $('[data-l="ipotetici"]').closest('label').hidden = true;
+  if (!PRIMO) { $('#m-percorso').disabled = true; $('#m-percorso').title = 'Il percorso in tappe per ora esiste solo per il filo blu e bianco'; }
   leggiVista(); route(); update();
 }).catch(e => { $('#ctx').innerHTML = `<p>Non riesco a caricare i dati (${esc(e.message)}).</p>`; });
 
@@ -497,7 +510,7 @@ document.addEventListener('click', e => {
 });
 
 /* ---------- tavolo ---------- */
-const salva = () => { try { localStorage.setItem('armoni-tavolo', JSON.stringify(S.tav)); } catch (e) {} };
+const salva = () => { try { localStorage.setItem(TAVK, JSON.stringify(S.tav)); } catch (e) {} };
 function addTav(id) { if (S.tav.some(c => c.id === id)) return; const i = S.tav.length; S.tav.push({id, x: 16 + (i % 5) * 246, y: 14 + Math.floor(i / 5) * 180, nota: ''}); salva(); renderTav(); $('#tavolo').classList.add('open'); }
 function renderTav() {
   $('#tavn').textContent = S.tav.length;
@@ -542,7 +555,7 @@ function applyTappa() {
   <p class="nota">Testi scritti da Claude. Le frasi con un riferimento tra parentesi rimandano a pagina o paragrafo della fonte, letta per intero; quanto sta in «Da verificare» non ha ancora una fonte. I numeri sono calcolati sui dati. Fonti: Zhao 2015, <i>Afriques</i> 06; Medley 1986, <i>Encyclopaedia Iranica</i>; Tufan 2024, <i>Millî Saraylar</i> 26; Von der Porten 2015, SHA; PeriodO; Japan Search.</p>`;
 }
 function renderQual() {
-  if (!QU) { $('#qual').innerHTML = '<p>Riepilogo non disponibile.</p>'; return; }
+  if (!QU) { $('#qual').innerHTML = PRIMO ? '<p>Riepilogo non disponibile.</p>' : '<p>Il riepilogo di affidabilità per regione e secolo per ora esiste solo per il filo blu e bianco. Le metriche di questo filo sono in <code>out/filo_' + FILO + '.md</code> nel repository.</p>'; return; }
   const M = {doc: ['% documentati', c => c.doc / c.n, 'il record nomina il blu'], citta: ['% localizzati per città', c => c.citta / c.n, 'il luogo d\'origine è una città, non un paese'],
     n: ['pezzi', c => c.n, 'quanti pezzi con luogo e data'], vam: ['V&A (conteggi)', c => c.vam, 'pezzi del V&A, solo conteggi']};
   const [nome, f, spiega] = M[qmet], cel = new Map(QU.celle.filter(c => c.n || c.vam >= .5).map(c => [c.r + c.s, c]));
@@ -563,7 +576,7 @@ function renderQual() {
 }
 function route() {
   const m = location.hash.slice(1).split('&')[0];  // dopo il modo possono seguire i parametri di una vista condivisa
-  S.mode = m === 'percorso' ? 'percorso' : m === 'qualita' ? 'qualita' : 'ricerca';
+  S.mode = m === 'percorso' && PRIMO ? 'percorso' : m === 'qualita' ? 'qualita' : 'ricerca';
   document.body.classList.toggle('percorso', S.mode === 'percorso');
   document.body.classList.toggle('qualita', S.mode === 'qualita');
   for (const m of ['ricerca', 'percorso', 'qualita']) $('#m-' + m).setAttribute('aria-pressed', S.mode === m);
@@ -613,7 +626,7 @@ function vistaURL() {
   let h = `${S.mode}&y=${S.year}&w=${S.win}&r=${r}&l=${l}&ct=${[...S.CT].join(',')}&c=${S.corsie || ''}`;
   if (S.place) h += '&p=' + encodeURIComponent(S.place);
   if (S.mode === 'percorso') h += '&t=' + S.tappa;
-  return location.origin + location.pathname + '#' + h;
+  return location.origin + location.pathname + (PRIMO ? '' : '?filo=' + FILO) + '#' + h;
 }
 function leggiVista() {
   const q = new URLSearchParams(location.hash.slice(1).split('&').slice(1).join('&'));
@@ -707,4 +720,6 @@ $('#guidabtn').onclick = () => apriGuida();
 addEventListener('resize', () => { if (!gd.hidden && gd.querySelector('.gd-step')) mostraPasso(); });
 // chi arriva da una vista condivisa la vede subito, senza la guida davanti
 try { if (!location.hash.includes('&y=') && !localStorage.getItem('armoni-guida-vista')) { localStorage.setItem('armoni-guida-vista', '1'); setTimeout(() => apriGuida(), 900); } } catch (e) { /* senza memoria del browser la guida resta sul pulsante */ }
+$('#filo').value = FILO;
+$('#filo').onchange = e => { const f = e.target.value; location.href = location.pathname + (f === 'blu' ? '' : '?filo=' + f) + '#ricerca'; };
 }
