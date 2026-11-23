@@ -1,4 +1,13 @@
-"""Guardie sul taglio «blu e bianco». Eseguire dopo src/build.py:  python3 -m pytest atlante/tests"""
+"""Guardie sul filo, e sull-accordo fra i moduli.
+
+Eseguire dopo src/build.py, in uno dei due modi - entrambi validi:
+    python3 -m pytest atlante/tests
+    python3 atlante/tests/test_atlante.py
+
+Il secondo modo prima definiva i test senza eseguirne nessuno e usciva 0:
+un-invocazione sbagliata dava verde silenzioso, che e- la classe di errore
+che questo progetto passa il tempo a cercare. Il runner in fondo al file la
+rende impossibile."""
 import csv, json, re
 from pathlib import Path
 
@@ -247,3 +256,55 @@ def test_luoghi_hanno_macroregione():
     w = pathlib.Path(__file__).parent.parent / 'web'
     for p in [w / 'luoghi.json', *w.glob('fili/*/luoghi.json')]:
         assert all(l.get('macroregione') for l in json.load(open(p))), p
+
+
+def test_vocabolari_rispettano_l_accordo_comune():
+    """I termini dell-atlante sono quelli dichiarati in comune.py.
+
+    Non unifica i gradi col motore: le due scale rispondono a domande diverse,
+    e comune.py spiega perche- non vanno fuse. Verifica soltanto che l-atlante
+    non introduca termini nuovi senza dichiararli.
+    """
+    import sys as _s
+    _s.path.insert(0, str(ROOT.parent))
+    import comune
+
+    for p in [ROOT / "web/opere.json", *ROOT.glob("web/fili/*/opere.json")]:
+        pezzi = json.load(open(p, encoding="utf-8"))
+        fuori = {x["grado"] for x in pezzi
+                 if not comune.grado_valido("atlante/appartenenza", x["grado"])}
+        assert not fuori, "%s: gradi non dichiarati %s" % (p, fuori)
+        guasti = [g for x in pezzi[:200]
+                  for g in comune.problemi_asserzione(x, "atlante/appartenenza")]
+        assert not guasti, "%s: %s" % (p, guasti[:3])
+
+    c = json.load(open(ROOT / "web/contesti.json", encoding="utf-8"))["elementi"]
+    ammessi = comune.gradi("atlante/datazione")
+    for x in c:
+        m = (x.get("quando") or {}).get("metodo")
+        if m:
+            assert m.split()[0] in ammessi, "metodo non dichiarato: %r" % m
+    tipi = {x.get("tipo") for x in c}
+    assert tipi <= set(comune.TIPI_FENOMENO), \
+        "tipi non dichiarati: %s" % (tipi - set(comune.TIPI_FENOMENO))
+    prec = {l.get("precisione") for x in c for l in x.get("luoghi", [])}
+    assert prec <= set(comune.PRECISIONE_LUOGO), \
+        "precisioni non dichiarate: %s" % (prec - set(comune.PRECISIONE_LUOGO))
+
+
+if __name__ == "__main__":
+    # Senza questo blocco il file, lanciato direttamente, definiva i test e non
+    # ne eseguiva nessuno, uscendo 0.
+    _rossi = []
+    for _nome, _f in list(globals().items()):
+        if not _nome.startswith("test_"):
+            continue
+        try:
+            _f()
+        except AssertionError as _e:
+            _rossi.append(_nome)
+            print("FALLITO  %s\n         %s" % (_nome, _e))
+        else:
+            print("ok", _nome)
+    print("\n%d falliti" % len(_rossi))
+    raise SystemExit(1 if _rossi else 0)

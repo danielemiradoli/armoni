@@ -84,6 +84,28 @@ def test_contestato_resta_sameAs():
     assert m["relation"] == "sameAs" and m["certainty"] == "contestato"
 
 
+def test_asserzioni_rispettano_l_accordo_comune():
+    """L'accordo del protocollo diventa verificabile invece che fiduciario.
+
+    Fino a oggi la coerenza fra i due moduli dipendeva dal fatto che li
+    scrivesse la stessa persona. Questo test fallisce se il motore emette un
+    grado fuori dal vocabolario dichiarato in comune.py, o se un'asserzione
+    perde uno dei quattro attributi obbligatori del protocollo.
+    """
+    import sys as _s, pathlib as _p
+    _s.path.insert(0, str(_p.Path(__file__).resolve().parent.parent))
+    import comune
+    asserzioni = [r.to_assertion(i, m) for i, m in enumerate(_tutte, 1)]
+    assert asserzioni, "nessuna asserzione da verificare"
+    guasti = []
+    for x in asserzioni:
+        guasti += ["%s: %s" % (x["id"], g)
+                   for g in comune.problemi_asserzione(x, "motore/identita")]
+        if x["relation"] not in comune.RELAZIONI:
+            guasti.append("%s: relazione %r non dichiarata" % (x["id"], x["relation"]))
+    assert not guasti, "%d asserzioni fuori accordo: %s" % (len(guasti), guasti[:3])
+
+
 def test_nome_in_cirillico_non_deve_sparire():
     """CRITERIO DI VERIFICA SCRITTO PRIMA DELLA MODIFICA. Oggi FALLISCE apposta.
 

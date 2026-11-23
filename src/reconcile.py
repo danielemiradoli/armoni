@@ -6,13 +6,15 @@ viene emesso come asserzione 'contestata'. Caso di riferimento: Milton Avery, na
 per il MoMA e 1893 per la Tate.
 """
 from __future__ import annotations
-import pandas as pd, unicodedata, re, csv, json, pathlib, collections, datetime
+import pandas as pd, unicodedata, re, csv, json, pathlib, collections, datetime, sys
 from rapidfuzz import fuzz
 
 VERSION = "0.1.0"
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC, OUT = ROOT / "data" / "sources", ROOT / "out"
 RAW = ROOT / "data" / "raw"
+sys.path.insert(0, str(ROOT))
+import comune  # noqa: E402  l'accordo fra i moduli, verificato dai test
 # Soglie TARATE e lasciate dove erano. La taratura e' stata fatta davvero: griglia
 # su meta' A-L del campione d'oro, verifica su meta' M-Z mai usata per tararla.
 # Il criterio del piano e' soddisfatto da (75, 3), che sulla meta' di riporto da'
@@ -446,11 +448,16 @@ def reconcile(left: pd.DataFrame, right: pd.DataFrame, mutual: bool = True,
 def to_assertion(i, m):
     a, b = m["subject"], m["object"]
     return {
-        "id": f"armoni:idlink/{i:06d}",
+        "id": f"{comune.NS}idlink/{i:06d}",
         "type": "IdentityAssertion",
         "relation": m.get("relation", "sameAs"),
         "subject": {"source": a["src"], "id": a["id"], "name": a["name"]},
         "object":  {"source": b["src"], "id": b["id"], "name": b["name"]},
+        # Le fonti delle PROVE, non di chi asserisce: chi asserisce e'
+        # generated_by. Wikidata compare solo dove ha davvero parlato.
+        "fonte": [a["src"], b["src"]] + (
+            ["wikidata"] if (m["judge"] == "identificativi"
+                             or m["evidence"].get("distinctness")) else []),
         "method": f"blocco-cognome-senza-particelle+token_set>={SIM_MIN}"
                   f"+arbitrato-date(tol={TOL}a)+reciprocita",
         "evidence": {"name_similarity": round(m["sim"], 1),
@@ -459,6 +466,11 @@ def to_assertion(i, m):
                      "external_ids": m["evidence"].get("external", {}),
                      "distinctness": m["evidence"].get("distinctness", {})},
         "certainty": m.get("certainty") or grade(m["sim"], m["verdict"]),
+        # Protocollo §0: la licenza e' uno dei quattro attributi obbligatori di
+        # ogni dato, e questo modulo era l'unico a non registrarla per record.
+        # L'asserzione e' CC0 (D3, 20/11/2026) e le tre fonti delle prove lo sono
+        # tutte, quindi non ci sono condizioni ereditate piu' restrittive.
+        "licenza": "CC0",
         "status": "proposto",
         "generated_by": {"tool": "armoni-reconcile", "version": VERSION},
     }

@@ -1,6 +1,6 @@
 # Metriche di riconciliazione
 
-Generato il 2026-11-10 da `armoni-reconcile` 0.1.0 sulle fonti fissate in `data/MANIFEST.md`.
+Generato il 2026-11-23 da `armoni-reconcile` 0.1.0 sulle fonti fissate in `data/MANIFEST.md`.
 
 - artisti MoMA: **9389** (anno di nascita noto: 49%)
 - artisti Tate: **3532** (anno di nascita noto: 98%)
