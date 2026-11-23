@@ -68,6 +68,9 @@ header .sp{flex:1}
 .card .num{font-family:Newsreader,serif;color:var(--fe);font-size:16px}
 .card .cb{padding:7px 9px}.card textarea{width:100%;border:1px solid var(--line);border-radius:4px;background:transparent;font-size:13px;min-height:44px;resize:vertical}
 .card .x{margin-left:auto;min-height:28px;padding:0 8px}
+#tavolo .hd{flex-wrap:wrap;row-gap:6px}.tavgr{display:flex;gap:4px;align-items:center}.tavgr button,#tavclear,#tavclose{min-height:32px;padding:4px 10px;font-size:13px}
+#tavsel{min-height:32px;font-size:13.5px;padding:3px 6px;border:1px solid var(--line);border-radius:6px;background:var(--panel);max-width:200px}
+#tavstato{flex-basis:100%;margin:0;font-size:12.5px}.card.manca{opacity:.75;border-style:dashed}
 .card .tt{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-family:Newsreader,Georgia,serif;font-size:15px;line-height:1.2;font-weight:600}
 .card .tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}.card .tag{font-size:11px;margin:0}
 .card dl{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;margin:0 0 7px;font-size:12.5px;line-height:1.35}
@@ -364,8 +367,12 @@ body.incorpora #apri-intera{display:block!important;position:absolute;right:12px
 </div>
 
 <section id="tavolo" aria-label="Tavolo">
- <div class="hd"><h3>Tavolo</h3><span class="sub">accosta pezzi di luoghi ed epoche diverse; trascina, annota, copia</span><span class="sp" style="flex:1"></span>
-  <button id="tavcopy">Copia elenco</button><button id="tavclear">Svuota</button><button id="tavclose">Chiudi</button></div>
+ <div class="hd"><h3>Tavolo</h3>
+  <div class="tavgr" role="group" aria-label="I tuoi tavoli"><select id="tavsel" aria-label="Quale tavolo"></select><button id="tavnew">Nuovo</button><button id="tavren">Rinomina</button><button id="tavdel">Elimina</button></div>
+  <span class="sp" style="flex:1"></span>
+  <div class="tavgr" role="group" aria-label="Salvare e condividere"><button id="tavsave">Salva su file</button><button id="tavopen">Apri da file</button><input type="file" id="tavfile" accept=".json,application/json" hidden><button id="tavlink">Link del tavolo</button><button id="tavcopy">Copia elenco</button></div>
+  <button id="tavclear">Svuota</button><button id="tavclose">Chiudi</button>
+  <p class="sub" id="tavstato" role="status" aria-live="polite"></p></div>
  <svg id="tavax"></svg>
  <div id="board"></div>
 </section>

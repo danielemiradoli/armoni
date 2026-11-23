@@ -70,7 +70,7 @@ Promise.all([dati('opere.json'), dati('luoghi.json'), j('periodi.json'), j('conf
     hay: [x.titolo, x.cultura, x.tecnica, LU[x.origine]?.nome, LU[x.sede]?.nome].filter(Boolean).join(' ').toLowerCase()}));  // anche i luoghi: «iznik» trova i pezzi fatti a Iznik
   PER = p.map(x => ({...x, inizio: +x.inizio, fine: +x.fine}));
   ANNI = a; if (PO) $('#corsie').value = 'periodo'; TERRE = topojson.feature(t, t.objects.land);
-  try { S.tav = JSON.parse(localStorage.getItem(TAVK) || '[]').filter(c => O.some(x => x.id === c.id)); } catch (e) { S.tav = []; }
+  caricaTavoli(); tavoloDaLink();
   // filtri per fonte e strati che in questo filo non hanno dati: nascosti, non spenti in silenzio
   const fonti = new Set(o.map(x => x.fonte));
   document.querySelectorAll('[data-f]').forEach(i => { if (!fonti.has(i.dataset.f)) i.closest('label').hidden = true; });
@@ -719,7 +719,75 @@ function segnaposto() {
 }
 
 /* ---------- tavolo ---------- */
-const salva = () => { try { localStorage.setItem(TAVK, JSON.stringify(S.tav)); } catch (e) {} };
+/* Tavoli: più tavoli con un nome, per filo, nella memoria del browser; si salvano su file, si riaprono da file
+   e viaggiano in un link. Le schede di pezzi che il filo non ha (più) restano, segnate, e non si perdono. */
+const TK = f => 'armoni-tavoli-' + f;
+let TAV = {attivo: 'Tavolo 1', tavoli: {'Tavolo 1': []}};
+const leggiStore = f => { try { const v = JSON.parse(localStorage.getItem(TK(f)) || 'null'); if (v && v.tavoli) return v; } catch (e) { } return null; };
+function caricaTavoli() {
+  TAV = leggiStore(FILO) || (() => { let vecchio = []; try { vecchio = JSON.parse(localStorage.getItem(TAVK) || '[]'); } catch (e) { } return {attivo: 'Tavolo 1', tavoli: {'Tavolo 1': vecchio}}; })();
+  if (!TAV.tavoli[TAV.attivo]) TAV.attivo = Object.keys(TAV.tavoli)[0] || (TAV.tavoli['Tavolo 1'] = [], 'Tavolo 1');
+  S.tav = TAV.tavoli[TAV.attivo]; salva(true);
+}
+let ultimoSalvataggio = null;
+const salva = (zitto) => { TAV.tavoli[TAV.attivo] = S.tav; try { localStorage.setItem(TK(FILO), JSON.stringify(TAV)); ultimoSalvataggio = new Date(); } catch (e) { statoTav('Non riesco a salvare in questo browser (memoria piena o navigazione privata): usa «Salva su file».'); return; } if (!zitto) statoTav(); };
+function statoTav(msg) {
+  const el = $('#tavstato'); if (!el) return;
+  el.textContent = msg || (ultimoSalvataggio ? `Salvato in questo browser alle ${ultimoSalvataggio.toLocaleTimeString('it', {hour: '2-digit', minute: '2-digit'})} · per non perderlo altrove: «Salva su file» o «Link del tavolo»` : '');
+}
+function menuTavoli() {
+  const nomi = Object.keys(TAV.tavoli);
+  $('#tavsel').innerHTML = nomi.map(n => `<option${n === TAV.attivo ? ' selected' : ''}>${esc(n)}</option>`).join('');
+  $('#tavdel').disabled = nomi.length < 2 && !S.tav.length;
+}
+const nomeLibero = n => { let k = n, i = 2; while (TAV.tavoli[k]) k = `${n} (${i++})`; return k; };
+function usaTavolo(n) { TAV.attivo = n; S.tav = TAV.tavoli[n]; salva(true); renderTav(); renderTavCount(); renderCtx(); }
+$('#tavsel').onchange = e => usaTavolo(e.target.value);
+$('#tavnew').onclick = () => { const n = prompt('Nome del nuovo tavolo', nomeLibero('Tavolo ' + (Object.keys(TAV.tavoli).length + 1))); if (!n || !n.trim()) return; const k = nomeLibero(n.trim()); TAV.tavoli[k] = []; usaTavolo(k); };
+$('#tavren').onclick = () => { const n = prompt('Nuovo nome del tavolo', TAV.attivo); if (!n || !n.trim() || n.trim() === TAV.attivo) return; const k = nomeLibero(n.trim());
+  TAV.tavoli[k] = TAV.tavoli[TAV.attivo]; delete TAV.tavoli[TAV.attivo]; usaTavolo(k); };
+$('#tavdel').onclick = () => { if (!confirm(`Eliminare il tavolo «${TAV.attivo}» con ${S.tav.length} schede? Non si può annullare: se vuoi tenerne una copia, prima «Salva su file».`)) return;
+  delete TAV.tavoli[TAV.attivo]; if (!Object.keys(TAV.tavoli).length) TAV.tavoli['Tavolo 1'] = []; usaTavolo(Object.keys(TAV.tavoli)[0]); };
+/* su file: le schede con titolo e link al museo, così il file si legge anche senza ArMoni */
+function fileTavolo() {
+  return {armoni: 'tavolo', versione: 1, filo: FILO, nome: TAV.attivo, salvato: new Date().toISOString(), origine: location.origin + location.pathname,
+    schede: S.tav.map(c => { const x = O.find(o => o.id === c.id); return {...c, titolo: x?.titolo, museo: x?.url}; })};
+}
+$('#tavsave').onclick = () => { const a = document.createElement('a'), d = new Date().toISOString().slice(0, 10);
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(fileTavolo(), null, 1)], {type: 'application/json'}));
+  a.download = `armoni-tavolo-${TAV.attivo.replace(/[^\p{L}\p{N}]+/gu, '-').toLowerCase()}-${d}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  statoTav(`Salvato su file: ${a.download}`); };
+$('#tavopen').onclick = () => $('#tavfile').click();
+$('#tavfile').onchange = async e => { const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try { riceviTavolo(JSON.parse(await f.text()), 'dal file ' + f.name); } catch (err) { statoTav('Il file non è un tavolo di ArMoni leggibile.'); } };
+function riceviTavolo(d, da) {
+  if (!d || d.armoni !== 'tavolo' || !Array.isArray(d.schede)) { statoTav('Il file non è un tavolo di ArMoni.'); return; }
+  const schede = d.schede.filter(c => c && typeof c.id === 'string').map(c => ({id: c.id, x: +c.x || 0, y: +c.y || 0, nota: String(c.nota || ''), vista: c.vista, quando: c.quando, ...(c.titolo ? {titolo: String(c.titolo)} : {}), ...(c.museo ? {museo: String(c.museo)} : {})}));
+  const f = d.filo && /^[a-z]+$/.test(d.filo) ? d.filo : FILO;
+  if (f !== FILO) { const st = leggiStore(f) || {attivo: 'Tavolo 1', tavoli: {}}; let k = d.nome || 'Tavolo ricevuto', i = 2; while (st.tavoli[k]) k = `${d.nome} (${i++})`;
+    st.tavoli[k] = schede; st.attivo = k; try { localStorage.setItem(TK(f), JSON.stringify(st)); } catch (e) { }
+    statoTav(`Il tavolo «${k}» è del filo ${NOMI_FILO[f] || f}: l'ho messo fra i suoi tavoli. Cambia filo dal menu per aprirlo.`); return; }
+  const n0 = d.nome || 'Tavolo ricevuto', k = TAV.tavoli[n0] && !TAV.tavoli[n0].length ? n0 : nomeLibero(n0); TAV.tavoli[k] = schede; usaTavolo(k);  // un tavolo vuoto con lo stesso nome si riusa
+  const mancano = schede.filter(c => !O.some(o => o.id === c.id)).length;
+  statoTav(`Aperto «${k}» ${da}: ${schede.length} schede${mancano ? `, ${mancano} di pezzi che qui non ci sono (restano segnate)` : ''}.`);
+  $('#tavolo').classList.add('open');
+}
+/* nel link: id, posizione e nota di ogni scheda, compressi; si apre ovunque e diventa un tavolo nuovo */
+const b64u = b => btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const ub64 = s => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
+async function comprimi(t) { const s = new Blob([t]).stream().pipeThrough(new CompressionStream('deflate-raw')); return b64u(await new Response(s).arrayBuffer()); }
+async function decomprimi(z) { const s = new Blob([ub64(z)]).stream().pipeThrough(new DecompressionStream('deflate-raw')); return new Response(s).text(); }
+$('#tavlink').onclick = async () => {
+  const d = {armoni: 'tavolo', versione: 1, filo: FILO, nome: TAV.attivo, schede: S.tav.map(c => ({id: c.id, x: Math.round(c.x), y: Math.round(c.y), nota: c.nota}))};
+  const u = new URL(location.pathname, location.origin); if (!PRIMO) u.searchParams.set('filo', FILO); u.searchParams.set('tavolo', await comprimi(JSON.stringify(d))); u.hash = 'ricerca';
+  try { await navigator.clipboard.writeText(u.href); statoTav(`Link del tavolo copiato (${u.href.length} caratteri): chi lo apre trova «${TAV.attivo}» fra i suoi tavoli, con le note.`); }
+  catch (e) { prompt('Copia il link del tavolo', u.href); }
+};
+async function tavoloDaLink() {
+  const q = new URLSearchParams(location.search), z = q.get('tavolo'); if (!z) return;
+  q.delete('tavolo'); history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash);
+  try { riceviTavolo(JSON.parse(await decomprimi(z)), 'da un link'); } catch (e) { statoTav('Il link del tavolo non si legge: forse è stato tagliato copiandolo.'); $('#tavolo').classList.add('open'); }
+}
 /* Ogni scheda del tavolo ricorda da dove viene: il pezzo (si riapre nella sua scheda, sul suo luogo e nel suo
    tempo), la vista in cui l'hai trovato, e la scheda del museo. Così navigando non si perde nulla. */
 function addTav(id) { if (S.tav.some(c => c.id === id)) return; const i = S.tav.length;
@@ -735,7 +803,10 @@ function apriPezzo(id) {
 function renderTav() {
   $('#tavn').textContent = S.tav.length;
   const b = $('#board');
-  b.innerHTML = S.tav.length ? S.tav.map((c, i) => { const x = O.find(o => o.id === c.id), l = LU[luogo(x)], cat = FONTE_LUNGA[x.fonte] || x.fonte;
+  menuTavoli(); statoTav();
+  b.innerHTML = S.tav.length ? S.tav.map((c, i) => { const x = O.find(o => o.id === c.id);
+    if (!x) return `<article class="card manca" data-i="${i}" style="left:${c.x}px;top:${c.y}px"><div class="ch"><span class="num">${i + 1}</span><b class="tt">${esc(c.titolo || c.id)}</b><button class="x" data-rm="${i}" aria-label="Togli dal tavolo">×</button></div><div class="cb"><p class="sub">Questo pezzo non è nel filo che stai guardando (o non è più nei dati). La scheda resta sul tavolo.</p>${c.nota ? `<p>${esc(c.nota)}</p>` : ''}${c.museo ? `<a href="${esc(c.museo)}" target="_blank" rel="noopener">Museo ↗</a>` : ''}</div></article>`;
+    const l = LU[luogo(x)], cat = FONTE_LUNGA[x.fonte] || x.fonte;
     return `<article class="card" data-i="${i}" style="left:${c.x}px;top:${c.y}px" aria-label="Scheda ${i + 1} del tavolo: ${esc(x.titolo)}">
     <div class="ch"><span class="num">${i + 1}</span><b class="tt" title="${esc(x.titolo)}">${esc(x.titolo)}</b><button class="x" data-rm="${i}" aria-label="Togli dal tavolo">×</button></div>
     <div class="cb">
@@ -751,7 +822,7 @@ function renderTav() {
      <div class="cacts"><button data-apri="${x.id}">Apri la scheda</button>${c.vista ? `<a href="${esc(c.vista)}" data-vista="${i}" title="La vista dell'atlante in cui l'hai messa sul tavolo${c.quando ? ', il ' + c.quando : ''}">Vista d'origine</a>` : ''}<a href="${esc(x.url)}" target="_blank" rel="noopener">Museo ↗</a></div>
     </div></article>`; }).join('')
     : '<p class="empty">Il tavolo è vuoto. Apri la scheda di un pezzo e scegli «Metti sul tavolo»: qui potrai accostare opere di luoghi ed epoche diverse, spostarle e annotarle. Ogni scheda riporta al pezzo, alla vista in cui l\'hai trovato e al museo. Il tavolo resta solo in questo browser.</p>';
-  const ax = $('#tavax'), w = ax.clientWidth || 600, xs = S.tav.map(c => O.find(o => o.id === c.id));
+  const ax = $('#tavax'), w = ax.clientWidth || 600, xs = S.tav.map(c => O.find(o => o.id === c.id)).filter(Boolean);
   if (!xs.length) { ax.innerHTML = ''; return; }
   const lo = Math.min(...xs.map(x => x.inizio)) - 20, hi = Math.max(...xs.map(x => x.fine)) + 20, sc = d3.scaleLinear([lo, hi], [24, w - 24]);
   ax.innerHTML = xs.map((x, i) => `<g data-apri="${x.id}" style="cursor:pointer"><title>${esc(x.titolo)} — apri la scheda</title><line x1="${sc(x.inizio)}" x2="${Math.max(sc(x.fine), sc(x.inizio) + 2)}" y1="${10 + (i % 4) * 8}" y2="${10 + (i % 4) * 8}" stroke="var(--co)" stroke-width="4" stroke-linecap="round"/><text x="${sc(x.inizio) - 4}" y="${14 + (i % 4) * 8}" font-size="10" fill="var(--fe)" text-anchor="end">${i + 1}</text></g>`).join('')
@@ -769,7 +840,7 @@ $('#board').addEventListener('click', e => { const r = e.target.closest('[data-r
 $('#tavax').addEventListener('click', e => { const a = e.target.closest('[data-apri]'); if (a) apriPezzo(a.dataset.apri); });
 $('#tavbtn').onclick = () => { renderTav(); $('#tavolo').classList.toggle('open'); };
 $('#tavclose').onclick = () => $('#tavolo').classList.remove('open');
-$('#tavclear').onclick = () => { S.tav = []; salva(); renderTav(); renderCtx(); };
+$('#tavclear').onclick = () => { if (S.tav.length && !confirm(`Togliere tutte le ${S.tav.length} schede dal tavolo «${TAV.attivo}»?`)) return; S.tav.length = 0; salva(); renderTav(); renderCtx(); };
 $('#tavcopy').onclick = async () => { const t = S.tav.map((c, i) => { const x = O.find(o => o.id === c.id); return `${i + 1}. ${x.titolo} — ${x.cultura}, ${x.data_testo} [${x.grado}]\n   museo: ${x.url}${c.vista ? '\n   in ArMoni: ' + c.vista : ''}${c.nota ? '\n   nota: ' + c.nota : ''}`; }).join('\n');
   const b = $('#tavcopy'); try { await navigator.clipboard.writeText(t); b.textContent = 'Copiato'; } catch (e) { b.textContent = 'Copia non consentita qui'; } setTimeout(() => { b.textContent = 'Copia elenco'; }, 1800); };
 
