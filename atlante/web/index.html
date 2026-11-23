@@ -144,6 +144,7 @@ header .sub{font-size:12.5px}
 /* Colore d'identità dello strumento: dice dove sei, non cambia il significato dei segni (blu dati, rosso selezione).
    Ogni strumento di ArMoni avrà il suo, dalla famiglia della ceramica; l'Atlante è cobalto. */
 [data-strumento=atlante]{--strumento:light-dark(#1f3c96,#8fa9ff)}
+:root{--cel:light-dark(#2b7660,#79c9b0);--lacca:light-dark(#8e2f52,#ea8fb2)}  /* --lacca: il secondo filo nel confronto */
 :root{--cel:light-dark(#2b7660,#79c9b0)}  /* celadon: il colore del contesto (fenomeni, relazioni) */
 :root{--alone:light-dark(#a06c00,#e2b84a)}  /* giallo imperiale: l'estensione di un luogo, qualunque sia il livello */
 header{border-top:4px solid var(--strumento)}
@@ -180,6 +181,8 @@ header h1 .strumento{color:var(--strumento)}
 .filtri{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
 .filtri button{font-size:12.5px;padding:2px 8px;border-radius:12px}
 .big.ctxn{color:var(--cel)}.bar.ctxbar{background:var(--cel)}
+.bar.lac{background:var(--lacca);margin-top:2px}.lacn{color:var(--lacca)}
+.conf{display:flex;gap:28px;margin:4px 0}.seg-blu,.seg-lac{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px;background:var(--co)}.seg-lac{background:none;border:2.5px solid var(--lacca);width:7px;height:7px}
 .ghead{display:flex;align-items:center;gap:8px}
 .ghead button{all:unset;cursor:pointer;flex:1;padding:4px 0}
 .ghead button::after{content:" ▸";color:var(--mute)}
@@ -228,7 +231,7 @@ header h1 .strumento{color:var(--strumento)}
   <p class="sub" style="margin:0 0 10px">Due strumenti: gli oggetti di un filo e i fenomeni dei contesti. Si usano da soli o sovrapposti; sotto, lo sfondo comune a entrambi.</p>
   <section class="strum s-filo" aria-labelledby="t-filo">
    <div class="shead"><input type="checkbox" data-l="opere" checked aria-label="Mostra o nascondi gli oggetti del filo"><h4 id="t-filo">Filo <span class="sub">· oggetti</span></h4></div>
-   <select id="filo" aria-label="Quale filo"><option value="blu">La porcellana blu e bianca nel mondo</option><option value="lacca">La lacca nel mondo</option></select>
+   <select id="filo" aria-label="Quale filo"><option value="blu">La porcellana blu e bianca nel mondo</option><option value="lacca">La lacca nel mondo</option><option value="confronto">Confronto: blu e bianco e lacca</option></select>
    <div class="cat" aria-label="Cerca nel filo per categorie">
     <label>Provenienza<select id="cat-reg"><option value="">tutte</option></select></label>
     <label>Tipo di oggetto<select id="cat-tipo"><option value="">tutti</option></select></label>

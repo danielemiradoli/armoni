@@ -7,7 +7,7 @@ const fmtY = y => y < 0 ? `${-y} a.C.` : String(y);
 const PREC = {citta: 'città', paese: 'solo paese', regione: 'regione', zona: 'zona', istituzione: 'istituzione'};
 const FILO = /^[a-z]+$/.test(new URLSearchParams(location.search).get('filo') || '') ? new URLSearchParams(location.search).get('filo') : 'blu';
 // la lacca ha pezzi di scavo dal I millennio a.C. (Lelang, Han): il suo filo parte prima
-const T0 = FILO === 'lacca' ? -500 : 700, T1 = 2000, PASSO = T1 - T0 > 1600 ? 250 : 100;
+const T0 = FILO === 'lacca' || FILO === 'confronto' ? -500 : 700, T1 = 2000, PASSO = T1 - T0 > 1600 ? 250 : 100;
 
 const S = {corsie: 'wikidata', year: 1640, win: 25, proj: 'globo', rot: [-40, -28], k: 1, sel: null, place: null, q: '',
   L: {opere: 1, confini: 1, origini: 1, sedi: 1, spostamenti: 0, mercati: 1, silenzio: 0, ipotetici: 1, dedotti: 0, vam: 1, letteratura: 1, contesti: 0, relazioni: 0}, CT: new Set(['movimento', 'scuola', 'stile', 'periodizzazione']), F: {met: 1, cma: 1, wd: 1, colbase: 1, emuseum: 1, aic: 1},
@@ -53,8 +53,12 @@ const j = u => fetch(u).then(r => { if (!r.ok) throw new Error(u); return r.json
    e ha strati suoi (V&A, letteratura, percorso, riepilogo di affidabilità) che gli altri fili non hanno ancora. */
 const TAVK = 'armoni-tavolo' + (FILO === 'blu' ? '' : '-' + FILO);
 const BASE = FILO === 'blu' ? '' : `fili/${FILO}/`, PRIMO = FILO === 'blu';
+/* Confronto: due fili sullo stesso globo. Ogni pezzo porta il suo filo (fl); i luoghi si sommano. */
+const CONFRONTO = FILO === 'confronto', FILI = CONFRONTO ? ['blu', 'lacca'] : [FILO], NOMI_FILO = {blu: 'blu e bianco', lacca: 'lacca'};
+const baseDi = f => f === 'blu' ? '' : `fili/${f}/`;
+const dati = nome => Promise.all(FILI.map(f => j(baseDi(f) + nome).then(v => nome === 'opere.json' && CONFRONTO ? v.map(x => ({...x, fl: f})) : v))).then(vs => vs.flat());
 const solo1 = (u, d = null) => PRIMO ? j(u).catch(() => d) : Promise.resolve(d);
-Promise.all([j(BASE + 'opere.json'), j(BASE + 'luoghi.json'), j('periodi.json'), j('confini/anni.json'), j('terre.json'), solo1('densita_vam.json'), j('periodo.json').catch(() => null), solo1('letteratura.json'), solo1('qualita.json'), j('contesti.json').catch(() => null), j('aree.json').catch(() => ({}))]).then(([o, l, p, a, t, v, po, le, qu, cx, ar]) => {
+Promise.all([dati('opere.json'), dati('luoghi.json'), j('periodi.json'), j('confini/anni.json'), j('terre.json'), solo1('densita_vam.json'), j('periodo.json').catch(() => null), solo1('letteratura.json'), solo1('qualita.json'), j('contesti.json').catch(() => null), j('aree.json').catch(() => ({}))]).then(([o, l, p, a, t, v, po, le, qu, cx, ar]) => {
   QU = qu; AREE = ar || {};
   if (cx) { CXR = cx; CX = cx.elementi.map(e => ({...e, fv: e.quando.a ?? e.quando.da + APERTO})); }
   LET = le; if (LET) for (const x of LET.siti) LU['sito:' + x.id] = {...x, lat: +x.lat, lon: +x.lon};
@@ -72,6 +76,7 @@ Promise.all([j(BASE + 'opere.json'), j(BASE + 'luoghi.json'), j('periodi.json'),
   document.querySelectorAll('[data-f]').forEach(i => { if (!fonti.has(i.dataset.f)) i.closest('label').hidden = true; });
   if (!VAM) $('[data-l="vam"]').closest('label').hidden = true;
   if (!LET) $('[data-l="letteratura"]').closest('label').hidden = true;
+  if (!VAM && !LET) $('[data-grp="quantita"]').hidden = true;
   if (!o.some(x => x.grado === 'ipotetico')) $('[data-l="ipotetici"]').closest('label').hidden = true;
   if (!PRIMO) { $('#m-percorso').disabled = true; $('#m-percorso').title = 'Il percorso in tappe per ora esiste solo per il filo blu e bianco'; }
   categorie(); leggiVista(); for (const [id, k] of [['#cat-reg', 'reg'], ['#cat-tipo', 'tipo'], ['#ctx-reg', 'ctx']]) $(id).value = CAT[k]; route(); update();
@@ -110,7 +115,7 @@ function filtra() {
   const q = S.q.toLowerCase();
   act = O.filter(x => x.inizio <= S.year + S.win && x.fine >= S.year - S.win && passa(x) && (!q || x.hay.includes(q)));
   const m = new Map();
-  for (const x of act) { const id = luogo(x); if (!id) continue; const g = m.get(id) || {id, l: LU[id], n: 0, doc: 0, inc: 0, ded: 0}; g.n++; if (x.grado === 'documentato') g.doc++; if (x.origine_incerta) g.inc++; if (!x.o) g.ded++; m.set(id, g); }
+  for (const x of act) { const id = luogo(x); if (!id) continue; const k = x.fl ? id + '|' + x.fl : id; const g = m.get(k) || {id, f: x.fl || '', l: LU[id], n: 0, doc: 0, inc: 0, ded: 0}; g.n++; if (x.grado === 'documentato') g.doc++; if (x.origine_incerta) g.inc++; if (!x.o) g.ded++; m.set(k, g); }
   agg = [...m.values()].sort((a, b) => b.n - a.n);
   const vm = new Map();
   if (VAM) for (const c of VAM.celle) if (c.d + 9 >= S.year - S.win && c.d <= S.year + S.win) vm.set(c.l, (vm.get(c.l) || 0) + c.n);
@@ -180,7 +185,7 @@ const P = (k, id, c) => { const p = proj(c), o = OFF.get(k + ':' + id); return o
 function ventaglio() {
   OFF = new Map(); if (S.k < VENTAGLIO) return [];
   const it = [], add = (k, id, c, r) => { if (visibile(c)) { const [x, y] = proj(c); it.push({k, id, x, y, r}); } };
-  if (S.L.origini) for (const g of agg) add('o', g.id, [g.l.lon, g.l.lat], rr(g));
+  if (S.L.origini) for (const g of agg) add('o' + g.f, g.id, [g.l.lon, g.l.lat], rr(g));
   if (S.L.vam) for (const g of vagg) add('v', g.id, [g.l.lon, g.l.lat], 3 + Math.sqrt(g.n) * 1.3);
   if (S.L.letteratura) for (const g of lagg) add('l', g.id, [g.l.lon, g.l.lat], 7);
   if (S.L.sedi) for (const k of new Set(act.map(x => x.sede).filter(Boolean))) { const l = LU[k]; if (l) add('s', k, [l.lon, l.lat], 5); }
@@ -201,7 +206,7 @@ function draw() {
   if (!W) return;
   setProj();
   const fili = ventaglio();
-  const co = css('--co'), fe = css('--fe'), ink = css('--ink'), mute = css('--mute'), cel = css('--cel');
+  const co = css('--co'), c0 = co, cl = css('--lacca'), fe = css('--fe'), ink = css('--ink'), mute = css('--mute'), cel = css('--cel');
   ctx.clearRect(0, 0, W, H);
   ctx.beginPath(); path({type: 'Sphere'}); ctx.fillStyle = css('--glaze'); ctx.fill();
   ctx.lineWidth = 1.2; ctx.strokeStyle = co; ctx.globalAlpha = .55; ctx.stroke(); ctx.globalAlpha = 1;
@@ -218,10 +223,11 @@ function draw() {
   }
   if (S.L.mercati) for (const x of act) if (x.m && x.o) { ctx.beginPath(); path({type: 'LineString', coordinates: [[x.o.lon, x.o.lat], [x.m.lon, x.m.lat]]}); ctx.strokeStyle = fe; ctx.setLineDash([4, 3]); ctx.lineWidth = 1.4; ctx.stroke(); ctx.setLineDash([]); }
   if (S.L.origini) for (const g of agg) {
-    const c = [g.l.lon, g.l.lat]; if (!visibile(c)) continue; const [x, y] = P('o', g.id, c), r = rr(g);
+    const c = [g.l.lon, g.l.lat]; if (!visibile(c)) continue; const [x, y] = P('o' + g.f, g.id, c), r = rr(g), co = g.f === 'lacca' ? cl : c0;
     const dim = hi && hi.size && !hi.has(g.id) ? .25 : 1;
     ctx.globalAlpha = dim; ctx.beginPath(); ctx.arc(x, y, r, 0, 7);
-    if (g.l.precisione === 'citta') { ctx.fillStyle = co; ctx.globalAlpha = dim * (.35 + .6 * g.doc / g.n); ctx.fill(); }
+    if (g.f === 'lacca') { ctx.fillStyle = co; ctx.globalAlpha = dim * .1; ctx.fill(); ctx.globalAlpha = dim; if (g.l.precisione !== 'citta') ctx.setLineDash([5, 3]); ctx.strokeStyle = co; ctx.lineWidth = 2.4; ctx.stroke(); ctx.setLineDash([]); }
+    else if (g.l.precisione === 'citta') { ctx.fillStyle = co; ctx.globalAlpha = dim * (.35 + .6 * g.doc / g.n); ctx.fill(); }
     else { ctx.fillStyle = co; ctx.globalAlpha = dim * .12; ctx.fill(); ctx.globalAlpha = dim; ctx.setLineDash([3, 3]); ctx.strokeStyle = co; ctx.lineWidth = 1.2; ctx.stroke(); ctx.setLineDash([]); }
     if (g.inc) { ctx.beginPath(); ctx.arc(x, y, r + 3, 0, 7); ctx.setLineDash([1, 3]); ctx.strokeStyle = ink; ctx.globalAlpha = dim * .7; ctx.stroke(); ctx.setLineDash([]); }
     if (S.L.silenzio && g.l.precisione !== 'citta') { ctx.beginPath(); ctx.arc(x, y, r + 16, 0, 7); ctx.fillStyle = mute; ctx.globalAlpha = .1; ctx.fill(); }
@@ -300,7 +306,7 @@ function chip(anno) {
 
 function hit(px, py) {
   let best = null, bd = 1e9;
-  for (const g of agg) { const c = [g.l.lon, g.l.lat]; if (!visibile(c)) continue; const [x, y] = P('o', g.id, c), d = Math.hypot(x - px, y - py); if (d < rr(g) + 5 && d < bd) { bd = d; best = g; } }
+  for (const g of agg) { const c = [g.l.lon, g.l.lat]; if (!visibile(c)) continue; const [x, y] = P('o' + g.f, g.id, c), d = Math.hypot(x - px, y - py); if (d < rr(g) + 5 && d < bd) { bd = d; best = g; } }
   if (!best && S.L.letteratura) for (const g of lagg) { const c = [g.l.lon, g.l.lat]; if (!visibile(c)) continue; const [x, y] = P('l', g.id, c), d = Math.hypot(x - px, y - py); if (d < 11 && d < bd) { bd = d; best = {...g, let: true}; } }
   if (!best && S.L.vam) for (const g of vagg) { const c = [g.l.lon, g.l.lat]; if (!visibile(c)) continue; const [x, y] = P('v', g.id, c), d = Math.hypot(x - px, y - py); if (d < 3 + Math.sqrt(g.n) * 1.3 + 4 && d < bd) { bd = d; best = {...g, vam: true}; } }
   if (!best && S.L.contesti) for (const e of cagg) for (const l of e.luoghi) { const c = [l.lon, l.lat]; if (!visibile(c)) continue; const [x, y] = P('m', e.id + '|' + l.id, c), d = Math.hypot(x - px, y - py); if (d < 10 && d < bd) { bd = d; best = {id: 'mov:' + e.id, e, l, mov: true}; } }
@@ -342,7 +348,7 @@ roMap.observe(fig);
 /* ---------- tempo ---------- */
 const tls = $('#tls');
 const dec = () => { const c = new Map(); for (const x of O) { if (!passa(x)) continue;
-  for (let d = Math.max(T0, Math.floor(x.inizio / 10) * 10); d <= Math.min(T1, x.fine); d += 10) { const v = c.get(d) || [0, 0]; v[x.grado === 'documentato' ? 0 : 1] += 1 / (1 + (x.fine - x.inizio) / 10); c.set(d, v); } } return c; };
+  for (let d = Math.max(T0, Math.floor(x.inizio / 10) * 10); d <= Math.min(T1, x.fine); d += 10) { const v = c.get(d) || [0, 0]; v[CONFRONTO ? +(x.fl === 'lacca') : x.grado === 'documentato' ? 0 : 1] += 1 / (1 + (x.fine - x.inizio) / 10); c.set(d, v); } } return c; };
 function drawTl() {
   const w = tls.clientWidth, lh = 12, top = 46, righe = [];
   if (S.corsie === 'periodo' && PO) return drawTlPO(w, {reg: REG_PO, periodi: PO.periodi, vuoto: 'nessun periodo in PeriodO',
@@ -357,7 +363,7 @@ function drawTl() {
   tls.style.height = h + 'px';
   const x = d3.scaleLinear([T0, T1], [0, w]), c = dec(), mx = Math.max(...[...c.values()].map(v => v[0] + v[1]), 1), y = v => 40 * v / mx;
   let s = '';
-  for (const [d, [a, b]] of c) s += `<rect x="${x(d)}" y="${42 - y(a + b)}" width="${Math.max(1, x(d + 10) - x(d) - 1)}" height="${y(b)}" fill="var(--co)" opacity=".35"/><rect x="${x(d)}" y="${42 - y(a)}" width="${Math.max(1, x(d + 10) - x(d) - 1)}" height="${y(a)}" fill="var(--co)"/>`;
+  for (const [d, [a, b]] of c) s += `<rect x="${x(d)}" y="${42 - y(a + b)}" width="${Math.max(1, x(d + 10) - x(d) - 1)}" height="${y(b)}" fill="var(${CONFRONTO ? '--lacca' : '--co'})" opacity="${CONFRONTO ? .8 : .35}"/><rect x="${x(d)}" y="${42 - y(a)}" width="${Math.max(1, x(d + 10) - x(d) - 1)}" height="${y(a)}" fill="var(--co)"/>`;
   if (VAM && S.L.vam && S.L.opere) { const vd = new Map(); for (const c of VAM.celle) vd.set(c.d, (vd.get(c.d) || 0) + c.n); const vmx = Math.max(...vd.values(), 1);
     s += `<polyline fill="none" stroke="var(--fe)" stroke-width="1.4" points="${[...vd].filter(([d]) => d >= T0).sort((a, b) => a[0] - b[0]).map(([d, n]) => `${x(d + 5)},${42 - 40 * n / vmx}`).join(' ')}"/>`; }
   s += `<rect x="${x(S.year - S.win)}" y="0" width="${x(S.year + S.win) - x(S.year - S.win)}" height="${h - 16}" fill="var(--fe)" opacity=".08"/>`;
@@ -386,7 +392,7 @@ function drawTlPO(w, src) {
   tls.style.height = h + 'px';
   const c = dec(), mx = Math.max(...[...c.values()].map(v => v[0] + v[1]), 1);
   let s = '';
-  for (const [d, [a, b]] of c) s += `<rect x="${x(d)}" y="${42 - 40 * (a + b) / mx}" width="${Math.max(1, x(d + 10) - x(d) - 1)}" height="${40 * b / mx}" fill="var(--co)" opacity=".35"/><rect x="${x(d)}" y="${42 - 40 * a / mx}" width="${Math.max(1, x(d + 10) - x(d) - 1)}" height="${40 * a / mx}" fill="var(--co)"/>`;
+  for (const [d, [a, b]] of c) s += `<rect x="${x(d)}" y="${42 - 40 * (a + b) / mx}" width="${Math.max(1, x(d + 10) - x(d) - 1)}" height="${40 * b / mx}" fill="var(${CONFRONTO ? '--lacca' : '--co'})" opacity="${CONFRONTO ? .8 : .35}"/><rect x="${x(d)}" y="${42 - 40 * a / mx}" width="${Math.max(1, x(d + 10) - x(d) - 1)}" height="${40 * a / mx}" fill="var(--co)"/>`;
   if (VAM && S.L.vam && S.L.opere) { const vd = new Map(); for (const k of VAM.celle) vd.set(k.d, (vd.get(k.d) || 0) + k.n); const vmx = Math.max(...vd.values(), 1);
     s += `<polyline fill="none" stroke="var(--fe)" stroke-width="1.4" points="${[...vd].filter(([d]) => d >= T0).sort((a, b) => a[0] - b[0]).map(([d, n]) => `${x(d + 5)},${42 - 40 * n / vmx}`).join(' ')}"/>`; }
   s += `<rect x="${x(S.year - S.win)}" y="0" width="${x(S.year + S.win) - x(S.year - S.win)}" height="${h - 16}" fill="var(--fe)" opacity=".08"/>`;
@@ -484,9 +490,10 @@ function renderCtx() {
     c.innerHTML = `<h2>${esc(l.nome)}</h2><div class="sub" style="margin-top:4px">${PREC[l.precisione]} · <a href="https://www.wikidata.org/wiki/${l.qid}">${l.qid}</a> · ${esc(l.metodo)}</div>
     <div class="big" style="margin:14px 0 2px">${xs.length}</div><div class="sub">pezzi fra ${fmtY(S.year - S.win)} e ${fmtY(S.year + S.win)}${g && g.inc ? ` · ${g.inc} con attribuzione incerta` : ''}</div>
     ${(() => { const v = vagg.find(v => v.id === S.place); return v ? `<p class="sub" style="margin-top:8px">V&A, nella stessa finestra: ~${Math.round(v.n)} pezzi (solo conteggio, nessuna scheda: condizioni d'uso del V&A).</p>` : ''; })()}
-    <div style="margin-top:12px">${xs.slice(0, 200).map(x => `<div class="row" data-sel="${x.id}"><span>${esc(x.titolo)}</span><span class="n sub">${fmtY(x.inizio)}–${fmtY(x.fine)}</span></div>`).join('')}</div>
+    <div style="margin-top:12px">${xs.slice(0, 200).map(x => `<div class="row" data-sel="${x.id}"><span>${x.fl ? `<span class="sub">${NOMI_FILO[x.fl]} · </span>` : ''}${esc(x.titolo)}</span><span class="n sub">${fmtY(x.inizio)}–${fmtY(x.fine)}</span></div>`).join('')}</div>
     <div class="acts"><button data-back>Indietro</button></div>`; return; }
   if (!S.L.opere) { c.innerHTML = cercaInfo() + filtriAttivi() + soloContesti(); return; }
+  if (CONFRONTO) { c.innerHTML = cercaInfo() + filtriAttivi() + pannelloConfronto(); return; }
   const mx = agg[0]?.n || 1, n = act.length;
   c.innerHTML = cercaInfo() + filtriAttivi() + `<div class="sub">Fra ${fmtY(S.year - S.win)} e ${fmtY(S.year + S.win)}</div><div class="big" style="margin:4px 0">${n}</div>
   <div class="sub">pezzi da ${agg.length} luoghi · ${act.filter(x => x.grado === 'documentato').length} documentati</div>
@@ -519,6 +526,20 @@ document.addEventListener('click', e => {
   renderCtx(); draw();
 });
 
+function pannelloConfronto() {
+  const per = new Map(); for (const g of agg) { const v = per.get(g.id) || {l: g.l, blu: 0, lacca: 0}; v[g.f] += g.n; per.set(g.id, v); }
+  const tot = f => act.filter(x => x.fl === f).length, comuni = [...per].filter(([, v]) => v.blu && v.lacca).sort((a, b) => Math.min(b[1].blu, b[1].lacca) - Math.min(a[1].blu, a[1].lacca));
+  const mx = Math.max(1, ...[...per.values()].map(v => Math.max(v.blu, v.lacca)));
+  const riga = ([id, v]) => `<div class="row" data-place="${id}"><span>${esc(v.l.nome)} <span class="sub">${v.l.precisione === 'citta' ? '' : '· ' + PREC[v.l.precisione]}</span><div class="bar" style="width:${100 * v.blu / mx}%"></div><div class="bar lac" style="width:${100 * v.lacca / mx}%"></div></span><span class="n">${v.blu} · <span class="lacn">${v.lacca}</span></span></div>`;
+  return `<div class="sub">Confronto fra ${fmtY(S.year - S.win)} e ${fmtY(S.year + S.win)}</div>
+  <div class="conf"><div><div class="big">${tot('blu')}</div><div class="sub"><span class="seg-blu"></span>blu e bianco</div></div><div><div class="big lacn">${tot('lacca')}</div><div class="sub"><span class="seg-lac"></span>lacca</div></div></div>
+  <h3 style="margin:18px 0 6px">Luoghi dove compaiono entrambi</h3>
+  ${comuni.length ? comuni.slice(0, 12).map(riga).join('') : '<p class="sub">In questa finestra nessun luogo ha pezzi di tutti e due i fili.</p>'}
+  <h3 style="margin:18px 0 6px">Solo un filo</h3>
+  ${[...per].filter(([, v]) => !(v.blu && v.lacca)).sort((a, b) => (b[1].blu + b[1].lacca) - (a[1].blu + a[1].lacca)).slice(0, 10).map(riga).join('') || '<p class="sub">Nessuno.</p>'}
+  <h3 style="margin:18px 0 6px">Come leggere</h3>
+  <p class="sub">Dischi blu: porcellana blu e bianca. Anelli color lacca: lacca. Tratteggio: luogo noto solo come paese. Stesso luogo e stesso tempo vogliono dire che i due fili si incontrano lì nei cataloghi, non che siano legati: un legame compare solo dove una fonte lo dichiara. I numeri riflettono anche quanto ogni paese apre i suoi dati.</p>`;
+}
 function filtriAttivi() {
   const f = [S.L.opere && CAT.reg && ['reg', `provenienza: ${CAT.reg === '?' ? 'senza luogo' : CAT.reg}`], S.L.opere && CAT.tipo && ['tipo', `tipo: ${CAT.tipo === '?' ? 'non riconosciuto' : CAT.tipo}`],
     S.L.contesti && CAT.ctx && ['ctx', `contesti: ${CAT.ctx}`]].filter(Boolean);
