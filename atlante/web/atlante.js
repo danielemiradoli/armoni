@@ -10,7 +10,7 @@ const FILO = /^[a-z]+$/.test(new URLSearchParams(location.search).get('filo') ||
 const T0 = FILO === 'lacca' || FILO === 'confronto' ? -500 : 700, T1 = 2000, PASSO = T1 - T0 > 1600 ? 250 : 100;
 
 const S = {corsie: 'wikidata', year: 1640, win: 25, proj: 'globo', rot: [-40, -28], k: 1, sel: null, place: null, q: '',
-  L: {opere: 1, confini: 1, origini: 1, sedi: 1, spostamenti: 0, mercati: 1, silenzio: 0, ipotetici: 1, dedotti: 0, vam: 1, letteratura: 1, contesti: 0, relazioni: 0}, CT: new Set(['movimento', 'scuola', 'stile', 'periodizzazione']), F: {met: 1, cma: 1, wd: 1, colbase: 1, emuseum: 1, aic: 1},
+  L: {opere: 1, periodi: 0, confini: 1, origini: 1, sedi: 1, spostamenti: 0, mercati: 1, silenzio: 0, ipotetici: 1, dedotti: 0, vam: 1, letteratura: 1, contesti: 0, relazioni: 0}, CT: new Set(['movimento', 'scuola', 'stile', 'periodizzazione']), F: {met: 1, cma: 1, wd: 1, colbase: 1, emuseum: 1, aic: 1},
   tav: [], mode: 'ricerca', tappa: 0};
 // CX: stili e movimenti (livello Contesti); APERTO: anni mostrati quando la fine non è dichiarata
 const G = {on: {}, mem: {}};
@@ -62,14 +62,14 @@ Promise.all([dati('opere.json'), dati('luoghi.json'), j('periodi.json'), j('conf
   QU = qu; AREE = ar || {};
   if (cx) { CXR = cx; CX = cx.elementi.map(e => ({...e, fv: e.quando.a ?? e.quando.da + APERTO})); }
   LET = le; if (LET) for (const x of LET.siti) LU['sito:' + x.id] = {...x, lat: +x.lat, lon: +x.lon};
-  PO = po; if (PO) S.corsie = 'periodo';
+  PO = po;  // i periodi partono dalle dinastie di Wikidata, che si leggono da sole
   for (const x of l) LU[x.id] = {...x, lat: +x.lat, lon: +x.lon};
   if (v) { VAM = v; for (const x of v.luoghi) if (!LU[x.id]) LU[x.id] = {...x, lat: +x.lat, lon: +x.lon}; }
   NOD = o.filter(x => x.inizio == null);
   O = o.filter(x => x.inizio != null).map(x => ({...x, o: LU[x.origine], s: LU[x.sede], m: LU[x.mercato],
     hay: [x.titolo, x.cultura, x.tecnica, LU[x.origine]?.nome, LU[x.sede]?.nome].filter(Boolean).join(' ').toLowerCase()}));  // anche i luoghi: «iznik» trova i pezzi fatti a Iznik
   PER = p.map(x => ({...x, inizio: +x.inizio, fine: +x.fine}));
-  ANNI = a; if (PO) $('#corsie').value = 'periodo'; TERRE = topojson.feature(t, t.objects.land);
+  ANNI = a; $('#corsie').value = S.corsie; TERRE = topojson.feature(t, t.objects.land);
   caricaTavoli(); tavoloDaLink();
   // filtri per fonte e strati che in questo filo non hanno dati: nascosti, non spenti in silenzio
   const fonti = new Set(o.map(x => x.fonte));
@@ -344,44 +344,73 @@ const zoom = f => { S.k = Math.max(.7, Math.min(ZMAX, S.k * f)); draw(); };
 $('#zin').onclick = () => zoom(1.3); $('#zout').onclick = () => zoom(1 / 1.3);
 const misura = () => { const d = devicePixelRatio || 1; W = fig.clientWidth; H = fig.clientHeight; for (const [c, x] of [[cv, ctx], [av, actx]]) { c.width = W * d; c.height = H * d; x.setTransform(d, 0, 0, d, 0, 0); } draw(); };
 const roMap = new ResizeObserver(misura);
+/* la prima schermata misura intestazione e tempo, così il globo prende tutto il resto */
+const roAlti = new ResizeObserver(() => { const r = document.documentElement.style; r.setProperty('--hh', $('header').offsetHeight + 'px'); r.setProperty('--th', $('#tl').offsetHeight + 'px'); });
+roAlti.observe($('header')); roAlti.observe($('#tl'));
 roMap.observe(fig);
 
 /* ---------- tempo ---------- */
 const tls = $('#tls');
 const dec = () => { const c = new Map(); for (const x of O) { if (!passa(x)) continue;
   for (let d = Math.max(T0, Math.floor(x.inizio / 10) * 10); d <= Math.min(T1, x.fine); d += 10) { const v = c.get(d) || [0, 0]; v[CONFRONTO ? +(x.fl === 'lacca') : x.grado === 'documentato' ? 0 : 1] += 1 / (1 + (x.fine - x.inizio) / 10); c.set(d, v); } } return c; };
+/* Barra del tempo: solo il filo (istogramma dei pezzi per decennio). I periodi stanno in una sezione propria,
+   sotto (drawPeriodi), accesa dallo strato «Periodi» dello sfondo comune. */
+const asseX = w => d3.scaleLinear([T0, T1], [0, w]);
+const tacche = (x, w, y) => { let s = ''; for (let t = Math.ceil((T0 + 1) / PASSO) * PASSO; t < T1; t += w < 520 ? 4 * PASSO : PASSO) s += `<text x="${x(t)}" y="${y}" font-size="10.5" fill="var(--mute)" text-anchor="middle">${fmtY(t)}</text>`; return s; };
 function drawTl() {
-  const w = tls.clientWidth, lh = 12, top = 46, righe = [];
-  if (S.corsie === 'periodo' && PO) return drawTlPO(w, {reg: REG_PO, periodi: PO.periodi, vuoto: 'nessun periodo in PeriodO',
-    info: `corsie: quante definizioni di periodo PeriodO coprono ogni anno, per regione (il numero: quante valgono per l'anno scelto)`});
-  if (S.corsie === 'contesti' && CX.length) return drawTlPO(w, corsieCX());
-  for (const r of [...new Set(PER.map(p => p.regione))]) {  // periodi sovrapposti nella stessa regione vanno su sotto-corsie
-    const sub = [];
-    for (const p of PER.filter(p => p.regione === r).sort((a, b) => a.inizio - b.inizio)) { let k = sub.findIndex(f => f <= p.inizio); if (k < 0) { k = sub.length; sub.push(0); } sub[k] = p.fine; righe.push({r, k, p}); }
-  }
-  if (CORS !== 'estese') { for (const z of righe) z.k = 0; if (CORS === 'nascoste') righe.length = 0; }
-  const est = CORS === 'estese', lhv = est ? lh : 5, gp = est ? 2 : 1;
-  const nr = new Map(); let acc = 0; for (const x of righe) { const key = x.r + x.k; if (!nr.has(key)) nr.set(key, acc++); }
-  const h = top + acc * (lhv + gp) + 18;
+  const w = tls.clientWidth, h = 62, x = asseX(w), c = dec(), mx = Math.max(...[...c.values()].map(v => v[0] + v[1]), 1), y = v => 40 * v / mx;
   tls.style.height = h + 'px';
-  const x = d3.scaleLinear([T0, T1], [0, w]), c = dec(), mx = Math.max(...[...c.values()].map(v => v[0] + v[1]), 1), y = v => 40 * v / mx;
-  let s = '';
+  let s = `<rect x="${x(S.year - S.win)}" y="0" width="${x(S.year + S.win) - x(S.year - S.win)}" height="${h - 16}" fill="var(--fe)" opacity=".08"/>`;
   for (const [d, [a, b]] of c) s += `<rect x="${x(d)}" y="${42 - y(a + b)}" width="${Math.max(1, x(d + 10) - x(d) - 1)}" height="${y(b)}" fill="var(${CONFRONTO ? '--lacca' : '--co'})" opacity="${CONFRONTO ? .8 : .35}"/><rect x="${x(d)}" y="${42 - y(a)}" width="${Math.max(1, x(d + 10) - x(d) - 1)}" height="${y(a)}" fill="var(--co)"/>`;
-  if (VAM && S.L.vam && S.L.opere) { const vd = new Map(); for (const c of VAM.celle) vd.set(c.d, (vd.get(c.d) || 0) + c.n); const vmx = Math.max(...vd.values(), 1);
+  if (VAM && S.L.vam && S.L.opere) { const vd = new Map(); for (const k of VAM.celle) vd.set(k.d, (vd.get(k.d) || 0) + k.n); const vmx = Math.max(...vd.values(), 1);
     s += `<polyline fill="none" stroke="var(--fe)" stroke-width="1.4" points="${[...vd].filter(([d]) => d >= T0).sort((a, b) => a[0] - b[0]).map(([d, n]) => `${x(d + 5)},${42 - 40 * n / vmx}`).join(' ')}"/>`; }
-  s += `<rect x="${x(S.year - S.win)}" y="0" width="${x(S.year + S.win) - x(S.year - S.win)}" height="${h - 16}" fill="var(--fe)" opacity=".08"/>`;
-  for (const {r, k, p} of righe) { const yy = top + nr.get(r + k) * (lhv + gp);
-    if (est && w > 520 && k === 0 && righe.find(z => z.r === r).p === p) s += `<text x="2" y="${yy + 10}" font-size="10.5" fill="var(--mute)">${esc(r)}</text>`;
-    { const x0 = Math.max(x(p.inizio), est && w > 520 ? 120 : 0), x1 = x(Math.min(p.fine, T1)); if (x1 <= x0) continue;
-      s += `<g><title>${esc(p.nome)} ${p.inizio}–${p.fine} (Wikidata ${p.qid})</title><rect x="${x0}" y="${yy}" width="${x1 - x0}" height="${lhv}" rx="${est ? 2 : 0}" fill="var(--co)" opacity="${est ? .16 : .22}" stroke="var(--co)" stroke-opacity="${est ? .4 : 0}"/>`;
-      if (est && x1 - x0 > p.nome.length * 5.6) s += `<text x="${x0 + 4}" y="${yy + 9.5}" font-size="10" fill="var(--ink)">${esc(p.nome)}</text>`; s += '</g>'; } }
-  for (let t = Math.ceil((T0 + 1) / PASSO) * PASSO; t < T1; t += w < 520 ? 4 * PASSO : PASSO) s += `<text x="${x(t)}" y="${h - 3}" font-size="10.5" fill="var(--mute)" text-anchor="middle">${fmtY(t)}</text>`;
-  s += `<line x1="${x(S.year)}" x2="${x(S.year)}" y1="0" y2="${h - 14}" stroke="var(--fe)" stroke-width="2"/>`;
-  tls.innerHTML = s;
-  $('#yr').textContent = fmtY(S.year);
+  s += tacche(x, w, h - 3) + `<line x1="${x(S.year)}" x2="${x(S.year)}" y1="0" y2="${h - 14}" stroke="var(--fe)" stroke-width="2"/>`;
+  tls.innerHTML = s; $('#yr').textContent = fmtY(S.year);
+  tls.setAttribute('aria-valuemin', T0); tls.setAttribute('aria-valuemax', T1); tls.setAttribute('aria-valuenow', S.year);
+  tls.setAttribute('aria-valuetext', `${fmtY(S.year)}, finestra più o meno ${S.win} anni`);
   const fuori = O.filter(o => o.fine < T0).length;
-  $('#tlinfo').textContent = `istogramma: pezzi per decennio (scuro documentati, chiaro ipotetici${VAM && S.L.vam && S.L.opere ? '; linea rossa: V&A, scala propria' : ''}) · corsie: periodi secondo Wikidata${fuori ? ` · ${fuori} pezzi prima del ${T0} fuori scala` : ''}`;
+  $('#tlinfo').textContent = CONFRONTO ? `istogramma: pezzi per decennio, blu e bianco sotto e lacca sopra${fuori ? ` · ${fuori} pezzi prima del ${fmtY(T0)} fuori scala` : ''}`
+    : `istogramma: pezzi per decennio (scuro documentati, chiaro ipotetici)${VAM && S.L.vam && S.L.opere ? '; linea rossa: V&A, scala propria' : ''}${fuori ? ` · ${fuori} pezzi prima del ${fmtY(T0)} fuori scala` : ''}`;
+  drawPeriodi();
 }
+/* Periodi: una riga per area, sempre con il nome. Tre fonti a scelta; ogni riga si legge passandoci sopra. */
+const tlc = $('#tlc');
+let RIGHE_P = [];
+function fontePeriodi() {
+  if (S.corsie === 'periodo' && PO) return {tipo: 'densita', reg: REG_PO, periodi: PO.periodi.map(p => ({r: p.r, a: p.a, b: p.b, n: p.n})),
+    titolo: 'Quanto è nominato il tempo', fonte: 'PeriodO', leg: 'Ogni riga è più scura dove più periodizzazioni pubblicate (da studiosi, musei, archivi) coprono quell\'anno; il numero: quante valgono per l\'anno scelto. Misura l\'attenzione degli studi, non la storia.'};
+  if (S.corsie === 'contesti' && CX.length) { const c = corsieCX(); return {tipo: 'densita', reg: c.reg, periodi: CX.filter(e => S.CT.has(e.tipo)).map(e => ({r: e.corsia, a: e.quando.da, b: e.fv, n: e.nome})),
+    titolo: 'Fenomeni artistici attivi', fonte: 'Wikidata', leg: `Ogni riga è più scura dove più contesti (${[...S.CT].map(t => TIPO_PL[t] || t).join(', ')}) sono attivi; il numero: quanti nell'anno scelto. Fine non dichiarata: ${APERTO} anni.`}; }
+  return {tipo: 'barre', reg: [...new Set(PER.map(p => p.regione))], periodi: PER.map(p => ({r: p.regione, a: p.inizio, b: p.fine, n: p.nome, qid: p.qid})),
+    titolo: 'Dinastie e periodi storici', fonte: 'Wikidata', leg: 'Le dinastie e i periodi storici di ogni area, con le date dichiarate su Wikidata; dove si sovrappongono vanno su più righe.'};
+}
+function drawPeriodi() {
+  const sez = $('#periodi'); sez.hidden = !S.L.periodi; if (!S.L.periodi) return;
+  const F = fontePeriodi(), w = tlc.clientWidth, x = asseX(w), gut = w > 520 ? 170 : 0, lh = 14, gap = 3, top = 4;
+  RIGHE_P = [];
+  if (F.tipo === 'barre') { for (const r of F.reg) { const sub = []; for (const p of F.periodi.filter(p => p.r === r).sort((a, b) => a.a - b.a)) { let k = sub.findIndex(f => f <= p.a); if (k < 0) { k = sub.length; sub.push(0); } sub[k] = p.b; (RIGHE_P[`${r}|${k}`] ||= {r, k, ps: []}).ps.push(p); } } RIGHE_P = Object.values(RIGHE_P); }
+  else RIGHE_P = F.reg.map(r => ({r, k: 0, ps: F.periodi.filter(p => p.r === r)}));
+  const h = top + RIGHE_P.length * (lh + gap) + 20;
+  tlc.style.height = h + 'px';
+  let s = `<rect x="${x(S.year - S.win)}" y="0" width="${x(S.year + S.win) - x(S.year - S.win)}" height="${h - 16}" fill="var(--fe)" opacity=".06"/>`;
+  RIGHE_P.forEach(({r, k, ps}, i) => { const yy = top + i * (lh + gap), qui = ps.filter(p => p.a <= S.year && p.b >= S.year);
+    s += `<rect x="0" y="${yy}" width="${w}" height="${lh}" fill="var(--riga)" opacity=".35"/>`;
+    for (const p of ps) { const a = Math.max(x(Math.max(p.a, T0)), gut), b = x(Math.min(p.b, T1)); if (b <= a) continue;
+      if (F.tipo === 'barre') { s += `<rect x="${a}" y="${yy}" width="${b - a}" height="${lh}" rx="2" fill="var(--co)" opacity=".18" stroke="var(--co)" stroke-opacity=".45"/>`;
+        if (b - a > p.n.length * 5.6) s += `<text x="${a + 4}" y="${yy + 10.5}" font-size="10" fill="var(--ink)" pointer-events="none">${esc(p.n)}</text>`; }
+      else s += `<rect x="${a}" y="${yy}" width="${b - a}" height="${lh}" fill="var(--co)" opacity=".07"/>`; }
+    if (gut && k === 0) s += `<text x="2" y="${yy + 11}" font-size="11" fill="var(--ink)">${esc(r)}${F.tipo === 'densita' ? ` <tspan fill="var(--mute)">${qui.length}</tspan>` : ''}</text>`; });
+  s += tacche(x, w, h - 3) + `<line x1="${x(S.year)}" x2="${x(S.year)}" y1="0" y2="${h - 14}" stroke="var(--fe)" stroke-width="2"/>`;
+  tlc.innerHTML = s;
+  $('#per-titolo').textContent = F.titolo; $('#per-fonte').textContent = 'fonte: ' + F.fonte; $('#per-leg').textContent = F.leg;
+}
+/* passando sopra una riga: l'area e che cosa c'è in quell'anno */
+tlc.addEventListener('pointermove', e => { const b = tlc.getBoundingClientRect(), i = Math.floor((e.clientY - b.top - 4) / 17), R = RIGHE_P[i], tip = $('#tlctip');
+  if (!R) { tip.hidden = true; return; } const yr = Math.round(T0 + (T1 - T0) * (e.clientX - b.left) / b.width), qui = R.ps.filter(p => p.a <= yr && p.b >= yr);
+  tip.innerHTML = `<b>${esc(R.r)}</b> · ${fmtY(yr)}<br>${qui.length ? qui.slice(0, 5).map(p => esc(p.n)).join(' · ') + (qui.length > 5 ? ` e altri ${qui.length - 5}` : '') : '<span class="sub">niente in quest\'anno</span>'}`;
+  tip.hidden = false; tip.style.left = Math.min(e.clientX - b.left + 12, b.width - 260) + 'px'; tip.style.top = (e.clientY - b.top + 14) + 'px'; });
+tlc.addEventListener('pointerleave', () => { $('#tlctip').hidden = true; });
+tlc.addEventListener('click', e => { const b = tlc.getBoundingClientRect(); setYear(T0 + (T1 - T0) * (e.clientX - b.left) / b.width); });
 const REG_PO = ['Cina', 'Corea', 'Giappone', 'Sud-est asiatico', 'Iran e Asia centrale', 'Asia meridionale', 'Anatolia e Mediterraneo', 'Africa', 'Europa', 'Americhe'];
 const LINGUE = {en: 'inglese', fr: 'francese', nl: 'olandese', ja: 'giapponese', tr: 'turco', de: 'tedesco', it: 'italiano', zh: 'cinese', es: 'spagnolo'};
 // Corsie di densità: per ogni regione, quanti elementi coprono ogni anno (PeriodO, oppure stili e movimenti).
@@ -389,28 +418,6 @@ const ORD_CX = ['Asia orientale', 'Sud-Est asiatico', 'Asia meridionale', 'Asia 
 const regCX = () => [...ORD_CX, ...[...new Set(CX.map(e => e.corsia))].filter(r => !ORD_CX.includes(r)).sort()].filter(r => CX.some(e => e.corsia === r && S.CT.has(e.tipo)));
 const corsieCX = () => ({reg: regCX(), periodi: CX.filter(e => S.CT.has(e.tipo)).map(e => ({r: e.corsia, a: e.quando.da, b: e.fv})), vuoto: '',
   info: `corsie: quanti fenomeni (${[...S.CT].join(', ')}; Wikidata) sono attivi in ogni anno, per macro-regione del luogo d'origine; il numero: quanti nell'anno scelto. Fine non dichiarata: ${APERTO} anni`});
-function drawTlPO(w, src) {
-  const REG_PO = CORS === 'nascoste' ? [] : src.reg, P = src.periodi, est = CORS === 'estese';
-  const lh = est ? 13 : 5, gap = est ? 3 : 1, top = 46, h = top + REG_PO.length * (lh + gap) + 18, x = d3.scaleLinear([T0, T1], [0, w]), x0 = w > 520 ? 205 : 0;
-  tls.style.height = h + 'px';
-  const c = dec(), mx = Math.max(...[...c.values()].map(v => v[0] + v[1]), 1);
-  let s = '';
-  for (const [d, [a, b]] of c) s += `<rect x="${x(d)}" y="${42 - 40 * (a + b) / mx}" width="${Math.max(1, x(d + 10) - x(d) - 1)}" height="${40 * b / mx}" fill="var(${CONFRONTO ? '--lacca' : '--co'})" opacity="${CONFRONTO ? .8 : .35}"/><rect x="${x(d)}" y="${42 - 40 * a / mx}" width="${Math.max(1, x(d + 10) - x(d) - 1)}" height="${40 * a / mx}" fill="var(--co)"/>`;
-  if (VAM && S.L.vam && S.L.opere) { const vd = new Map(); for (const k of VAM.celle) vd.set(k.d, (vd.get(k.d) || 0) + k.n); const vmx = Math.max(...vd.values(), 1);
-    s += `<polyline fill="none" stroke="var(--fe)" stroke-width="1.4" points="${[...vd].filter(([d]) => d >= T0).sort((a, b) => a[0] - b[0]).map(([d, n]) => `${x(d + 5)},${42 - 40 * n / vmx}`).join(' ')}"/>`; }
-  s += `<rect x="${x(S.year - S.win)}" y="0" width="${x(S.year + S.win) - x(S.year - S.win)}" height="${h - 16}" fill="var(--fe)" opacity=".08"/>`;
-  REG_PO.forEach((r, i) => { const yy = top + i * (lh + gap), ps = P.filter(p => p.r === r), qui = ps.filter(p => p.a <= S.year && p.b >= S.year);
-    if (w > 520 && est) s += `<text x="2" y="${yy + 10}" font-size="10.5" fill="var(--mute)">${esc(r)} <tspan fill="var(--ink)">${qui.length}</tspan></text>`;
-    if (!est) s += `<rect x="0" y="${yy}" width="${w}" height="${lh + gap}" fill="transparent"><title>${esc(r)}: ${qui.length} nell'anno scelto</title></rect>`;
-    for (const p of ps) { const a = Math.max(x(Math.max(p.a, T0)), est ? x0 : 0), b = x(Math.min(p.b, T1)); if (b > a) s += `<rect x="${a}" y="${yy}" width="${b - a}" height="${lh}" fill="var(--co)" opacity="${est ? .07 : .09}" pointer-events="none"/>`; }
-    if (!ps.length && src.vuoto && est) s += `<text x="${x0 + 4}" y="${yy + 10}" font-size="10" fill="var(--mute)">${src.vuoto}</text>`; });
-  for (let t = Math.ceil((T0 + 1) / PASSO) * PASSO; t < T1; t += w < 520 ? 4 * PASSO : PASSO) s += `<text x="${x(t)}" y="${h - 3}" font-size="10.5" fill="var(--mute)" text-anchor="middle">${fmtY(t)}</text>`;
-  s += `<line x1="${x(S.year)}" x2="${x(S.year)}" y1="0" y2="${h - 14}" stroke="var(--fe)" stroke-width="2"/>`;
-  tls.innerHTML = s; $('#yr').textContent = fmtY(S.year);
-  tls.setAttribute('aria-valuemin', T0); tls.setAttribute('aria-valuemax', T1); tls.setAttribute('aria-valuenow', S.year);
-  tls.setAttribute('aria-valuetext', `${fmtY(S.year)}, finestra più o meno ${S.win} anni`);
-  $('#tlinfo').textContent = `${src.info}${VAM && S.L.vam && S.L.opere ? ' · linea rossa: V&A' : ''}`;
-}
 function nominato() {
   if (!PO) return '';
   const g = REG_PO.map(r => [r, PO.periodi.filter(p => p.r === r && p.a <= S.year && p.b >= S.year)]).filter(([, ps]) => ps.length);
@@ -443,19 +450,17 @@ $('#vaia').onchange = e => { const r = e.target.value; e.target.value = ''; if (
   if (r === 'mondo') { S.k = 1; } else { const [lon, lat, k] = CENTRI_REG[r]; S.rot = [-lon, -lat]; S.k = k; }
   draw(); };
 /* pannelli richiudibili, ricordati da una visita all'altra */
-let CORS = 'compatte';
 const PANN = (() => { try { return JSON.parse(localStorage.getItem('armoni-pannelli') || '{}'); } catch (e) { return {}; } })();
 function pannelli() {
   for (const [k, id, nome] of [['lay', '#chiudi-lay', 'sinistra'], ['ctx', '#chiudi-ctx', 'destra']]) {
     document.body.classList.toggle('senza-' + k, !!PANN[k]); const b = $(id);
     b.setAttribute('aria-pressed', !!PANN[k]); b.setAttribute('aria-label', (PANN[k] ? 'Mostra' : 'Nascondi') + ' il pannello di ' + nome);
     b.textContent = (k === 'lay') === !PANN[k] ? '‹' : '›'; }
-  CORS = ['nascoste', 'compatte', 'estese'].includes(PANN.corsie) ? PANN.corsie : 'compatte'; document.querySelectorAll('[data-cors]').forEach(b => b.setAttribute('aria-pressed', b.dataset.cors === CORS));
+
   try { localStorage.setItem('armoni-pannelli', JSON.stringify(PANN)); } catch (e) { }
   requestAnimationFrame(() => draw());
 }
 for (const [id, k] of [['#chiudi-lay', 'lay'], ['#chiudi-ctx', 'ctx']]) $(id).onclick = () => { PANN[k] = !PANN[k]; pannelli(); };
-document.querySelectorAll('[data-cors]').forEach(b => b.onclick = () => { PANN.corsie = b.dataset.cors; pannelli(); drawTl(); });
 $('#tlinfobtn').onclick = () => { const i = $('#tlinfo'), o = i.hidden; i.hidden = !o; $('#tlinfobtn').setAttribute('aria-expanded', o); };
 let timer = null;
 $('#play').onclick = () => { const b = $('#play'); if (timer) { clearInterval(timer); timer = null; b.setAttribute('aria-pressed', 'false'); b.textContent = '▶ Scorri'; return; }
@@ -857,7 +862,8 @@ function applyTappa() {
   const t = TAPPE[S.tappa]; if (!Lr) Lr = {...S.L};
   S.year = t.y; S.win = t.w; S.rot = [...t.rot]; S.k = 1; S.place = null; S.sel = null;
   CAT.reg = CAT.tipo = CAT.ctx = '';  // il racconto vale sull'intero filo
-  S.L = {opere: 1, confini: 1, origini: 1, sedi: 0, spostamenti: 0, mercati: 0, silenzio: 0, ipotetici: 1, dedotti: 0, vam: 0, letteratura: 0, contesti: 0, relazioni: 0, ...t.L}; G.on = {}; G.mem = {};
+  if (t.po) { S.corsie = 'periodo'; $('#corsie').value = 'periodo'; }
+  S.L = {opere: 1, periodi: t.po ? 1 : 0, confini: 1, origini: 1, sedi: 0, spostamenti: 0, mercati: 0, silenzio: 0, ipotetici: 1, dedotti: 0, vam: 0, letteratura: 0, contesti: 0, relazioni: 0, ...t.L}; G.on = {}; G.mem = {};
   update();
   const inHi = act.filter(x => t.hi.includes(x.origine)), ipo = inHi.filter(x => x.grado === 'ipotetico').length;
   const poDati = () => { if (!PO) return 'PeriodO non caricato.'; return 'Nel ' + fmtY(t.y) + ': ' + REG_PO.map(r => { const ps = PO.periodi.filter(p => p.r === r && p.a <= t.y && p.b >= t.y); if (!ps.length) return ''; const lg = {}; for (const p of ps) lg[p.lg] = (lg[p.lg] || 0) + 1;
@@ -894,6 +900,7 @@ function route() {
   S.mode = m === 'percorso' && PRIMO ? 'percorso' : m === 'qualita' ? 'qualita' : 'ricerca';
   document.body.classList.toggle('percorso', S.mode === 'percorso');
   document.body.classList.toggle('qualita', S.mode === 'qualita');
+  document.body.classList.toggle('ricerca', S.mode === 'ricerca');
   for (const m of ['ricerca', 'percorso', 'qualita']) $('#m-' + m).setAttribute('aria-pressed', S.mode === m);
   if (S.mode !== 'ricerca') $('#tavolo').classList.remove('open');  // negli altri modi il pulsante del Tavolo non c'è
   if (S.mode === 'qualita') { renderQual(); return; }
@@ -1020,9 +1027,9 @@ function vai(d) {
   if (d.modo) { location.hash = d.modo; return; }
   Lr = null; if (location.hash !== '#ricerca') location.hash = '#ricerca';
   S.year = d.y; S.win = d.w; S.rot = [...d.rot]; S.k = 1; S.sel = null; S.place = d.place || null;
-  S.L = {opere: 1, confini: 1, origini: 0, sedi: 0, spostamenti: 0, mercati: 0, silenzio: 0, ipotetici: 1, dedotti: 0, vam: 0, letteratura: 0, contesti: 0, relazioni: 0, ...d.L};
+  S.L = {opere: 1, periodi: 0, confini: 1, origini: 0, sedi: 0, spostamenti: 0, mercati: 0, silenzio: 0, ipotetici: 1, dedotti: 0, vam: 0, letteratura: 0, contesti: 0, relazioni: 0, ...d.L};
   S.CT = new Set(d.CT || TIPI_CX); document.querySelectorAll('[data-ct]').forEach(i => { i.checked = S.CT.has(i.dataset.ct); });
-  if (d.corsie) { S.corsie = d.corsie; $('#corsie').value = d.corsie; }
+  if (d.corsie) { S.corsie = d.corsie; $('#corsie').value = d.corsie; S.L.periodi = 1; syncChecks?.(); }
   G.on = {}; G.mem = {}; syncChecks(); update();
 }
 const gd = document.createElement('div'); gd.id = 'guida'; gd.hidden = true; document.body.appendChild(gd);

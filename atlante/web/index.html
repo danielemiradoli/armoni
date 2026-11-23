@@ -91,7 +91,7 @@ body.qualita #qual{display:block}
 .qt td small{display:block;color:var(--mute);font-size:11px}
 .qsel{display:flex;gap:0;margin-top:12px;flex-wrap:wrap}.qsel button{border-radius:0}.qsel button:first-child{border-radius:6px 0 0 6px}.qsel button:last-child{border-radius:0 6px 6px 0}
 /* percorso */
-body.percorso .app{grid-template:"top top" auto "map nar" minmax(0,1fr) "tl tl" auto/minmax(0,1fr) 400px}
+body.percorso .app{grid-template:"top top" auto "map nar" minmax(0,1fr) "tl tl" auto "per per" auto/minmax(0,1fr) 400px}
 body.percorso #lay,body.percorso #ctx,body.percorso #q,body.percorso #tavbtn{display:none}
 #nar{grid-area:nar;display:none;border-left:1px solid var(--line);padding:22px;overflow:auto}
 body.percorso #nar{display:block}
@@ -313,6 +313,25 @@ details.leggi[open] summary{margin-bottom:6px}
 .tlbar{row-gap:6px}
 #cop{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;padding:5px 16px 6px}#cop.aperta{white-space:normal}
 .shead h4{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ---------- pagina che scorre: prima schermata = globo, pannelli e tempo; sotto, i periodi e la copertura ---------- */
+@media(min-width:901px){
+ body.ricerca{overflow:auto}
+ body.ricerca .app{height:auto;min-height:100vh;grid-template:"top top top" auto "lay map ctx" calc(100vh - var(--hh,60px) - var(--th,118px)) "tl tl tl" auto "per per per" auto "cop cop cop" auto/236px minmax(0,1fr) 340px}
+ body.ricerca.senza-lay .app{grid-template-columns:0 minmax(0,1fr) 340px}body.ricerca.senza-ctx .app{grid-template-columns:236px minmax(0,1fr) 0}body.ricerca.senza-lay.senza-ctx .app{grid-template-columns:0 minmax(0,1fr) 0}
+ body.ricerca header{position:sticky;top:0;z-index:25}
+ body.ricerca #tl{position:sticky;top:var(--hh,60px);z-index:24}
+}
+#periodi{grid-area:per;padding:14px 16px 18px;border-top:1px solid var(--line);background:var(--bg)}
+.perhd{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.perhd h3{font-size:17px}
+.perhd select{font-size:13px;padding:3px 6px;border:1px solid var(--line);border-radius:6px;background:var(--panel);margin-left:4px}
+#per-leg{margin:4px 0 10px;font-size:12.5px;max-width:80ch}
+#tlc{width:100%;display:block;cursor:pointer;user-select:none}
+#tlctip{position:absolute;max-width:260px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 9px;font-size:12.5px;line-height:1.4;pointer-events:none;box-shadow:0 2px 10px rgb(16 28 70 / .1);z-index:5}
+footer#cop{grid-area:cop;border-top:1px solid var(--line)}
+body.qualita #periodi,body.percorso footer#cop,body.qualita footer#cop,body.incorpora #periodi{display:none!important}
+.ghead>input{flex:none;width:16px;height:16px}
+body.percorso .lato,body.qualita .lato{display:none}
 </style>
 </head>
 <body data-strumento="atlante">
@@ -382,6 +401,7 @@ details.leggi[open] summary{margin-bottom:6px}
   </section>
   <h3>Sfondo comune</h3>
   <label class="chk"><input type="checkbox" data-l="confini" checked><span>Confini storici<small>A. Ourednik, historical-basemaps (GPL-3.0), istantanea più vicina all'anno</small></span></label>
+  <label class="chk"><input type="checkbox" data-l="periodi"><span>Periodi<small>dinastie e periodi storici di ogni area, sotto la barra del tempo; si può scegliere la fonte (Wikidata, PeriodO, i contesti)</small></span></label>
   <label class="chk"><input type="checkbox" data-l="silenzio"><span>Silenzio delle fonti<small>quanto il dato è vago, e dove tace</small></span></label>
   <h3>Vista</h3>
   <div class="seg"><button id="p-globo" aria-pressed="true">Globo</button><button id="p-piano" aria-pressed="false">Piano</button></div>
@@ -402,13 +422,18 @@ details.leggi[open] summary{margin-bottom:6px}
    <button id="play" aria-pressed="false">▶ Scorri</button>
    <div class="seg finestra" role="group" aria-label="Finestra di tempo"><span class="sub">finestra</span><button data-win="10">±10</button><button data-win="25">±25</button><button data-win="50">±50</button><button data-win="100">±100</button><button data-win="tutto">tutto</button></div><select id="win" hidden aria-hidden="true"><option>10</option><option selected>25</option><option>50</option><option>100</option></select>
 
-   <label>corsie <select id="corsie"><option value="periodo">PeriodO: chi definisce</option><option value="wikidata">Wikidata: dinastie</option><option value="contesti">Wikidata: fenomeni artistici</option></select></label>
-   <div class="seg corsieh" role="group" aria-label="Altezza delle corsie"><button data-cors="nascoste">nascoste</button><button data-cors="compatte">compatte</button><button data-cors="estese">estese</button></div><button class="info" id="tlinfobtn" aria-expanded="false" aria-controls="tlinfo" aria-label="Come leggere la barra del tempo">i</button>
+
+<button class="info" id="tlinfobtn" aria-expanded="false" aria-controls="tlinfo" aria-label="Come leggere la barra del tempo">i</button>
    <span class="sub" id="tlinfo" hidden></span>
   </div>
   <svg id="tls" role="slider" aria-label="Anno" tabindex="0"></svg>
-  <div id="cop" role="status" aria-label="Copertura dei dati"></div>
  </section>
+ <section id="periodi" aria-labelledby="per-titolo" hidden>
+  <div class="perhd"><h3 id="per-titolo">Periodi</h3><span class="sub" id="per-fonte"></span><span class="sp" style="flex:1"></span><label class="sub">mostra <select id="corsie" aria-label="Quale periodizzazione"><option value="wikidata">dinastie e periodi (Wikidata)</option><option value="periodo">quanto è nominato il tempo (PeriodO)</option><option value="contesti">Wikidata: fenomeni artistici</option></select></label></div>
+  <p class="sub" id="per-leg"></p>
+  <div style="position:relative"><svg id="tlc" aria-hidden="true"></svg><div id="tlctip" hidden></div></div>
+ </section>
+ <footer id="cop" role="status" aria-label="Copertura dei dati"></footer>
 </div>
 
 <section id="tavolo" aria-label="Tavolo">
