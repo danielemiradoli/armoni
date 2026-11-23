@@ -720,18 +720,41 @@ function segnaposto() {
 
 /* ---------- tavolo ---------- */
 const salva = () => { try { localStorage.setItem(TAVK, JSON.stringify(S.tav)); } catch (e) {} };
-function addTav(id) { if (S.tav.some(c => c.id === id)) return; const i = S.tav.length; S.tav.push({id, x: 16 + (i % 5) * 246, y: 14 + Math.floor(i / 5) * 180, nota: ''}); salva(); renderTav(); $('#tavolo').classList.add('open'); }
+/* Ogni scheda del tavolo ricorda da dove viene: il pezzo (si riapre nella sua scheda, sul suo luogo e nel suo
+   tempo), la vista in cui l'hai trovato, e la scheda del museo. Così navigando non si perde nulla. */
+function addTav(id) { if (S.tav.some(c => c.id === id)) return; const i = S.tav.length;
+  S.tav.push({id, x: 16 + (i % 5) * 276, y: 14 + Math.floor(i / 5) * 290, nota: '', vista: vistaURL(), quando: new Date().toISOString().slice(0, 10)}); salva(); renderTav(); renderTavCount(); }
+function apriPezzo(id) {
+  const x = O.find(o => o.id === id); if (!x) return;
+  S.mode = 'ricerca'; S.intorno = null; S.sel = id; S.place = luogo(x);
+  const mezzo = Math.round((x.inizio + x.fine) / 2); S.year = Math.max(T0, Math.min(T1, mezzo)); S.win = Math.max(S.win, Math.min(100, Math.ceil((x.fine - x.inizio) / 2)));
+  const l = LU[luogo(x)]; if (l) S.rot = [-l.lon, -l.lat];
+  $('#tavolo').classList.remove('open'); if (location.hash.split('&')[0] !== '#ricerca') location.hash = '#ricerca'; update();
+  $('#ctx').scrollTop = 0; $('#ctx').focus?.();
+}
 function renderTav() {
   $('#tavn').textContent = S.tav.length;
   const b = $('#board');
-  b.innerHTML = S.tav.length ? S.tav.map((c, i) => { const x = O.find(o => o.id === c.id);
-    return `<div class="card" data-i="${i}" style="left:${c.x}px;top:${c.y}px"><div class="ch"><span class="num">${i + 1}</span><b>${esc(x.titolo.slice(0, 48))}</b><button class="x" data-rm="${i}" aria-label="Togli dal tavolo">×</button></div>
-    <div class="cb"><div class="sub">${esc(x.o ? x.o.nome : '—')} · ${fmtY(x.inizio)}–${fmtY(x.fine)} · ${x.grado}</div><textarea data-nota="${i}" placeholder="Nota">${esc(c.nota)}</textarea></div></div>`; }).join('')
-    : '<p class="empty">Il tavolo è vuoto. Apri la scheda di un pezzo e scegli «Metti sul tavolo»: qui potrai accostare opere di luoghi ed epoche diverse, spostarle e annotarle. Il tavolo resta solo in questo browser.</p>';
+  b.innerHTML = S.tav.length ? S.tav.map((c, i) => { const x = O.find(o => o.id === c.id), l = LU[luogo(x)], cat = FONTE_LUNGA[x.fonte] || x.fonte;
+    return `<article class="card" data-i="${i}" style="left:${c.x}px;top:${c.y}px" aria-label="Scheda ${i + 1} del tavolo: ${esc(x.titolo)}">
+    <div class="ch"><span class="num">${i + 1}</span><b class="tt" title="${esc(x.titolo)}">${esc(x.titolo)}</b><button class="x" data-rm="${i}" aria-label="Togli dal tavolo">×</button></div>
+    <div class="cb">
+     <div class="tags"><span class="tag ${x.grado === 'documentato' ? 'doc' : 'ipo'}">${x.grado}</span>${x.fl ? `<span class="tag">${NOMI_FILO[x.fl]}</span>` : ''}${x.tipo ? `<span class="tag">${esc(x.tipo)}</span>` : ''}</div>
+     <dl>
+      <dt>Da dove</dt><dd>${l ? `${esc(l.nome)} <span class="sub">· ${PREC[l.precisione]}</span>` : '<span class="sub">luogo non determinabile</span>'}</dd>
+      <dt>Quando</dt><dd>${esc(x.data_testo) || '—'} <span class="sub">· ${fmtY(x.inizio)}–${fmtY(x.fine)}</span></dd>
+      ${x.cultura && x.cultura !== x.data_testo ? `<dt>Cultura</dt><dd>${esc(x.cultura)}</dd>` : ''}
+      ${x.tecnica ? `<dt>Tecnica</dt><dd class="lim">${esc(x.tecnica)}</dd>` : ''}
+      <dt>Oggi</dt><dd>${esc(x.museo || (x.s ? x.s.nome : '—'))} <span class="sub">· ${esc(cat)}</span></dd>
+     </dl>
+     <textarea data-nota="${i}" placeholder="Nota" aria-label="Nota sulla scheda ${i + 1}">${esc(c.nota)}</textarea>
+     <div class="cacts"><button data-apri="${x.id}">Apri la scheda</button>${c.vista ? `<a href="${esc(c.vista)}" data-vista="${i}" title="La vista dell'atlante in cui l'hai messa sul tavolo${c.quando ? ', il ' + c.quando : ''}">Vista d'origine</a>` : ''}<a href="${esc(x.url)}" target="_blank" rel="noopener">Museo ↗</a></div>
+    </div></article>`; }).join('')
+    : '<p class="empty">Il tavolo è vuoto. Apri la scheda di un pezzo e scegli «Metti sul tavolo»: qui potrai accostare opere di luoghi ed epoche diverse, spostarle e annotarle. Ogni scheda riporta al pezzo, alla vista in cui l\'hai trovato e al museo. Il tavolo resta solo in questo browser.</p>';
   const ax = $('#tavax'), w = ax.clientWidth || 600, xs = S.tav.map(c => O.find(o => o.id === c.id));
   if (!xs.length) { ax.innerHTML = ''; return; }
   const lo = Math.min(...xs.map(x => x.inizio)) - 20, hi = Math.max(...xs.map(x => x.fine)) + 20, sc = d3.scaleLinear([lo, hi], [24, w - 24]);
-  ax.innerHTML = xs.map((x, i) => `<line x1="${sc(x.inizio)}" x2="${Math.max(sc(x.fine), sc(x.inizio) + 2)}" y1="${10 + (i % 4) * 8}" y2="${10 + (i % 4) * 8}" stroke="var(--co)" stroke-width="4" stroke-linecap="round"/><text x="${sc(x.inizio) - 4}" y="${14 + (i % 4) * 8}" font-size="10" fill="var(--fe)" text-anchor="end">${i + 1}</text>`).join('')
+  ax.innerHTML = xs.map((x, i) => `<g data-apri="${x.id}" style="cursor:pointer"><title>${esc(x.titolo)} — apri la scheda</title><line x1="${sc(x.inizio)}" x2="${Math.max(sc(x.fine), sc(x.inizio) + 2)}" y1="${10 + (i % 4) * 8}" y2="${10 + (i % 4) * 8}" stroke="var(--co)" stroke-width="4" stroke-linecap="round"/><text x="${sc(x.inizio) - 4}" y="${14 + (i % 4) * 8}" font-size="10" fill="var(--fe)" text-anchor="end">${i + 1}</text></g>`).join('')
     + sc.ticks(6).map(t => `<text x="${sc(t)}" y="52" font-size="10.5" fill="var(--mute)" text-anchor="middle">${fmtY(t)}</text>`).join('');
 }
 let cd = null;
@@ -739,11 +762,15 @@ $('#board').addEventListener('pointerdown', e => { const h = e.target.closest('.
 $('#board').addEventListener('pointermove', e => { if (!cd) return; const c = S.tav[cd.i]; c.x = Math.max(0, e.clientX - cd.x); c.y = Math.max(0, e.clientY - cd.y); cd.card.style.left = c.x + 'px'; cd.card.style.top = c.y + 'px'; });
 $('#board').addEventListener('pointerup', () => { if (cd) { cd = null; salva(); } });
 $('#board').addEventListener('input', e => { if (e.target.dataset.nota) { S.tav[+e.target.dataset.nota].nota = e.target.value; salva(); } });
-$('#board').addEventListener('click', e => { const r = e.target.closest('[data-rm]'); if (r) { S.tav.splice(+r.dataset.rm, 1); salva(); renderTav(); renderCtx(); } });
+$('#board').addEventListener('click', e => { const r = e.target.closest('[data-rm]'); if (r) { S.tav.splice(+r.dataset.rm, 1); salva(); renderTav(); renderCtx(); return; }
+  const a = e.target.closest('[data-apri]'); if (a) { apriPezzo(a.dataset.apri); return; }
+  const v = e.target.closest('[data-vista]'); if (v) { e.preventDefault(); const c = S.tav[+v.dataset.vista], u = new URL(c.vista, location.href);
+    if (u.pathname === location.pathname && u.search === location.search) { $('#tavolo').classList.remove('open'); location.hash = u.hash; } else location.href = u.href; } });
+$('#tavax').addEventListener('click', e => { const a = e.target.closest('[data-apri]'); if (a) apriPezzo(a.dataset.apri); });
 $('#tavbtn').onclick = () => { renderTav(); $('#tavolo').classList.toggle('open'); };
 $('#tavclose').onclick = () => $('#tavolo').classList.remove('open');
 $('#tavclear').onclick = () => { S.tav = []; salva(); renderTav(); renderCtx(); };
-$('#tavcopy').onclick = async () => { const t = S.tav.map((c, i) => { const x = O.find(o => o.id === c.id); return `${i + 1}. ${x.titolo} — ${x.cultura}, ${x.data_testo} [${x.grado}] ${x.url}${c.nota ? '\n   nota: ' + c.nota : ''}`; }).join('\n');
+$('#tavcopy').onclick = async () => { const t = S.tav.map((c, i) => { const x = O.find(o => o.id === c.id); return `${i + 1}. ${x.titolo} — ${x.cultura}, ${x.data_testo} [${x.grado}]\n   museo: ${x.url}${c.vista ? '\n   in ArMoni: ' + c.vista : ''}${c.nota ? '\n   nota: ' + c.nota : ''}`; }).join('\n');
   const b = $('#tavcopy'); try { await navigator.clipboard.writeText(t); b.textContent = 'Copiato'; } catch (e) { b.textContent = 'Copia non consentita qui'; } setTimeout(() => { b.textContent = 'Copia elenco'; }, 1800); };
 
 /* ---------- percorso ---------- */
@@ -856,6 +883,7 @@ function vistaURL() {
   const r = S.rot.map(x => Math.round(x)).join(','), l = [...Object.keys(S.L).filter(k => S.L[k]), ...(S.L.opere ? [] : ['nofilo'])].join(',');
   let h = `${S.mode}&y=${S.year}&w=${S.win}&r=${r}&l=${l}&ct=${[...S.CT].join(',')}&c=${S.corsie || ''}`;
   if (S.place) h += '&p=' + encodeURIComponent(S.place);
+  if (S.sel) h += '&s=' + encodeURIComponent(S.sel);
   for (const [k, p] of [['reg', 'cr'], ['tipo', 'ct2'], ['ctx', 'cx']]) if (CAT[k]) h += `&${p}=${encodeURIComponent(CAT[k])}`;
   if (S.mode === 'percorso') h += '&t=' + S.tappa;
   return location.origin + location.pathname + (PRIMO ? '' : '?filo=' + FILO) + '#' + h;
@@ -882,6 +910,7 @@ function leggiVista() {
   if (q.get('ct')) { S.CT = new Set(q.get('ct').split(',').filter(t => TIPI_CX.includes(t))); document.querySelectorAll('[data-ct]').forEach(i => { i.checked = S.CT.has(i.dataset.ct); }); }
   if (q.get('c')) { S.corsie = q.get('c'); $('#corsie').value = S.corsie; }
   if (q.get('p')) S.place = q.get('p');
+  S.sel = q.get('s') || null;
   if (q.has('t')) S.tappa = Math.max(0, Math.min(TAPPE.length - 1, n('t', 0)));
 }
 const MODULO = 'https://tally.so/r/Z92Jpz';
