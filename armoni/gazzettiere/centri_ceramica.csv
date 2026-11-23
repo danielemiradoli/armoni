@@ -1,0 +1,75 @@
+luogo,regex
+Jingdezhen,jingdezhen
+İznik,iznik
+Kütahya,k[uü]tahya
+Delft,delft
+Arita,arita|hizen
+Hirado,hirado
+Seto,\bseto\b
+Kyoto,kyoto
+Puebla City,puebla
+Talavera de la Reina,talavera
+Zhangzhou,zhangzhou|swatow
+Hải Dương,h[aả]i d[uư][oơ]ng
+Hội An,h[oộ]i an\b
+Gwangju,gwangju
+Kashan,kashan
+Mashhad,mashhad
+Kerman,kirman|kerman
+Tabriz,tabriz
+Isfahan,isfahan
+Nishapur,nishapur
+Samarkand,samarqand|samarkand
+Damascus,damascus
+Cairo,cairo|fustat
+Worcester,worcester
+Lowestoft,lowestoft
+Chelsea,chelsea
+Bow,\bbow\b
+Derby,\bderby\b
+Bristol,bristol
+Liverpool,liverpool
+Staffordshire,staffordshire
+London,london|lambeth|southwark
+Saint-Cloud,saint-cloud
+Chantilly,chantilly
+Rouen,rouen
+Nevers,nevers
+Paris,\bparis\b
+Meissen,meissen
+Hanau,hanau
+Frankfurt,frankfurt
+Florence,florence|medici
+Venice,venice|venetian
+Lisbon,lisbon
+Seville,seville
+Antwerp,antwerp
+Warsaw,warsaw
+Philadelphia,philadelphia
+Mexico City,mexico city
+Caughley,caughley
+Etruria,etruria
+Barlaston,barlaston
+Burslem,burslem
+Hanley,hanley
+Stoke-on-Trent,stoke-on-trent
+Shropshire,shropshire
+Forlì,forl[iì]
+Sesto Fiorentino,doccia
+Naples,naples|capo ?di ?monte
+Tournai,tournai
+Sèvres,s[eè]vres
+Copenhagen,copenhagen
+Plymouth,plymouth
+Vauxhall,vauxhall
+Glasgow,glasgow
+Leeds,\bleeds\b
+Kolkata,kolkata|calcutta
+Fez,\bfe[sz]\b
+Nagasaki,nagasaki
+Yokohama,yokohama
+Hong Kong,hong kong
+Dehua County,dehua
+Fujian,fujian
+Gansu,gansu
+Sindh,sindh

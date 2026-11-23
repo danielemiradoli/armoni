@@ -1,0 +1,62 @@
+# Filo 1 — La porcellana blu e bianca nel mondo.
+# Un pezzo entra «documentato» solo se il record dichiara il blu (sotto vetrina, cobalto, «blu e bianco»);
+# entra «ipotetico» se il record nomina una manifattura nota per il blu e bianco ma non il colore.
+
+nome = "blu"
+titolo = "La porcellana blu e bianca nel mondo"
+uscita = "web"                      # cartella delle viste dell'Atlante, relativa ad atlante/
+centri = ["centri_ceramica"]        # gazzettieri (armoni/gazzettiere/*.csv), nell'ordine in cui si cercano
+paesi = ["paesi"]
+
+[inclusione]
+dichiarato = 'underglaze[- ](?:cobalt[- ])?blue|cobalt|blue[- ]and[- ]white|blue and white|painted in blue|blue on white'
+criterio = "blu dichiarato nel record: «{m}»"
+# manifatture associate al blu e bianco: senza blu nel testo l'inclusione resta un'ipotesi
+# ('puebla' da sola prendeva ceramiche precolombiane della regione di Puebla)
+famiglie = [["Kraak", 'kraak'], ["Iznik", 'iznik'], ["Kütahya", 'k[uü]tahya'], ["Kubachi", 'kubachi'], ["Delft", 'delft'],
+            ["Talavera / Puebla", 'talavera|puebla.*(?:tin[- ]glaz|majolica|maiolica)|(?:tin[- ]glaz|majolica|maiolica).*puebla']]
+criterio_famiglia = "manifattura {f}; il record non nomina il blu"
+
+[fonti.met]
+# ceramiche: \bTiles?\b e non 'Tile', che prendeva anche 'Textiles'
+alcuni = [{ campo = "Classification", regex = 'Ceramic|Porcelain|Pottery|\bTiles?\b|Earthenware|Faience' },
+          { campo = "Medium", regex = 'stonepaste|faience|earthenware|porcelain|fritware|tin-glaze|tin glaze|stoneware' }]
+testo = ["Medium", "Title", "Object Name"]
+testo_famiglia = ["Title", "Object Name", "Culture", "Medium", "Period", "City", "Tags"]
+
+[fonti.cma]
+alcuni = [{ campo = "type", regex = 'Ceramic' }]
+testo = ["technique", "title", "description"]
+testo_famiglia = ["title", "culture", "technique", "description"]
+
+[fonti.wd]
+# Wikidata: blu dichiarato in etichette o descrizioni (pt, en, ja, zh, fr…). Niente 'cobalt' nudo e niente 'azul'
+# dentro 'azulejo': 'cobalt blue glaze' e 'sky blue glaze' sono monocromi, e si escludono salvo «underglaze».
+testo = ["testo"]
+dichiarato = 'underglazed?[- ](?:cobalt[- ]?)?blue|underglaze cobalt|blue[- ]and[- ]white|blue and white|azul[- ]e[- ]branco|azul[- ]cobalto|\bazul\b|bleu de cobalt|bleu et blanc|染付|青花|sometsuke|qinghua'
+criterio = "blu dichiarato su Wikidata: «{m}»"
+escludi = 'monochrome|sky blue glaze|cobalt blue glaze|blue[- ]glazed|霽青|天青'
+salvo = 'underglaze|染付|青花'
+famiglie = [["Kraak", 'kraak'], ["Iznik", 'iznik'], ["Kütahya", 'k[uü]tahya'], ["Kubachi", 'kubachi'], ["Delft", 'delft'],
+            ["Talavera / Puebla", 'talavera|puebla.*(?:tin[- ]glaz|majolica|maiolica)|(?:tin[- ]glaz|majolica|maiolica).*puebla'],
+            ["azulejo", 'azulejo']]
+criterio_famiglia = "genere o manifattura {f}; Wikidata non nomina il blu"
+
+[fonti.colbase]
+# i record ColBase sono già il risultato di una ricerca per parole del blu: se il titolo non lo dichiara, è un'ipotesi
+alcuni = [{ campo = "categoria", regex = '^(?:陶磁|東洋陶磁)$' }]
+testo = ["titolo"]
+dichiarato = '染付|青花|underglaze[- ]blue|blue[- ]and[- ]white'
+criterio = "blu nel titolo ColBase: «{m}»"
+famiglie = []
+altrimenti = "ipotetico"
+criterio_altrimenti = "{parole} solo nella descrizione o nel marchio: il pezzo puo' essere policromo"
+centri_extra = ["centri_ja"]
+paesi_extra = ["paesi_ja"]
+
+[fonti.emuseum]
+per_campo = true
+testo = [["명칭", "nome"]]
+dichiarato = '청화'
+criterio = "blu dichiarato nel {dove}: «{m}» (bianco e blu)"
+famiglie = []

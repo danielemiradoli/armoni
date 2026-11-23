@@ -1,0 +1,39 @@
+# Filo 2 — La lacca nel mondo.
+# Un pezzo entra solo se il catalogo dichiara la lacca nel materiale o nella tecnica. Le imitazioni europee
+# (japanning, vernis Martin) entrano come tali: il record dice «japanned», non «lacquer».
+# 'Lacquer' nei musei moderni è anche vernice industriale: quei dipartimenti restano fuori.
+
+nome = "lacca"
+titolo = "La lacca nel mondo"
+uscita = "web/fili/lacca"
+centri = ["centri_lacca"]           # solo nomi che non sono anche nomi d'epoca (niente Edo, Kamakura, Momoyama)
+paesi = ["paesi", "paesi_lacca_extra"]
+
+[inclusione]
+dichiarato = '\blacquer(?:ed|ware|work)?\b|\burushi\b|maki-?e\b|\bmaque\b|\bthitsi\b'
+criterio = "lacca dichiarata nel record: «{m}»"
+imitazione = '\bjapann(?:ed|ing)\b|vernis martin|lacca povera|lacca contraffatta'
+criterio_imitazione = "imitazione europea dichiarata nel record: «{m}»"
+# filo metallico: carta laccata avvolta su un'anima, dentro un tessuto (kinran, broccati)
+escludi = 'nitrocellulose|automotive|spray|lacquer on canvas|nail|lacquered[- ]paper[- ]strip|lacquered paper.{0,60}(?:weave|wrapped|thread)'
+
+[fonti.met]
+alcuni = [{ campo = "Medium", regex = '\blacquer(?:ed|ware|work)?\b|\burushi\b|maki-?e\b|\bmaque\b|\bthitsi\b|\bjapann(?:ed|ing)\b|vernis martin|lacca povera|lacca contraffatta' }]
+nessuno = [{ campo = "Department", regex = '^(?:Modern and Contemporary Art|Photographs|Drawings and Prints)$' }]
+testo = ["Medium"]
+
+[fonti.cma]
+alcuni = [{ campo = "technique", regex = '\blacquer(?:ed|ware|work)?\b|\burushi\b|maki-?e\b|\bmaque\b|\bthitsi\b|\bjapann(?:ed|ing)\b|vernis martin|lacca povera|lacca contraffatta' }]
+testo = ["technique"]
+
+[fonti.aic]
+nessuno = [{ campo = "department_title", regex = '^(?:Contemporary Art|Prints and Drawings|Photography and Media)$' }]
+testo = ["medium_display"]
+
+[fonti.emuseum]
+per_campo = true
+testo = [["재질", "materiale"], ["명칭", "nome"]]
+dichiarato = '칠|漆|나전|螺鈿'
+criterio = "lacca dichiarata nel {dove}: «{m}»"
+escludi = ''
+imitazione = ''

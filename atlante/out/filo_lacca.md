@@ -1,6 +1,6 @@
 # Filo 2: la lacca — metriche
 
-Pezzi: **5226** — Met 2888, Cleveland 362, Chicago 373, eMuseum 1603; imitazioni europee dichiarate 31; senza date 176.
+Pezzi: **5226** — Met 2888, Cleveland 362, Chicago 373, eMuseum 1603; imitazioni europee dichiarate 31; senza date 172.
 
 | origine | pezzi |
 |---|---|
@@ -47,19 +47,19 @@ Pezzi: **5226** — Met 2888, Cleveland 362, Chicago 373, eMuseum 1603; imitazio
 | 0 | 147 |
 | 1 | 123 |
 | 2 | 3 |
-| 7 | 34 |
+| 7 | 33 |
 | 8 | 10 |
 | 9 | 3 |
 | 10 | 30 |
-| 11 | 20 |
-| 12 | 26 |
+| 11 | 21 |
+| 12 | 30 |
 | 13 | 74 |
-| 14 | 289 |
+| 14 | 281 |
 | 15 | 105 |
 | 16 | 483 |
 | 17 | 398 |
 | 18 | 981 |
-| 19 | 1136 |
-| 20 | 609 |
+| 19 | 1143 |
+| 20 | 610 |
 | 21 | 48 |
-| — | 176 |
+| — | 172 |

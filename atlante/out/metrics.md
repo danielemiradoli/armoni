@@ -1,6 +1,6 @@
 # Metriche dell'atlante — taglio «blu e bianco»
 
-Rigenerato da `src/build.py`. Ogni cifra si ricalcola dai file in `data/`.
+Rigenerato da `src/build.py` (nucleo: `armoni/fili/blu.toml`). Ogni cifra si ricalcola dai file in `data/`.
 
 Pezzi: **8909** — Met 1643, Cleveland 381, Wikidata fuori dagli Stati Uniti 101, ColBase 1707, eMuseum 5077.
 

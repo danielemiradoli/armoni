@@ -1,18 +1,33 @@
-# Armoni
+# ArMoni
 
-**Uno strato di riconciliazione delle identità fra collezioni d'arte.**
+**Una base di conoscenza aperta sulla storia dell'arte globale, fatta di asserzioni con fonte; sopra, strumenti per leggerla.**
 Progetto sperimentale, in corso, a costo zero.
 
-Armoni collega la stessa persona attraverso cataloghi museali diversi e, per ogni
-collegamento, dichiara **con quale metodo** è stato stabilito, **su quale prova** si
-regge e **quanto è certo**. Un disaccordo fra due istituzioni non viene risolto
-d'ufficio né scartato in silenzio: resta nei dati come asserzione contestata.
+Ogni dato di ArMoni è un'**asserzione**: dice che cosa afferma, **chi** lo afferma (la fonte),
+**con quale metodo** è stato letto, **quanto è certo** e **con quale licenza** si può riusare.
+Un disaccordo fra due istituzioni non viene risolto d'ufficio né scartato in silenzio, e dove
+le fonti tacciono la base lo dice invece di riempire il vuoto.
+
+ArMoni è il contenitore. Gli strumenti sono modi di leggerlo e di costruirlo:
+
+| | che cosa fa | dove |
+| --- | --- | --- |
+| **la base comune** | un lettore per fonte (Met, Cleveland, Chicago, ColBase, eMuseum, Wikidata), i fili tematici come configurazione, l'archivio delle asserzioni | [`armoni/`](armoni/), [`comune.py`](comune.py) |
+| **Atlante** | globo e tempo: i fili (porcellana blu e bianca, lacca) e i contesti artistici, con i silenzi delle fonti | [`atlante/`](atlante/) · [online](https://danielemiradoli.github.io/armoni/) |
+| **motore delle identità** | riconosce quando due cataloghi parlano della stessa persona; oggi su MoMA ↔ Tate, da estendere agli artefici dei fili | [`src/`](src/), [`out/`](out/) |
+
+Rigenerare la base: `python3 -m armoni.asserzioni blu lacca` → `out/armoni.sqlite` e il riepilogo
+[`out/asserzioni.md`](out/asserzioni.md).
+
+---
+
+# Il motore delle identità
 
 Oggi non esiste un identificatore condiviso fra i cataloghi aperti di due dei musei
 meglio documentati al mondo. Il MoMA pubblica un ID Wikidata sul 34% dei suoi artisti
 e un ULAN sul 31%; i dati aperti della Tate non contengono né Wikidata, né ULAN, né
 VIAF. Il collegamento fra le due collezioni regge interamente su confronto di stringhe.
-Armoni nasce per rendere quel collegamento misurabile.
+Il motore nasce per rendere quel collegamento misurabile.
 
 ## Stato attuale
 

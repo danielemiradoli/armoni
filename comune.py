@@ -35,6 +35,8 @@ CAMPI_ASSERZIONE = ("fonte", "metodo", "grado", "licenza")
 # Si registra invece la corrispondenza, cosi' la busta e' verificabile su
 # entrambi i lati senza toccare i dati.
 CAMPI_LOCALI = {
+    "nucleo/dichiarazione": {"fonte": "fonte", "metodo": "metodo",
+                             "grado": "grado", "licenza": "licenza"},
     "motore/identita":     {"fonte": "fonte", "metodo": "method",
                             "grado": "certainty", "licenza": "licenza"},
     "atlante/appartenenza": {"fonte": "fonte", "metodo": "criterio",
@@ -59,6 +61,11 @@ GRADI = {
     "atlante/datazione": {
         "dichiarato": "una fonte da' le date con quel significato",
         "dedotto":    "ricavato con una regola scritta e misurata",
+    },
+    # aggiunti con il nucleo (armoni/asserzioni.py): da dove viene un dato di un pezzo
+    "nucleo/dichiarazione": {
+        "dichiarato": "il catalogo lo scrive; ArMoni lo riporta (eventualmente normalizzato con una regola dichiarata)",
+        "dedotto":    "ricavato da ArMoni con una regola scritta e misurata; il catalogo non lo scrive",
     },
 }
 

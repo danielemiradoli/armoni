@@ -31,8 +31,9 @@ Ogni pezzo porta il **grado d'inclusione** (`documentato`: il record nomina il b
 sh src/confini.sh          # richiede mapshaper
 python3 src/fetch_emuseum.py elenco && python3 src/fetch_emuseum.py dettagli 3000   # musei pubblici coreani; con FILO=lacca per il secondo filo
 python3 src/fetch_aic.py   # Art Institute of Chicago, filo lacca
-python3 src/build.py       # filo blu e bianco: scrive web/*.json e out/metrics.md
-python3 src/filo_lacca.py  # filo lacca: web/fili/lacca/*.json e out/filo_lacca.md
+python3 src/build.py       # filo blu e bianco (nucleo: ../armoni/fili/blu.toml): web/*.json, out/metrics.md
+python3 src/filo_lacca.py  # filo lacca (nucleo: ../armoni/fili/lacca.toml): web/fili/lacca/*.json, out/filo_lacca.md
+python3 -m armoni.asserzioni blu lacca   # dalla radice del repository: l'archivio delle asserzioni (out/armoni.sqlite, out/asserzioni.md)
 cd src && python3 regioni_luoghi.py && cd ..   # macro-regione di ogni luogo, la stessa dei contesti
 python3 src/periodo.py && python3 src/letteratura.py && python3 src/qualita.py
 python3 src/fetch_vam.py && python3 src/densita_vam.py   # V&A: solo conteggi; cancellare data/raw/vam.csv entro 4 settimane
