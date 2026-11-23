@@ -5,10 +5,12 @@ const css = v => { probe.style.color = `var(${v})`; return getComputedStyle(prob
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fmtY = y => y < 0 ? `${-y} a.C.` : String(y);
 const PREC = {citta: 'città', paese: 'solo paese', regione: 'regione', zona: 'zona', istituzione: 'istituzione'};
-const T0 = 700, T1 = 2000;
+const FILO = /^[a-z]+$/.test(new URLSearchParams(location.search).get('filo') || '') ? new URLSearchParams(location.search).get('filo') : 'blu';
+// la lacca ha pezzi di scavo dal I millennio a.C. (Lelang, Han): il suo filo parte prima
+const T0 = FILO === 'lacca' ? -500 : 700, T1 = 2000, PASSO = T1 - T0 > 1600 ? 250 : 100;
 
 const S = {corsie: 'wikidata', year: 1640, win: 25, proj: 'globo', rot: [-40, -28], k: 1, sel: null, place: null, q: '',
-  L: {confini: 1, origini: 1, sedi: 1, spostamenti: 0, mercati: 1, silenzio: 0, ipotetici: 1, dedotti: 0, vam: 1, letteratura: 1, contesti: 0, relazioni: 0}, CT: new Set(['movimento', 'scuola', 'stile', 'periodizzazione']), F: {met: 1, cma: 1, wd: 1, colbase: 1, emuseum: 1},
+  L: {confini: 1, origini: 1, sedi: 1, spostamenti: 0, mercati: 1, silenzio: 0, ipotetici: 1, dedotti: 0, vam: 1, letteratura: 1, contesti: 0, relazioni: 0}, CT: new Set(['movimento', 'scuola', 'stile', 'periodizzazione']), F: {met: 1, cma: 1, wd: 1, colbase: 1, emuseum: 1, aic: 1},
   tav: [], mode: 'ricerca', tappa: 0};
 // CX: stili e movimenti (livello Contesti); APERTO: anni mostrati quando la fine non è dichiarata
 const G = {on: {}, mem: {}};
@@ -49,7 +51,6 @@ const TAPPE = [
 const j = u => fetch(u).then(r => { if (!r.ok) throw new Error(u); return r.json(); });
 /* Filo tematico: ?filo=lacca carica i dati in fili/lacca/. Il primo filo (blu e bianco) resta alla radice
    e ha strati suoi (V&A, letteratura, percorso, riepilogo di affidabilità) che gli altri fili non hanno ancora. */
-const FILO = /^[a-z]+$/.test(new URLSearchParams(location.search).get('filo') || '') ? new URLSearchParams(location.search).get('filo') : 'blu';
 const TAVK = 'armoni-tavolo' + (FILO === 'blu' ? '' : '-' + FILO);
 const BASE = FILO === 'blu' ? '' : `fili/${FILO}/`, PRIMO = FILO === 'blu';
 const solo1 = (u, d = null) => PRIMO ? j(u).catch(() => d) : Promise.resolve(d);
@@ -359,7 +360,7 @@ function drawTl() {
     { const x0 = Math.max(x(p.inizio), w > 520 ? 120 : 0), x1 = x(Math.min(p.fine, T1)); if (x1 <= x0) continue;
       s += `<g><title>${esc(p.nome)} ${p.inizio}–${p.fine} (Wikidata ${p.qid})</title><rect x="${x0}" y="${yy}" width="${x1 - x0}" height="${lh}" rx="2" fill="var(--co)" opacity=".16" stroke="var(--co)" stroke-opacity=".4"/>`;
       if (x1 - x0 > p.nome.length * 5.6) s += `<text x="${x0 + 4}" y="${yy + 9.5}" font-size="10" fill="var(--ink)">${esc(p.nome)}</text>`; s += '</g>'; } }
-  for (let t = 800; t < T1; t += w < 520 ? 400 : 100) s += `<text x="${x(t)}" y="${h - 3}" font-size="10.5" fill="var(--mute)" text-anchor="middle">${t}</text>`;
+  for (let t = Math.ceil((T0 + 1) / PASSO) * PASSO; t < T1; t += w < 520 ? 4 * PASSO : PASSO) s += `<text x="${x(t)}" y="${h - 3}" font-size="10.5" fill="var(--mute)" text-anchor="middle">${fmtY(t)}</text>`;
   s += `<line x1="${x(S.year)}" x2="${x(S.year)}" y1="0" y2="${h - 14}" stroke="var(--fe)" stroke-width="2"/>`;
   tls.innerHTML = s;
   $('#yr').textContent = fmtY(S.year);
@@ -387,7 +388,7 @@ function drawTlPO(w, src) {
     if (w > 520) s += `<text x="2" y="${yy + 10}" font-size="10.5" fill="var(--mute)">${esc(r)} <tspan fill="var(--ink)">${qui.length}</tspan></text>`;
     for (const p of ps) { const a = Math.max(x(Math.max(p.a, T0)), x0), b = x(Math.min(p.b, T1)); if (b > a) s += `<rect x="${a}" y="${yy}" width="${b - a}" height="${lh}" fill="var(--co)" opacity=".07"/>`; }
     if (!ps.length && src.vuoto) s += `<text x="${x0 + 4}" y="${yy + 10}" font-size="10" fill="var(--mute)">${src.vuoto}</text>`; });
-  for (let t = 800; t < T1; t += w < 520 ? 400 : 100) s += `<text x="${x(t)}" y="${h - 3}" font-size="10.5" fill="var(--mute)" text-anchor="middle">${t}</text>`;
+  for (let t = Math.ceil((T0 + 1) / PASSO) * PASSO; t < T1; t += w < 520 ? 4 * PASSO : PASSO) s += `<text x="${x(t)}" y="${h - 3}" font-size="10.5" fill="var(--mute)" text-anchor="middle">${fmtY(t)}</text>`;
   s += `<line x1="${x(S.year)}" x2="${x(S.year)}" y1="0" y2="${h - 14}" stroke="var(--fe)" stroke-width="2"/>`;
   tls.innerHTML = s; $('#yr').textContent = fmtY(S.year);
   tls.setAttribute('aria-valuemin', T0); tls.setAttribute('aria-valuemax', T1); tls.setAttribute('aria-valuenow', S.year);
@@ -523,7 +524,7 @@ function renderTav() {
   if (!xs.length) { ax.innerHTML = ''; return; }
   const lo = Math.min(...xs.map(x => x.inizio)) - 20, hi = Math.max(...xs.map(x => x.fine)) + 20, sc = d3.scaleLinear([lo, hi], [24, w - 24]);
   ax.innerHTML = xs.map((x, i) => `<line x1="${sc(x.inizio)}" x2="${Math.max(sc(x.fine), sc(x.inizio) + 2)}" y1="${10 + (i % 4) * 8}" y2="${10 + (i % 4) * 8}" stroke="var(--co)" stroke-width="4" stroke-linecap="round"/><text x="${sc(x.inizio) - 4}" y="${14 + (i % 4) * 8}" font-size="10" fill="var(--fe)" text-anchor="end">${i + 1}</text>`).join('')
-    + sc.ticks(6).map(t => `<text x="${sc(t)}" y="52" font-size="10.5" fill="var(--mute)" text-anchor="middle">${t}</text>`).join('');
+    + sc.ticks(6).map(t => `<text x="${sc(t)}" y="52" font-size="10.5" fill="var(--mute)" text-anchor="middle">${fmtY(t)}</text>`).join('');
 }
 let cd = null;
 $('#board').addEventListener('pointerdown', e => { const h = e.target.closest('.ch'); if (!h || e.target.closest('button')) return; const card = h.parentElement, i = +card.dataset.i; cd = {i, card, x: e.clientX - S.tav[i].x, y: e.clientY - S.tav[i].y}; h.setPointerCapture(e.pointerId); });

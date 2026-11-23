@@ -9,6 +9,15 @@
 "metodo": "etichetta, max sitelinks (luoghi.rq)"
 },
 {
+"id": "Art Institute of Chicago",
+"nome": "Art Institute, Chicago",
+"qid": "Q239303",
+"lat": "41.8794",
+"lon": "-87.6239",
+"precisione": "istituzione",
+"metodo": "etichetta, max sitelinks (filo lacca)"
+},
+{
 "id": "Austria",
 "nome": "Austria",
 "qid": "Q40",
@@ -24,6 +33,15 @@
 "lat": "21.1725",
 "lon": "94.86",
 "precisione": "citta",
+"metodo": "etichetta, max sitelinks (filo lacca)"
+},
+{
+"id": "Bali",
+"nome": "Bali",
+"qid": "Q3125978",
+"lat": "-8.5",
+"lon": "115.0",
+"precisione": "regione",
 "metodo": "etichetta, max sitelinks (filo lacca)"
 },
 {
@@ -90,6 +108,15 @@
 "metodo": "etichetta, max sitelinks (luoghi.rq)"
 },
 {
+"id": "Ecuador",
+"nome": "Ecuador",
+"qid": "Q736",
+"lat": "-1.0",
+"lon": "-78.0",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (filo lacca)"
+},
+{
 "id": "England",
 "nome": "Inghilterra",
 "qid": "Q21",
@@ -123,6 +150,15 @@
 "lat": "51.0",
 "lon": "10.0",
 "precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Guangzhou",
+"nome": "Canton (Guangzhou)",
+"qid": "Q16572",
+"lat": "23.13",
+"lon": "113.26",
+"precisione": "citta",
 "metodo": "etichetta, max sitelinks (luoghi.rq)"
 },
 {
@@ -252,6 +288,15 @@
 "metodo": "etichetta, max sitelinks (filo lacca)"
 },
 {
+"id": "National Museum of Korea",
+"nome": "Museo nazionale di Corea",
+"qid": "Q494407",
+"lat": "37.5239",
+"lon": "126.9803",
+"precisione": "istituzione",
+"metodo": "etichetta (eMuseum)"
+},
+{
 "id": "Netherlands",
 "nome": "Paesi Bassi",
 "qid": "Q55",
@@ -297,6 +342,15 @@
 "metodo": "etichetta, max sitelinks (luoghi.rq)"
 },
 {
+"id": "Scotland",
+"nome": "Scozia",
+"qid": "Q22",
+"lat": "57.0",
+"lon": "-5.0",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
 "id": "Shiraz",
 "nome": "Shiraz",
 "qid": "Q6397066",
@@ -304,6 +358,15 @@
 "lon": "52.5311",
 "precisione": "citta",
 "metodo": "etichetta, max sitelinks (filo lacca)"
+},
+{
+"id": "Spain",
+"nome": "Spagna",
+"qid": "Q29",
+"lat": "40.2",
+"lon": "-3.5",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
 },
 {
 "id": "Suzhou",
@@ -384,6 +447,24 @@
 "lat": "45.4397",
 "lon": "12.3319",
 "precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Vietnam",
+"nome": "Vietnam",
+"qid": "Q881",
+"lat": "16.0",
+"lon": "108.0",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Wales",
+"nome": "Galles",
+"qid": "Q25",
+"lat": "52.35",
+"lon": "-3.6333",
+"precisione": "paese",
 "metodo": "etichetta, max sitelinks (luoghi.rq)"
 },
 {
