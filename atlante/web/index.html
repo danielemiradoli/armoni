@@ -152,6 +152,7 @@ header h1 .strumento{color:var(--strumento)}
 .seg button[aria-pressed=true]{background:var(--strumento);border-color:var(--strumento)}
 @media(max-width:900px){
  body{overflow:auto}
+ .lato{display:none}body.senza-lay #lay,body.senza-ctx #ctx{display:block}
  .app,body.percorso .app{height:auto;grid-template:"top" auto "map" 62vh "tl" auto "ctx" auto "nar" auto "lay" auto/minmax(0,1fr)}
  #lay,#ctx,#nar{border:0;border-top:1px solid var(--line)}
  #q{width:100%;order:9}
@@ -183,6 +184,21 @@ header h1 .strumento{color:var(--strumento)}
 .big.ctxn{color:var(--cel)}.bar.ctxbar{background:var(--cel)}
 .bar.lac{background:var(--lacca);margin-top:2px}
 [hidden]{display:none!important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.legrow{display:flex;gap:6px;align-items:flex-start}#legbtn{white-space:nowrap;flex:none}#vaia{width:auto!important;flex:none;max-width:150px}
+.lnk[aria-pressed=true],.lato[aria-pressed=true]{background:var(--panel);color:var(--co);border-color:var(--line)}.lnk[aria-pressed=true]{background:none}
+#vaia{min-height:32px;padding:4px 8px;font-size:13px;border:1px solid var(--line);border-radius:6px;background:var(--panel);box-shadow:0 2px 10px rgb(16 28 70 / .08);cursor:pointer}
+/* pannelli richiudibili: maniglie ai bordi della mappa */
+.lato{position:absolute;top:50%;transform:translateY(-50%);min-height:0;width:18px;height:56px;padding:0;font-size:15px;color:var(--mute);border-radius:0 6px 6px 0;z-index:3}
+#chiudi-lay{left:0;border-left:0}#chiudi-ctx{right:0;border-right:0;border-radius:6px 0 0 6px}
+body.senza-lay .app{grid-template-columns:0 minmax(0,1fr) 340px}body.senza-lay #lay{display:none}
+body.senza-ctx .app{grid-template-columns:236px minmax(0,1fr) 0}body.senza-ctx #ctx{display:none}
+body.senza-lay.senza-ctx .app{grid-template-columns:0 minmax(0,1fr) 0}
+body.tl-ridotto #tls,body.tl-ridotto #tlinfo{display:none}
+/* scelte rapide della finestra */
+.seg.finestra{display:flex;align-items:center;gap:0}.seg.finestra .sub{margin-right:6px}
+.seg.finestra button{min-height:32px;padding:4px 9px;font-size:13px;border-radius:0;margin-left:-1px}
+.seg.finestra button:nth-of-type(1){border-radius:6px 0 0 6px}.seg.finestra button:last-of-type{border-radius:0 6px 6px 0}
 .chk{flex-wrap:wrap}.chk small.nota{flex-basis:100%;margin:2px 0 4px 24px}
 /* faccette: barre cliccabili con conteggio */
 .faccette{margin:2px 0 8px}.faccette>div{margin-bottom:8px}
@@ -306,7 +322,8 @@ header h1 .strumento{color:var(--strumento)}
   <p class="sub" style="margin-top:18px"><a href="fonti.html">Fonti e licenze</a> · <a href="https://github.com/danielemiradoli/armoni">Codice e dati</a></p>
  </aside>
 
- <div class="fig" id="fig"><canvas id="cv" aria-label="Mappa del mondo navigabile"></canvas><canvas id="alone" aria-hidden="true"></canvas><div id="tip"></div><div id="chip"></div><div id="leg"><button id="legbtn" aria-expanded="false" aria-controls="legbody">Legenda</button><div id="legbody" hidden></div></div>
+ <div class="fig" id="fig"><canvas id="cv" aria-label="Mappa del mondo navigabile"></canvas><canvas id="alone" aria-hidden="true"></canvas><div id="tip"></div><div id="chip"></div><div id="leg"><div class="legrow"><button id="legbtn" aria-expanded="false" aria-controls="legbody">Legenda</button><label class="vaia"><span class="sr">Vai a una regione</span><select id="vaia"><option value="">Vai a…</option></select></label></div><div id="legbody" hidden></div></div>
+  <button class="lato" id="chiudi-lay" aria-label="Nascondi il pannello di sinistra" aria-pressed="false">‹</button><button class="lato" id="chiudi-ctx" aria-label="Nascondi il pannello di destra" aria-pressed="false">›</button>
   <div id="mapctl"><button id="zin" aria-label="Avvicina">+</button><button id="zout" aria-label="Allontana">−</button></div></div>
 
  <aside id="ctx" aria-live="polite" tabindex="-1"><p class="sub">Carico opere, luoghi e confini…</p></aside>
@@ -317,7 +334,8 @@ header h1 .strumento{color:var(--strumento)}
   <div class="tlbar">
    <span class="yr" id="yr">1640</span>
    <button id="play" aria-pressed="false">▶ Scorri</button>
-   <label>finestra ± <select id="win"><option>10</option><option selected>25</option><option>50</option><option>100</option></select> anni</label>
+   <div class="seg finestra" role="group" aria-label="Finestra di tempo"><span class="sub">finestra</span><button data-win="10">±10</button><button data-win="25">±25</button><button data-win="50">±50</button><button data-win="100">±100</button><button data-win="tutto">tutto</button></div><select id="win" hidden aria-hidden="true"><option>10</option><option selected>25</option><option>50</option><option>100</option></select>
+   <button id="riduci-tl" class="lnk" aria-pressed="false">riduci il tempo</button>
    <label>corsie <select id="corsie"><option value="periodo">PeriodO: chi definisce</option><option value="wikidata">Wikidata: dinastie</option><option value="contesti">Wikidata: fenomeni artistici</option></select></label>
    <span class="sub" id="tlinfo"></span>
   </div>

@@ -80,7 +80,7 @@ Promise.all([dati('opere.json'), dati('luoghi.json'), j('periodi.json'), j('conf
   if (!o.some(x => x.grado === 'ipotetico')) $('[data-l="ipotetici"]').closest('label').hidden = true;
   if (!PRIMO) { $('#m-percorso').disabled = true; $('#m-percorso').title = 'Il percorso in tappe per ora esiste solo per il filo blu e bianco'; }
   Promise.all(FILI.map(f => j(baseDi(f) + 'copertura.json').catch(() => null))).then(v => { COP = v.filter(Boolean); renderCopertura(); });
-  infoLivelli(); leggiVista(); route(); update();
+  infoLivelli(); pannelli(); leggiVista(); route(); update();
 }).catch(e => { $('#ctx').innerHTML = `<p>Non riesco a caricare i dati (${esc(e.message)}).</p>`; });
 
 /* Dettaglio secondo l'ingrandimento: confini e coste più fini si caricano solo quando servono.
@@ -427,6 +427,30 @@ tls.addEventListener('pointerup', () => { tdrag = false; });
 tls.addEventListener('keydown', e => { if (e.key === 'ArrowLeft') setYear(S.year - 5); if (e.key === 'ArrowRight') setYear(S.year + 5); });
 new ResizeObserver(() => drawTl()).observe(tls);
 $('#win').onchange = e => { S.win = +e.target.value; update(); };
+/* scelte rapide della finestra; «tutto» apre la finestra sull'intero arco del filo */
+document.querySelectorAll('[data-win]').forEach(b => b.onclick = () => {
+  if (b.dataset.win === 'tutto') { S.win = Math.ceil((T1 - T0) / 2); S.year = Math.round((T0 + T1) / 2); } else S.win = +b.dataset.win;
+  update(); });
+/* salti per regione: girano il globo e ingrandiscono, senza filtrare */
+const CENTRI_REG = {'Europa': [12, 48, 2.2], 'Medio Oriente e Nord Africa': [35, 28, 2], 'Asia centrale': [65, 42, 2.2], 'Asia meridionale': [79, 21, 2.2],
+  'Asia orientale': [118, 34, 2], 'Sud-Est asiatico': [110, 8, 2], 'Africa subsahariana': [20, -3, 1.6], 'Nord America': [-98, 42, 1.7],
+  'Mesoamerica e Caraibi': [-88, 17, 2.4], 'Sud America': [-60, -18, 1.6], 'Oceania': [140, -22, 1.7]};
+$('#vaia').innerHTML = '<option value="">Vai a…</option><option value="mondo">tutto il mondo</option>' + Object.keys(CENTRI_REG).map(r => `<option>${r}</option>`).join('');
+$('#vaia').onchange = e => { const r = e.target.value; e.target.value = ''; if (!r) return;
+  if (r === 'mondo') { S.k = 1; } else { const [lon, lat, k] = CENTRI_REG[r]; S.rot = [-lon, -lat]; S.k = k; }
+  draw(); };
+/* pannelli richiudibili, ricordati da una visita all'altra */
+const PANN = (() => { try { return JSON.parse(localStorage.getItem('armoni-pannelli') || '{}'); } catch (e) { return {}; } })();
+function pannelli() {
+  for (const [k, id, nome] of [['lay', '#chiudi-lay', 'sinistra'], ['ctx', '#chiudi-ctx', 'destra']]) {
+    document.body.classList.toggle('senza-' + k, !!PANN[k]); const b = $(id);
+    b.setAttribute('aria-pressed', !!PANN[k]); b.setAttribute('aria-label', (PANN[k] ? 'Mostra' : 'Nascondi') + ' il pannello di ' + nome);
+    b.textContent = (k === 'lay') === !PANN[k] ? '‹' : '›'; }
+  document.body.classList.toggle('tl-ridotto', !!PANN.tl); $('#riduci-tl').textContent = PANN.tl ? 'mostra il tempo per esteso' : 'riduci il tempo'; $('#riduci-tl').setAttribute('aria-pressed', !!PANN.tl);
+  try { localStorage.setItem('armoni-pannelli', JSON.stringify(PANN)); } catch (e) { }
+  requestAnimationFrame(() => draw());
+}
+for (const [id, k] of [['#chiudi-lay', 'lay'], ['#chiudi-ctx', 'ctx'], ['#riduci-tl', 'tl']]) $(id).onclick = () => { PANN[k] = !PANN[k]; pannelli(); };
 let timer = null;
 $('#play').onclick = () => { const b = $('#play'); if (timer) { clearInterval(timer); timer = null; b.setAttribute('aria-pressed', 'false'); b.textContent = '▶ Scorri'; return; }
   b.setAttribute('aria-pressed', 'true'); b.textContent = '❚❚ Ferma'; timer = setInterval(() => setYear(S.year >= T1 ? T0 : S.year + 5), 140); };
@@ -759,7 +783,7 @@ for (const p of ['globo', 'piano']) $('#p-' + p).onclick = () => { S.proj = p; S
 let qt; $('#q').oninput = e => { clearTimeout(qt); qt = setTimeout(() => { S.q = e.target.value.trim(); update(); }, 180); };
 $('#win').value = String(S.win);
 $('#corsie').onchange = e => { S.corsie = e.target.value; drawTl(); };
-function update() { if (!O.length) return; const ws = $('#win'); if (![...ws.options].some(o => +o.value === S.win)) ws.add(new Option(String(S.win))); ws.value = String(S.win); filtra(); segnaposto(); draw(); drawTl(); if (S.mode === 'ricerca') renderCtx(); renderTavCount(); renderFacette(); renderConteggi(); renderLegenda(); }
+function update() { if (!O.length) return; document.querySelectorAll('[data-win]').forEach(b => b.setAttribute('aria-pressed', b.dataset.win === 'tutto' ? S.win >= (T1 - T0) / 2 : +b.dataset.win === S.win)); const ws = $('#win'); if (![...ws.options].some(o => +o.value === S.win)) ws.add(new Option(String(S.win))); ws.value = String(S.win); filtra(); segnaposto(); draw(); drawTl(); if (S.mode === 'ricerca') renderCtx(); renderTavCount(); renderFacette(); renderConteggi(); renderLegenda(); }
 const renderTavCount = () => { $('#tavn').textContent = S.tav.length; };
 new MutationObserver(() => { draw(); drawTl(); }).observe(document.documentElement, {attributes: true, attributeFilter: ['data-theme']});
 
