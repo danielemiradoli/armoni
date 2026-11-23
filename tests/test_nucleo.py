@@ -59,3 +59,15 @@ def test_gazzettieri_diversi_per_filo():
     centri = gazzettiere(*cfg['centri'])
     assert trova(centri, 'Edo period (1615–1868)') is None           # Edo è un'epoca
     assert trova(centri, 'Ryūkyū Islands') == 'Okinawa'
+
+
+def test_periodi_in_ogni_lingua():
+    from armoni import periodi as P
+    edo = 'Q184963'
+    for t in ['Edo period (1615–1868)', '江戸時代後半 / 18世紀', 'middle Edo period', 'periodo Edo']:
+        assert any(q == edo for _, q, _ in P.riconosci(t, 1700, 1750)), t
+    assert [q for _, q, _ in P.riconosci('조선', 1600, 1700)] == ['Q28179']
+    assert [q for _, q, _ in P.riconosci('明時代・17世紀', 1600, 1640)] == ['Q9903']
+    assert [q for _, q, _ in P.riconosci('Qing dynasty (1644–1911), Kangxi period (1662–1722)', 1662, 1722)][0] == 'Q8733'
+    assert P.riconosci('18th century', 1700, 1799) == []                        # un secolo non è un periodo
+    assert [m for _, q, m in P.riconosci('Meiji period', 1600, 1650)] == ['date incompatibili']

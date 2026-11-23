@@ -58,6 +58,7 @@ const CONFRONTO = FILO === 'confronto', FILI = CONFRONTO ? ['blu', 'lacca'] : [F
 const baseDi = f => f === 'blu' ? '' : `fili/${f}/`;
 const dati = nome => Promise.all(FILI.map(f => j(baseDi(f) + nome).then(v => nome === 'opere.json' && CONFRONTO ? v.map(x => ({...x, fl: f})) : v))).then(vs => vs.flat());
 const solo1 = (u, d = null) => PRIMO ? j(u).catch(() => d) : Promise.resolve(d);
+j('periodi_base.json').then(v => { PB = v; }).catch(() => {});
 Promise.all([dati('opere.json'), dati('luoghi.json'), j('periodi.json'), j('confini/anni.json'), j('terre.json'), solo1('densita_vam.json'), j('periodo.json').catch(() => null), solo1('letteratura.json'), solo1('qualita.json'), j('contesti.json').catch(() => null), j('aree.json').catch(() => ({}))]).then(([o, l, p, a, t, v, po, le, qu, cx, ar]) => {
   QU = qu; AREE = ar || {};
   if (cx) { CXR = cx; CX = cx.elementi.map(e => ({...e, fv: e.quando.a ?? e.quando.da + APERTO})); }
@@ -109,6 +110,7 @@ const luogo = x => x.o ? x.origine : S.L.dedotti && LU[x.origine_dedotta] ? x.or
 /* Ricerca nel filo per categorie: provenienza (macro-regione del luogo d'origine, la stessa dei contesti)
    e tipo di oggetto (letto dal nome nella scheda). '?' = senza luogo o tipo non riconosciuto. */
 const CAT = {reg: '', tipo: '', ctx: ''};
+let PB = {};  // concetti di periodo della base (armoni/periodi.py): qid → {n, a, b}
 const regDi = x => LU[luogo(x)]?.macroregione || '?';
 const passa = x => S.L.opere && S.F[x.fonte] && (S.L.ipotetici || x.grado === 'documentato') &&
   (!CAT.reg || regDi(x) === CAT.reg) && (!CAT.tipo || (x.tipo || '?') === CAT.tipo);
@@ -539,6 +541,7 @@ function scheda(x) {
   <div class="k">Cultura, come la scrive il catalogo ${src(cat)}</div><div class="v">${esc(x.cultura) || '—'}</div>
   <div class="k">Data ${src(cat)}</div><div class="v">${esc(x.data_testo) || '—'}</div>
   <div class="k"${uguale ? ' hidden' : ''}>Intervallo usato sulla barra del tempo ${convenz ? src('ArMoni', 'anni convenzionali dell\'epoca nominata dalla scheda') : src(cat)}</div><div class="v"${uguale ? ' hidden' : ''}>${fmtY(x.inizio)}–${fmtY(x.fine)}${convenz ? ` <span class="sub">· la scheda nomina solo ${daEpoca ? 'l\'epoca o il secolo: anni da Wikidata o dal secolo' : 'l\'epoca: anni convenzionali dei manuali'}</span>` : ''}</div>
+  ${(x.periodi || []).length ? `<div class="k">Periodo, come lo scrive il catalogo ${src(cat)} ${src('ArMoni', 'riconosciuto fra le etichette di Wikidata in 17 lingue, compatibile con le date del pezzo')}</div><div class="v">${x.periodi.map(q => `${esc(PB[q]?.n || q)} <span class="sub">· ${PB[q] ? fmtY(PB[q].a) + '–' + fmtY(PB[q].b) + ' · ' : ''}<a href="https://www.wikidata.org/wiki/${q}">${q}</a>${CX.some(e => e.id === q) ? ` · <a href="#" data-place="mov:${q}">il contesto</a>` : ''}</span>`).join('<br>')}</div>` : ''}
   <div class="k">Tecnica ${src(cat)}</div><div class="v">${esc(x.tecnica) || '—'}</div>
   <div class="k">Tipo di oggetto ${src('ArMoni', 'letto per parole chiave dal nome')}</div><div class="v">${x.tipo ? `${esc(x.tipo)} <span class="sub">· dalla parola «${esc(x.tipo_parola)}» nel nome</span>` : '<span class="sub">non riconosciuto dal nome</span>'}</div>
   <h3 class="sez">Luoghi</h3>
@@ -557,6 +560,8 @@ const MARGINE = 25;
 const sovrap = (a0, a1, b0, b1) => a0 <= b1 + MARGINE && a1 >= b0 - MARGINE;
 const regLuogo = id => LU[id]?.macroregione;
 function trovaIntorno(k, x) {
+  if (k === 'periodo') { const ps = new Set(x.periodi || []); return O.filter(y => y.id !== x.id && (y.periodi || []).some(q => ps.has(q))); }
+  if (k === 'dichiarati') return O.filter(y => (y.periodi || []).includes(x.id) && passa(y));
   if (k === 'tipo') return O.filter(y => y.id !== x.id && y.tipo && y.tipo === x.tipo && (y.fl || '') === (x.fl || '') && sovrap(y.inizio, y.fine, x.inizio, x.fine) && luogo(y) && luogo(y) !== luogo(x));
   if (k === 'ctxdi') { const r = regLuogo(luogo(x)); return CX.filter(e => sovrap(e.quando.da, e.fv, x.inizio, x.fine) && e.luoghi.some(l => l.id === luogo(x) || (r && l.macroregione === r))); }
   if (k === 'opere') { const ids = new Set(x.luoghi.map(l => l.id)), rs = new Set(x.luoghi.map(l => l.macroregione).filter(Boolean));
@@ -566,31 +571,34 @@ function trovaIntorno(k, x) {
   return [];
 }
 const REGOLA_INT = {
+  periodo: x => `Pezzi che il loro catalogo dichiara dello stesso periodo (${(x.periodi || []).map(q => PB[q]?.n || q).join(', ')}): una dichiarazione delle fonti, non un accostamento.`,
+  dichiarati: e => `Pezzi che il loro catalogo dichiara di questo periodo: una dichiarazione delle fonti, riconosciuta fra le etichette di Wikidata, non un accostamento.`,
   tipo: x => `Pezzi dello stesso tipo («${x.tipo}»), in date che si sovrappongono a quelle di questo (±${MARGINE} anni), fatti in altri luoghi.`,
   ctxdi: x => `Contesti attivi negli stessi anni (±${MARGINE}) nello stesso luogo o nella stessa macro-regione (${regLuogo(luogo(x)) || '—'}).`,
   opere: e => `Oggetti del filo fatti negli anni del fenomeno (±${MARGINE}), nello stesso luogo o nella stessa macro-regione.`,
   ctxvicini: e => `Altri contesti attivi negli stessi anni (±${MARGINE}) nella stessa macro-regione.`};
-const NOMI_INT = {tipo: 'Stesso tipo, stessa epoca, altrove', ctxdi: 'Contesti qui e allora', opere: 'Oggetti del filo qui e allora', ctxvicini: 'Contesti vicini, negli stessi anni'};
+const NOMI_INT = {periodo: 'Stesso periodo, secondo i cataloghi', dichiarati: 'Oggetti che i cataloghi dichiarano di questo periodo', tipo: 'Stesso tipo, stessa epoca, altrove', ctxdi: 'Contesti qui e allora', opere: 'Oggetti del filo qui e allora', ctxvicini: 'Contesti vicini, negli stessi anni'};
 function bottoniIntorno(voci) {
-  return `<h3 class="sez">Cerca intorno</h3><p class="sub" style="margin:0 0 6px">Strade per esplorare: accostamenti nello spazio e nel tempo, non legami.</p><div class="intorno">${voci.map(([k, n, extra]) => `<button ${extra || `data-intorno="${k}"`} ${n === 0 ? 'disabled' : ''}>${NOMI_INT[k] || k}${n != null ? ` <span class="sub">${n}</span>` : ''}</button>`).join('')}</div>`;
+  return `<h3 class="sez">Cerca intorno</h3><p class="sub" style="margin:0 0 6px">Prima i legami che le fonti dichiarano; poi gli accostamenti nello spazio e nel tempo, che legami non sono.</p><div class="intorno">${voci.map(([k, n, extra]) => `<button ${['periodo', 'dichiarati'].includes(k) ? 'class="dich" ' : ''}${extra || `data-intorno="${k}"`} ${n === 0 ? 'disabled' : ''}>${NOMI_INT[k] || k}${n != null ? ` <span class="sub">${n}</span>` : ''}</button>`).join('')}</div>`;
 }
 function intornoPezzo(x) {
-  const v = [['tipo', x.tipo ? trovaIntorno('tipo', x).length : 0], ['ctxdi', luogo(x) ? trovaIntorno('ctxdi', x).length : 0]];
+  const v = [...((x.periodi || []).length ? [['periodo', trovaIntorno('periodo', x).length]] : []), ['tipo', x.tipo ? trovaIntorno('tipo', x).length : 0], ['ctxdi', luogo(x) ? trovaIntorno('ctxdi', x).length : 0]];
   if (luogo(x)) v.push(['Tutti i pezzi di ' + (LU[luogo(x)]?.nome || 'questo luogo'), null, `data-place="${luogo(x)}"`]);
   if (!CONFRONTO && luogo(x)) v.push(['Questo luogo nel confronto fra fili', null, `data-confronto="${luogo(x)}"`]);
   return bottoniIntorno(v);
 }
 function intornoMov(e) {
-  return bottoniIntorno([['opere', S.L.opere ? trovaIntorno('opere', e).length : 0], ['ctxvicini', trovaIntorno('ctxvicini', e).length], ['Le sue relazioni nel grafo', null, `data-grafo="${e.id}"`]]);
+  const dich = S.L.opere ? trovaIntorno('dichiarati', e).length : 0;
+  return bottoniIntorno([...(dich ? [['dichiarati', dich]] : []), ['opere', S.L.opere ? trovaIntorno('opere', e).length : 0], ['ctxvicini', trovaIntorno('ctxvicini', e).length], ['Le sue relazioni nel grafo', null, `data-grafo="${e.id}"`]]);
 }
 function listaIntorno() {
   const {k, da} = S.intorno, x = da.startsWith('mov:') ? CX.find(e => e.id === da.slice(4)) : O.find(y => y.id === da); if (!x) return '';
-  const xs = trovaIntorno(k, x), nome = x.titolo || x.nome, dimo = ['tipo', 'opere'].includes(k);
+  const xs = trovaIntorno(k, x), nome = x.titolo || x.nome, dimo = ['tipo', 'opere', 'periodo', 'dichiarati'].includes(k);
   const righe = dimo ? xs.sort((a, b) => a.inizio - b.inizio).slice(0, 200).map(y => `<div class="row" data-sel="${y.id}"><span>${esc(y.titolo)} <span class="sub">· ${esc(LU[luogo(y)]?.nome || 'senza luogo')}</span></span><span class="n sub">${fmtY(y.inizio)}–${fmtY(y.fine)}</span></div>`)
     : xs.sort((a, b) => a.quando.da - b.quando.da).map(e => `<div class="row" data-place="mov:${e.id}"><span><i>${esc(e.nome)}</i> <span class="sub">· ${e.tipo}, ${esc(e.luoghi[0].oggi)}</span></span><span class="n">${fmtY(e.quando.da)}</span></div>`);
   const per = new Map(); if (dimo) for (const y of xs) { const n = LU[luogo(y)]?.nome || '?'; per.set(n, (per.get(n) || 0) + 1); }
   return `<div class="sub">Cerca intorno a</div><h2 style="margin-top:2px">${esc(nome)}</h2><h3>${NOMI_INT[k]}: ${xs.length}</h3>
-  <p class="sub" style="margin:0 0 8px">${REGOLA_INT[k](x)} Stare vicini non vuol dire essere legati.</p>
+  <p class="sub" style="margin:0 0 8px">${REGOLA_INT[k](x)}${['periodo', 'dichiarati'].includes(k) ? '' : ' Stare vicini non vuol dire essere legati.'}</p>
   ${per.size ? `<p class="sub">${[...per].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([n, c]) => `${esc(n)} ${c}`).join(' · ')}</p>` : ''}
   ${righe.join('') || '<p class="sub">Niente.</p>'}${xs.length > 200 && dimo ? `<p class="sub">e altri ${xs.length - 200}.</p>` : ''}
   <div class="acts"><button data-back>Indietro</button></div>`;

@@ -13,6 +13,7 @@ from collections import Counter
 
 from . import RADICE, ATLANTE
 from . import filo as F
+from . import periodi as PER
 
 sys.path.insert(0, str(RADICE))
 import comune  # noqa: E402
@@ -53,13 +54,52 @@ def asserzioni_pezzo(o, nome_filo):
     if o['mercato']:
         D('destinato_a', 'dichiarato', 'mercato di destinazione scritto nel catalogo («for the … market»)',
           oggetto='luogo:' + o['mercato'], prova=o['cultura'][:200])
-    for k, rel in (('periodo', 'periodo_dichiarato'), ('dinastia', 'periodo_dichiarato'), ('artefice', 'artefice_dichiarato')):
-        if dich.get(k):
-            D(rel, 'dichiarato', f'campo «{k}» del catalogo, riportato com\'è', valore=dich[k][:300])
+    for k in ('periodo', 'dinastia'):
+        for parte, qid, motivo in PER.riconosci(dich.get(k, ''), o['inizio'], o['fine']):
+            if qid:
+                D('periodo_dichiarato', 'dichiarato', f'periodo scritto nel campo «{k}» del catalogo, riconosciuto fra le etichette '
+                  f'multilingue di Wikidata ({motivo}); compatibile con le date del pezzo', oggetto='periodo:' + qid, valore=parte, prova=parte)
+            else:
+                D('periodo_dichiarato', 'dichiarato', f'campo «{k}» del catalogo, riportato com\'è: periodo non collegato ({motivo})',
+                  valore=parte, prova=parte)
+    if dich.get('artefice'):
+        D('artefice_dichiarato', 'dichiarato', 'campo «artefice» del catalogo, riportato com\'è', valore=dich['artefice'][:300])
     if o.get('tipo'):
         D('tipo', 'dedotto', 'tipo di oggetto letto per parole chiave nel nome (atlante/src/tipi.py)',
           valore=o['tipo'], prova=o.get('tipo_parola'))
     return a
+
+
+def definizioni_periodo(ent):
+    """I periodi citati diventano entità; PeriodO aggiunge le sue definizioni (chi, quando, dove) allo stesso concetto."""
+    voc, _ = PER.vocabolario()
+    usati = {}
+    a_out = []
+    # PeriodO: ogni definizione di un'autorità che porta un'etichetta riconosciuta diventa «definito_da»
+    p0d = json.load(open(ATLANTE / 'data/p0d.json', encoding='utf-8'))
+    for aid, au in p0d['authorities'].items():
+        src = au.get('source', {}); tit = (src.get('title') or (src.get('partOf') or {}).get('title') or aid)[:120]
+        for pid, p in au.get('periods', {}).items():
+            def y(t):
+                i = (t or {}).get('in', {})
+                for k in ('year', 'earliestYear', 'latestYear'):
+                    try: return int(i[k])
+                    except (KeyError, ValueError, TypeError): pass
+            a, b = y(p.get('start')), y(p.get('stop'))
+            if a is None or b is None:
+                continue
+            for parte, qid, motivo in PER.riconosci(p.get('label', ''), a, b)[:1]:
+                if qid:
+                    usati[qid] = 1
+                    dove = ', '.join(x.get('label', '') for x in p.get('spatialCoverage', []))[:150]
+                    a_out.append(dict(soggetto='periodo:' + qid, relazione='definito_da', oggetto='autorita:periodo:' + aid,
+                                      valore=f'{a}/{b}', fonte='periodo', metodo=f'definizione PeriodO «{p.get("label")}» ({tit}); '
+                                      f'collegata per etichetta ({motivo})' + (f'; copertura: {dove}' if dove else ''),
+                                      grado='dichiarato', dominio='nucleo/dichiarazione', licenza='CC0 (PeriodO)', prova=pid, filo=None))
+                    ent['autorita:periodo:' + aid] = ('autorita', tit, None, {'periodo': aid})
+    for e in list(ent):
+        pass
+    return a_out
 
 
 def problemi(a):
@@ -90,8 +130,14 @@ def costruisci(fili):
                 for p in problemi(a):
                     errori[p] += 1
                 tutte.append(dict(a, filo=n))
+    tutte += definizioni_periodo(ent)
     for f in {a['fonte'] for a in tutte}:
         ent['fonte:' + f] = ('fonte', f, None, {})
+    voc, _ = PER.vocabolario()
+    for q in {x['oggetto'][8:] for x in tutte if (x.get('oggetto') or '').startswith('periodo:')} | {x['soggetto'][8:] for x in tutte if x['soggetto'].startswith('periodo:')}:
+        p = voc[q]
+        ent['periodo:' + q] = ('periodo', PER.etichetta(q), q, {'inizio': p['inizio'], 'fine': p['fine'], 'classi': p['classi'],
+                                                              'lingue': sorted(p['etichette'])})
     db.executemany('insert into entita values (?,?,?,?,?)', [(k, t, nm, q, json.dumps(d, ensure_ascii=False)) for k, (t, nm, q, d) in ent.items()])
     cols = ('soggetto', 'relazione', 'oggetto', 'valore', 'fonte', 'metodo', 'grado', 'dominio', 'licenza', 'prova', 'filo')
     db.executemany(f'insert into asserzioni values ({",".join("?" * len(cols))})', [tuple(a.get(c) for c in cols) for a in tutte])
@@ -109,10 +155,20 @@ def riepilogo(db, errori):
              '| entità | quante |', '| --- | ---: |'] + [f'| {t} | {n} |' for t, n in q('select tipo, count(*) from entita group by tipo order by 2 desc')]
     righe += ['', '| relazione | grado | asserzioni |', '| --- | --- | ---: |']
     righe += [f'| {r} | {g} | {n} |' for r, g, n in q('select relazione, grado, count(*) from asserzioni group by 1,2 order by 1, 3 desc')]
-    righe += ['', '## Che cosa i cataloghi dichiarano e la base non collega ancora', '',
-              'Periodi e artefici sono riportati come testo: non sono ancora entità. È il prossimo ponte (periodi unificati, artefici attraverso il motore delle identità).', '',
-              '| relazione | valori distinti | pezzi |', '| --- | ---: | ---: |']
-    righe += [f'| {r} | {d} | {n} |' for r, d, n in q("select relazione, count(distinct valore), count(distinct soggetto) from asserzioni where relazione in ('periodo_dichiarato','artefice_dichiarato') group by 1")]
+    righe += ['', '## Che cosa i cataloghi dichiarano, e quanto la base collega', '',
+              'I periodi scritti dai cataloghi si collegano ai concetti di periodo (riconosciuti in qualunque lingua fra le etichette di Wikidata); quelli non riconosciuti restano testo, con il motivo. Gli artefici sono ancora testo: il prossimo ponte, attraverso il motore delle identità.', '',
+              '| relazione | collegate a un\'entità | solo testo | pezzi |', '| --- | ---: | ---: | ---: |']
+    righe += [f'| {r} | {c} | {t} | {n} |' for r, c, t, n in q("select relazione, sum(oggetto is not null), sum(oggetto is null), count(distinct soggetto) from asserzioni where relazione in ('periodo_dichiarato','artefice_dichiarato') group by 1")]
+    n_per = q("select count(distinct oggetto) from asserzioni where relazione='periodo_dichiarato' and oggetto is not null")[0][0]
+    n_pez = q("select count(distinct soggetto) from asserzioni where relazione='periodo_dichiarato' and oggetto is not null")[0][0]
+    n_def = q("select count(*) from asserzioni where relazione='definito_da'")[0][0]
+    tab = q("select a.oggetto, e.nome, count(distinct a.soggetto), (select count(*) from asserzioni d where d.soggetto=a.oggetto and d.relazione='definito_da') "
+            "from asserzioni a join entita e on e.id=a.oggetto where a.relazione='periodo_dichiarato' group by a.oggetto order by 3 desc limit 25")
+    righe += ['', '## Periodi', '',
+              f'Periodi citati dai cataloghi e riconosciuti: {n_per} · pezzi con almeno un periodo collegato: {n_pez} · '
+              f'definizioni PeriodO collegate a un periodo: {n_def}', '',
+              '| periodo | pezzi | definizioni PeriodO |', '| --- | ---: | ---: |']
+    righe += [f'| {n} ({o[8:]}) | {k} | {d} |' for o, n, k, d in tab]
     if errori:
         righe += ['', '## Fuori accordo', ''] + [f'- {k}: {v}' for k, v in errori.most_common()]
     (RADICE / 'out/asserzioni.md').write_text('\n'.join(righe) + '\n', encoding='utf-8')

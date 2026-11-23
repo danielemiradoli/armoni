@@ -14,6 +14,7 @@ from pathlib import Path
 from . import ATLANTE
 from .fonti import LETTORI
 from .testo import INCERTO, gazzettiere, mercato, trova
+from . import periodi as PER
 
 FILI = Path(__file__).resolve().parent / 'fili'
 
@@ -117,6 +118,8 @@ def costruisci(nome):
                 rec.update(s['deduci'](o))
             # dichiarati dal catalogo, conservati per le asserzioni (periodo, artefice); non vanno nelle viste
             rec['_dichiarati'] = {k: s[k] for k in ('periodo', 'dinastia', 'artefice') if s.get(k)}
+            # periodi dichiarati dal catalogo e riconosciuti nel vocabolario comune (armoni/periodi.py): solo i QID
+            rec['periodi'] = list(dict.fromkeys(q for k in ('periodo', 'dinastia') for _, q, _ in PER.riconosci(s.get(k, ''), ini, fin) if q))
             opere.append(rec)
     from tipi import tipo  # atlante/src/tipi.py: lettura del tipo di oggetto dal nome
     for rec in opere:
@@ -136,6 +139,14 @@ def scrivi(nome):
               ensure_ascii=False, indent=0)
     import copertura
     copertura.scrivi(out, viste, r['esclusi'])
+    # i concetti di periodo citati, per le schede (nome, date); condivisi da tutti i fili
+    voc, _ = PER.vocabolario()
+    cartella = ATLANTE / 'web'
+    f = cartella / 'periodi_base.json'
+    tutti = json.load(open(f, encoding='utf-8')) if f.exists() else {}
+    for q in {q for o in viste for q in o['periodi']}:
+        tutti[q] = {'n': PER.etichetta(q), 'a': voc[q]['inizio'], 'b': voc[q]['fine']}
+    json.dump(dict(sorted(tutti.items())), open(f, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
     print(f"{nome}: {len(viste)} pezzi; esclusi {dict(r['esclusi'])}; senza coordinate {dict(r['senza_coord'])}")
     return r
 
