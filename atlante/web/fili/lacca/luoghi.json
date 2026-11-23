@@ -1,0 +1,398 @@
+[
+{
+"id": "Afghanistan",
+"nome": "Afghanistan",
+"qid": "Q889",
+"lat": "33.0",
+"lon": "66.0",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Austria",
+"nome": "Austria",
+"qid": "Q40",
+"lat": "48.0",
+"lon": "14.0",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Bagan",
+"nome": "Bagan",
+"qid": "Q29317",
+"lat": "21.1725",
+"lon": "94.86",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (filo lacca)"
+},
+{
+"id": "Beijing",
+"nome": "Pechino",
+"qid": "Q956",
+"lat": "39.904",
+"lon": "116.4075",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (filo lacca)"
+},
+{
+"id": "Belgium",
+"nome": "Fiandre (Belgio)",
+"qid": "Q31",
+"lat": "50.6411",
+"lon": "4.6681",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Birmingham",
+"nome": "Birmingham",
+"qid": "Q2256",
+"lat": "52.48",
+"lon": "-1.9025",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (filo lacca)"
+},
+{
+"id": "Cambodia",
+"nome": "Cambogia",
+"qid": "Q424",
+"lat": "12.5",
+"lon": "105.0",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (filo lacca)"
+},
+{
+"id": "China",
+"nome": "Cina",
+"qid": "Q29520",
+"lat": "35.0",
+"lon": "105.0",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Cleveland Museum of Art",
+"nome": "Cleveland Museum of Art",
+"qid": "Q657415",
+"lat": "41.5089",
+"lon": "-81.6117",
+"precisione": "istituzione",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Czech Republic",
+"nome": "Boemia (Rep. Ceca)",
+"qid": "Q213",
+"lat": "50.0",
+"lon": "15.0",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "England",
+"nome": "Inghilterra",
+"qid": "Q21",
+"lat": "53.0",
+"lon": "-1.0",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Europe",
+"nome": "Europa",
+"qid": "Q46",
+"lat": "53.5",
+"lon": "15.5",
+"precisione": "zona",
+"metodo": "QID diretto (zone.rq)"
+},
+{
+"id": "France",
+"nome": "Francia",
+"qid": "Q142",
+"lat": "47.0",
+"lon": "2.0",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Germany",
+"nome": "Germania",
+"qid": "Q183",
+"lat": "51.0",
+"lon": "10.0",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "India",
+"nome": "India",
+"qid": "Q668",
+"lat": "22.8",
+"lon": "83.0",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Indonesia",
+"nome": "Indonesia",
+"qid": "Q252",
+"lat": "-2.0",
+"lon": "118.0",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Iran",
+"nome": "Iran",
+"qid": "Q794",
+"lat": "32.0",
+"lon": "53.0",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Isfahan",
+"nome": "Isfahan",
+"qid": "Q42053",
+"lat": "32.6525",
+"lon": "51.6747",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Italy",
+"nome": "Italia",
+"qid": "Q38",
+"lat": "42.5",
+"lon": "12.5",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Japan",
+"nome": "Giappone",
+"qid": "Q17",
+"lat": "35.0",
+"lon": "136.0",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Kanazawa",
+"nome": "Kanazawa",
+"qid": "Q191130",
+"lat": "36.5611",
+"lon": "136.6565",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (filo lacca)"
+},
+{
+"id": "Korea",
+"nome": "Corea",
+"qid": "Q18097",
+"lat": "38.3167",
+"lon": "127.2333",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Kyoto",
+"nome": "Kyoto",
+"qid": "Q34600",
+"lat": "35.0116",
+"lon": "135.7681",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "London",
+"nome": "Londra",
+"qid": "Q84",
+"lat": "51.5072",
+"lon": "-0.1275",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Metropolitan Museum of Art",
+"nome": "Metropolitan Museum, New York",
+"qid": "Q160236",
+"lat": "40.7794",
+"lon": "-73.9633",
+"precisione": "istituzione",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Mexico",
+"nome": "Messico",
+"qid": "Q96",
+"lat": "23.0",
+"lon": "-102.0",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Myanmar",
+"nome": "Birmania",
+"qid": "Q836",
+"lat": "22.0",
+"lon": "96.0",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Nara",
+"nome": "Nara",
+"qid": "Q169134",
+"lat": "34.685",
+"lon": "135.8048",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (filo lacca)"
+},
+{
+"id": "Netherlands",
+"nome": "Paesi Bassi",
+"qid": "Q55",
+"lat": "52.3167",
+"lon": "5.55",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Okinawa",
+"nome": "Ryūkyū (Okinawa)",
+"qid": "Q766445",
+"lat": "26.2124",
+"lon": "127.6809",
+"precisione": "regione",
+"metodo": "etichetta (filo lacca, wikidata)"
+},
+{
+"id": "Olinalá",
+"nome": "Olinalá",
+"qid": "Q1999562",
+"lat": "17.7789",
+"lon": "-98.7397",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (filo lacca)"
+},
+{
+"id": "Paris",
+"nome": "Parigi",
+"qid": "Q90",
+"lat": "48.8567",
+"lon": "2.3522",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Russia",
+"nome": "Russia",
+"qid": "Q159",
+"lat": "66.4167",
+"lon": "94.25",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Shiraz",
+"nome": "Shiraz",
+"qid": "Q6397066",
+"lat": "29.6103",
+"lon": "52.5311",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (filo lacca)"
+},
+{
+"id": "Suzhou",
+"nome": "Suzhou",
+"qid": "Q42622",
+"lat": "31.3",
+"lon": "120.6194",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (filo lacca)"
+},
+{
+"id": "Switzerland",
+"nome": "Svizzera",
+"qid": "Q39",
+"lat": "46.7986",
+"lon": "8.232",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Tehran",
+"nome": "Teheran",
+"qid": "Q3616",
+"lat": "35.6889",
+"lon": "51.3897",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (filo lacca)"
+},
+{
+"id": "Thailand",
+"nome": "Thailandia",
+"qid": "Q869",
+"lat": "14.0",
+"lon": "101.0",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Tibet",
+"nome": "Tibet",
+"qid": "Q17252",
+"lat": "29.65",
+"lon": "91.1",
+"precisione": "regione",
+"metodo": "etichetta, max sitelinks (filo lacca)"
+},
+{
+"id": "Tokyo",
+"nome": "Tokyo",
+"qid": "Q1490",
+"lat": "35.6894",
+"lon": "139.6917",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (filo lacca)"
+},
+{
+"id": "Turkey",
+"nome": "Anatolia (Turchia)",
+"qid": "Q43",
+"lat": "39.0",
+"lon": "36.0",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "United States",
+"nome": "Stati Uniti",
+"qid": "Q30",
+"lat": "39.8282",
+"lon": "-98.5795",
+"precisione": "paese",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Venice",
+"nome": "Venezia",
+"qid": "Q641",
+"lat": "45.4397",
+"lon": "12.3319",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (luoghi.rq)"
+},
+{
+"id": "Yangzhou",
+"nome": "Yangzhou",
+"qid": "Q57906",
+"lat": "32.3912",
+"lon": "119.4363",
+"precisione": "citta",
+"metodo": "etichetta, max sitelinks (filo lacca)"
+}
+]

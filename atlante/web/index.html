@@ -29,6 +29,9 @@ a{color:var(--co)}
 .app{display:grid;height:100vh;grid-template:"top top top" auto "lay map ctx" minmax(0,1fr) "tl tl tl" auto/236px minmax(0,1fr) 340px}
 header{grid-area:top;display:flex;gap:14px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
 header .sub{color:var(--mute);font-size:13px}
+.filo{display:flex;align-items:baseline;gap:6px}
+.seg button:disabled{opacity:.45;cursor:not-allowed}
+#filo{font:inherit;font-size:13px;color:var(--ink);background:transparent;border:0;border-bottom:1px solid var(--line);padding:2px 0;cursor:pointer;max-width:260px}
 header .sp{flex:1}
 .seg{display:flex;gap:0}.seg button{border-radius:0}.seg button:first-child{border-radius:6px 0 0 6px}.seg button:last-child{border-radius:0 6px 6px 0}
 #q{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:8px 10px;width:220px;min-height:40px;font-size:16px}
@@ -193,7 +196,8 @@ header h1 .strumento{color:var(--strumento)}
  <a class="salta" href="#ctx">Vai ai risultati</a><a class="salta" href="#tls">Vai alla barra del tempo</a>
  <header>
   <h1>ArMoni · <span class="strumento">Atlante</span></h1>
-  <span class="sub">prototipo · primo filo: la porcellana blu e bianca nel mondo</span>
+  <label class="filo"><span class="sub">prototipo · filo</span>
+   <select id="filo" aria-label="Filo tematico"><option value="blu">la porcellana blu e bianca nel mondo</option><option value="lacca">la lacca nel mondo</option></select></label>
   <span class="sp"></span>
   <input id="q" type="search" placeholder="Cerca titolo, luogo, cultura, tecnica" aria-label="Cerca">
   <div class="seg" role="group" aria-label="Modalità">
@@ -223,6 +227,7 @@ header h1 .strumento{color:var(--strumento)}
   <label class="chk"><input type="checkbox" data-f="met" checked><span>Metropolitan Museum<small>Open Access CSV, CC0</small></span></label>
   <label class="chk"><input type="checkbox" data-f="cma" checked><span>Cleveland Museum of Art<small>Open Access CSV, CC0</small></span></label>
   <label class="chk"><input type="checkbox" data-f="colbase" checked><span>ColBase (musei nazionali giapponesi)<small>via Japan Search; CC BY, fonte: ColBase</small></span></label>
+  <label class="chk"><input type="checkbox" data-f="emuseum" checked><span>eMuseum (musei pubblici coreani)<small>solo schede KOGL tipo 1; fonte: il museo che conserva il pezzo</small></span></label>
   <label class="chk"><input type="checkbox" data-f="wd" checked><span>Wikidata, fuori dagli Stati Uniti<small>Museu Paulista, Taipei, Tokyo, Macao…; CC0</small></span></label>
    </div>
   </div>

@@ -313,6 +313,51 @@ def da_colbase(path):
                    **dedotto(o, c, it))
 
 
+# eMuseum (musei pubblici coreani): si tengono solo le schede con licenza KOGL tipo 1, ceramiche, e il blu
+# dichiarato nel nome (청화 = bianco e blu). Le fotografie su lastra di vetro (유리건판) ritraggono i pezzi: escluse.
+NAZIONI_KO = {'한국': 'Korea', '중국': 'China', '일본': 'Japan', '베트남': 'Vietnam', '아시아': None}
+EPOCHE_KO = {'고려': (918, 1392), '조선': (1392, 1897), '대한제국': (1897, 1910), '일제강점': (1910, 1945),
+             '광복이후': (1945, 2000), '명': (1368, 1644), '청': (1636, 1912), '원': (1271, 1368)}
+
+
+def da_emuseum(cartella):
+    if not (cartella / 'dettagli.jsonl').exists():
+        return
+    elenco = {json.loads(l)['id']: json.loads(l) for l in open(cartella / 'elenco.jsonl', encoding='utf-8')}
+    conta = Counter()
+    for l in open(cartella / 'dettagli.jsonl', encoding='utf-8'):
+        d = json.loads(l); c = d['campi']; e = elenco.get(d['id'], {})
+        if d['licenza_kogl'] != 1:
+            conta['licenza diversa dal tipo 1'] += 1; continue
+        if '유리건판' in c.get('분류', '') + c.get('재질', '') + e.get('numero', ''):
+            conta['fotografia su lastra'] += 1; continue
+        nome = c.get('명칭') or e.get('titolo', '')
+        if '청화' not in nome:
+            conta['blu non nel nome'] += 1; continue
+        naz, _, epoca = c.get('국적/시대', '').partition(' - ')
+        ini, fin = EPOCHE_KO.get(epoca.strip(), (None, None))
+        crit = 'blu dichiarato nel nome: «청화» (bianco e blu)'
+        tf = c.get('특징', '')
+        m = re.search(r'(\d{4})년', tf) or None
+        sec = re.search(r'(\d{1,2})세기', tf)
+        if m and 1000 < int(m.group(1)) < 2000:
+            ini = fin = int(m.group(1)); crit += f'; anno dichiarato nella descrizione ({m.group(1)}년)'
+        elif sec:
+            n = int(sec.group(1)); ini, fin = (n - 1) * 100, n * 100 - 1; crit += f'; secolo dichiarato nella descrizione ({n}세기)'
+        museo = d.get('museo') or e.get('museo') or ''
+        conta['tenute'] += 1
+        yield dict(id='emu:' + d['id'], fonte='emuseum', titolo=nome, cultura=c.get('국적/시대', ''),
+                   data_testo=c.get('국적/시대', ''), inizio=ini, fine=fin,
+                   tecnica=' · '.join(x for x in (c.get('재질'), c.get('분류')) if x),
+                   grado='documentato', criterio=crit,
+                   url='https://www.emuseum.go.kr/detail?relicId=' + d['id'],
+                   licenza=f'KOGL tipo 1 — fonte: {museo or "e뮤지엄"}, eMuseum (emuseum.go.kr)', wikidata='',
+                   origine=NAZIONI_KO.get(naz.strip()) or NAZIONI_KO.get(epoca.strip()), origine_incerta=False,
+                   sede='National Museum of Korea' if museo == '국립중앙박물관' else 'Korea',
+                   mercato=None, export_senza_meta=False, museo=museo)
+    print('eMuseum:', dict(conta))
+
+
 def main():
     luoghi = {r['id']: r for r in csv.DictReader(open(ROOT / 'data/luoghi.csv', encoding='utf-8'))}
     opere, scarti = [], Counter()
@@ -325,7 +370,7 @@ def main():
         rec.update(origine=o, origine_incerta=bool(INCERTO.search(rec['cultura'])), sede=SEDI[rec['fonte']],
                    mercato=mk, export_senza_meta=export)
         opere.append(rec)
-    for rec in list(da_wd(ROOT / 'data/raw/wikidata_ceramiche.csv', luoghi)) + list(da_colbase(ROOT / 'data/raw/colbase.json')):
+    for rec in list(da_wd(ROOT / 'data/raw/wikidata_ceramiche.csv', luoghi)) + list(da_colbase(ROOT / 'data/raw/colbase.json')) + list(da_emuseum(ROOT / 'data/raw/emuseum')):
         if rec['inizio'] is None or rec['fine'] is None or rec['inizio'] > rec['fine']:
             scarti['date assenti o invertite'] += 1
             rec['inizio'] = rec['fine'] = None
@@ -350,7 +395,7 @@ def scrivi_metriche(opere, luoghi, scarti):
              'Rigenerato da `src/build.py`. Ogni cifra si ricalcola dai file in `data/`.', '',
              f'Pezzi: **{n}** — Met {sum(o["fonte"] == "met" for o in opere)}, Cleveland {sum(o["fonte"] == "cma" for o in opere)}, '
              f'Wikidata fuori dagli Stati Uniti {sum(o["fonte"] == "wd" for o in opere)}, '
-             f'ColBase {sum(o["fonte"] == "colbase" for o in opere)}.', '',
+             f'ColBase {sum(o["fonte"] == "colbase" for o in opere)}, eMuseum {sum(o["fonte"] == "emuseum" for o in opere)}.', '',
              '## Inclusione', '', '| grado | pezzi |', '| --- | ---: |']
     righe += [f'| {g} | {pct(k)} |' for g, k in Counter(o['grado'] for o in opere).most_common()]
     righe += ['', '## Precisione del luogo d\'origine', '', '| precisione | pezzi |', '| --- | ---: |']

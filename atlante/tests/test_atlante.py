@@ -162,7 +162,7 @@ def test_luogo_dedotto_non_tocca_il_dichiarato():
 
 def test_fonti_mancanti_dichiarate():
     q = json.load(open(ROOT / 'web/qualita.json', encoding='utf-8'))
-    assert {m['regione'] for m in q['mancanti']} >= {'Corea'}
+    assert {m['regione'] for m in q['mancanti']} >= {'Cina'}  # Taipei; la Corea ora arriva da eMuseum
     assert all(m['esito'] and m['prossimo_passo'] for m in q['mancanti'])
 
 
@@ -203,3 +203,24 @@ def test_anno_finale_abbreviato():
     assert B.intervallo_cb(['明時代・嘉靖年間(1522～66)'], {})[:2] == (1522, 1566)
     assert B.intervallo_cb(['江戸時代･天明年間(1781～89)'], {'明': (1368, 1644)})[:2] == (1781, 1789)
     assert B.intervallo_cb(['(1795～05)'], {})[:2] == (1795, 1805)
+
+
+def test_emuseum_solo_kogl1():
+    import json, pathlib
+    o = json.load(open(pathlib.Path(__file__).parent.parent / 'web/opere.json'))
+    o = o['opere'] if isinstance(o, dict) else o
+    k = [x for x in o if str(x.get('id', '')).startswith('emu:')]
+    assert k and all('KOGL tipo 1' in x['licenza'] for x in k)
+    assert all('emuseum.go.kr/detail?relicId=' in x['url'] for x in k)
+
+
+def test_filo_lacca_inclusione():
+    import sys, pathlib
+    sys.path.insert(0, str(pathlib.Path(__file__).parent.parent / 'src'))
+    import filo_lacca as f
+    assert f.inclusione('Lacquer on wood, gold maki-e')[0] == 'documentato'
+    assert f.inclusione('Japanned tinplate')[2] is True
+    assert f.inclusione('Nitrocellulose lacquer on canvas')[0] is None
+    assert f.inclusione('Porcelain painted in underglaze blue')[0] is None
+    assert f.origine('Edo period (1615–1868)', 'Japan') == 'Japan'  # «Edo» è un'epoca, non il centro
+    assert f.origine('Ryūkyū Islands', 'Japan') == 'Okinawa'
