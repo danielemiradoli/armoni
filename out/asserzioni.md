@@ -2,7 +2,7 @@
 
 Rigenerato da `python3 -m armoni.asserzioni`. L'archivio completo è `out/armoni.sqlite` (si rigenera).
 
-Entità: 15186 · asserzioni: 81153 · asserzioni fuori dall'accordo (comune.py): 0
+Entità: 15246 · asserzioni: 81153 · asserzioni fuori dall'accordo (comune.py): 0
 
 | entità | quante |
 | --- | ---: |
@@ -10,23 +10,24 @@ Entità: 15186 · asserzioni: 81153 · asserzioni fuori dall'accordo (comune.py)
 | luogo | 493 |
 | periodo | 439 |
 | autorita | 128 |
+| gruppo | 60 |
 | fonte | 7 |
 | filo | 2 |
 
 | relazione | grado | asserzioni |
 | --- | --- | ---: |
-| appartiene_a | documentato | 13499 |
-| appartiene_a | ipotetico | 636 |
-| artefice_dichiarato | dichiarato | 2242 |
-| conservato_presso | dichiarato | 14135 |
-| datato | dedotto | 6460 |
-| datato | dichiarato | 6021 |
-| definito_da | dichiarato | 1371 |
-| destinato_a | dichiarato | 18 |
-| fatto_a | dichiarato | 12564 |
-| fatto_a | dedotto | 676 |
-| periodo_dichiarato | dichiarato | 10731 |
-| tipo | dedotto | 12800 |
+| classificato_come | dedotto | 12800 |
+| custode | dichiarato | 14135 |
+| membro_di | documentato | 13499 |
+| membro_di | ipotetico | 636 |
+| mercato_destinazione | dichiarato | 18 |
+| periodo.definizione | dichiarato | 1371 |
+| produzione.artefice | dichiarato | 2242 |
+| produzione.data | dedotto | 6460 |
+| produzione.data | dichiarato | 6021 |
+| produzione.luogo | dichiarato | 12564 |
+| produzione.luogo | dedotto | 676 |
+| produzione.periodo | dichiarato | 10731 |
 
 ## Che cosa i cataloghi dichiarano, e quanto la base collega
 
@@ -34,8 +35,8 @@ I periodi scritti dai cataloghi si collegano ai concetti di periodo (riconosciut
 
 | relazione | collegate a un'entità | solo testo | pezzi |
 | --- | ---: | ---: | ---: |
-| artefice_dichiarato | 0 | 2242 | 2239 |
-| periodo_dichiarato | 8942 | 1789 | 9412 |
+| produzione.artefice | 0 | 2242 | 2239 |
+| produzione.periodo | 8942 | 1789 | 9412 |
 
 ## Periodi
 

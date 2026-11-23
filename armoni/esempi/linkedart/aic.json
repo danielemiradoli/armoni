@@ -1,0 +1,134 @@
+{
+  "@context": "https://linked.art/ns/v1/linked-art.json",
+  "id": "https://danielemiradoli.github.io/armoni/id/oggetto/aic:111380",
+  "type": "HumanMadeObject",
+  "_label": "Seated Bodhisattva",
+  "identified_by": [
+    {
+      "type": "Name",
+      "content": "Seated Bodhisattva",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300404670",
+          "type": "Type",
+          "_label": "Primary Name"
+        }
+      ]
+    }
+  ],
+  "classified_as": [
+    {
+      "id": "http://vocab.getty.edu/aat/300404024",
+      "type": "Type",
+      "_label": "Collection Item"
+    }
+  ],
+  "member_of": [
+    {
+      "id": "https://danielemiradoli.github.io/armoni/id/filo/lacca",
+      "type": "Set",
+      "_label": "La lacca nel mondo"
+    }
+  ],
+  "current_custodian": [
+    {
+      "id": "https://danielemiradoli.github.io/armoni/id/gruppo/Art_Institute_of_Chicago",
+      "type": "Group",
+      "_label": "Art Institute of Chicago"
+    }
+  ],
+  "produced_by": {
+    "type": "Production",
+    "took_place_at": [
+      {
+        "id": "https://danielemiradoli.github.io/armoni/id/luogo/Japan",
+        "type": "Place",
+        "_label": "Giappone",
+        "equivalent": [
+          {
+            "id": "http://www.wikidata.org/entity/Q17",
+            "type": "Place"
+          }
+        ]
+      }
+    ],
+    "timespan": {
+      "type": "TimeSpan",
+      "begin_of_the_begin": "0770-01-01T00:00:00Z",
+      "end_of_the_end": "0780-12-31T23:59:59Z",
+      "identified_by": [
+        {
+          "type": "Name",
+          "content": "8th century",
+          "classified_as": [
+            {
+              "id": "http://vocab.getty.edu/aat/300404669",
+              "type": "Type",
+              "_label": "Display Name"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "referred_to_by": [
+    {
+      "type": "LinguisticObject",
+      "content": "aic: metadati CC0",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300435434",
+          "type": "Type",
+          "_label": "Rights Statement",
+          "classified_as": [
+            {
+              "id": "http://vocab.getty.edu/aat/300418049",
+              "type": "Type",
+              "_label": "Statement"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "subject_of": [
+    {
+      "type": "LinguisticObject",
+      "_label": "scheda della fonte",
+      "digitally_carried_by": [
+        {
+          "type": "DigitalObject",
+          "access_point": [
+            {
+              "id": "https://www.artic.edu/artworks/111380",
+              "type": "DigitalObject"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "attributed_by": [
+    {
+      "type": "AttributeAssignment",
+      "carried_out_by": [
+        {
+          "id": "https://danielemiradoli.github.io/armoni/id/gruppo/armoni",
+          "type": "Group",
+          "_label": "ArMoni"
+        }
+      ],
+      "referred_to_by": [
+        {
+          "type": "LinguisticObject",
+          "content": "dedotto: tipo di oggetto letto per parole chiave nel nome (atlante/src/tipi.py)"
+        }
+      ],
+      "assigned_property": "referred_to_by",
+      "assigned": {
+        "type": "LinguisticObject",
+        "content": "scultura"
+      }
+    }
+  ]
+}

@@ -51,5 +51,5 @@ def schede(ctx):
                    licenza=f'KOGL tipo 1 — fonte: {museo or "e뮤지엄"}, eMuseum (emuseum.go.kr)', wikidata='',
                    origine=NAZIONI.get(naz.strip()) or NAZIONI.get(epoca.strip()), incerto=False,
                    sede='National Museum of Korea' if museo == '국립중앙박물관' else 'Korea',
-                   mercato=None, export_senza_meta=False, nota_data=nota, extra={'museo': museo},
+                   mercato=None, export_senza_meta=False, nota_data=nota, extra={'museo': museo}, custode=museo or None,  # senza museo dichiarato, nessun custode: non lo si inventa
                    periodo=epoca.strip(), artefice=c.get('작가', ''))

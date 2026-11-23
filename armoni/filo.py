@@ -118,6 +118,9 @@ def costruisci(nome):
                 rec.update(s['deduci'](o))
             # dichiarati dal catalogo, conservati per le asserzioni (periodo, artefice); non vanno nelle viste
             rec['_dichiarati'] = {k: s[k] for k in ('periodo', 'dinastia', 'artefice') if s.get(k)}
+            # il custode come lo dichiara la fonte (un'istituzione, in qualunque lingua): distinto dalla «sede»,
+            # che è il punto sulla mappa scelto per la vista
+            rec['_custode'] = (s['custode'] if 'custode' in s else s.get('sede'), s.get('custode_qid'))
             # periodi dichiarati dal catalogo e riconosciuti nel vocabolario comune (armoni/periodi.py): solo i QID
             rec['periodi'] = list(dict.fromkeys(q for k in ('periodo', 'dinastia') for _, q, _ in PER.riconosci(s.get(k, ''), ini, fin) if q))
             opere.append(rec)

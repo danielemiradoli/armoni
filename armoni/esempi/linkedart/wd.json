@@ -1,0 +1,146 @@
+{
+  "@context": "https://linked.art/ns/v1/linked-art.json",
+  "id": "https://danielemiradoli.github.io/armoni/id/oggetto/wd:Q126727006",
+  "type": "HumanMadeObject",
+  "_label": "Vietnamese vase with phoenix-and-peony decoration in underglaze blue",
+  "identified_by": [
+    {
+      "type": "Name",
+      "content": "Vietnamese vase with phoenix-and-peony decoration in underglaze blue",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300404670",
+          "type": "Type",
+          "_label": "Primary Name"
+        }
+      ]
+    }
+  ],
+  "classified_as": [
+    {
+      "id": "http://vocab.getty.edu/aat/300404024",
+      "type": "Type",
+      "_label": "Collection Item"
+    }
+  ],
+  "equivalent": [
+    {
+      "id": "http://www.wikidata.org/entity/Q126727006",
+      "type": "HumanMadeObject"
+    }
+  ],
+  "member_of": [
+    {
+      "id": "https://danielemiradoli.github.io/armoni/id/filo/blu",
+      "type": "Set",
+      "_label": "La porcellana blu e bianca nel mondo"
+    }
+  ],
+  "current_custodian": [
+    {
+      "id": "https://danielemiradoli.github.io/armoni/id/gruppo/National_Palace_Museum",
+      "type": "Group",
+      "_label": "National Palace Museum",
+      "equivalent": [
+        {
+          "id": "http://www.wikidata.org/entity/Q540668",
+          "type": "Group"
+        }
+      ]
+    }
+  ],
+  "produced_by": {
+    "type": "Production",
+    "took_place_at": [
+      {
+        "id": "https://danielemiradoli.github.io/armoni/id/luogo/Hải_Dương",
+        "type": "Place",
+        "_label": "Hải Dương",
+        "equivalent": [
+          {
+            "id": "http://www.wikidata.org/entity/Q36729",
+            "type": "Place"
+          }
+        ]
+      }
+    ],
+    "timespan": {
+      "type": "TimeSpan",
+      "begin_of_the_begin": "1450-01-01T00:00:00Z",
+      "end_of_the_end": "1550-12-31T23:59:59Z",
+      "identified_by": [
+        {
+          "type": "Name",
+          "content": "1600 (P1319/P1326)",
+          "classified_as": [
+            {
+              "id": "http://vocab.getty.edu/aat/300404669",
+              "type": "Type",
+              "_label": "Display Name"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "referred_to_by": [
+    {
+      "type": "LinguisticObject",
+      "content": "wd: CC0 (Wikidata)",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300435434",
+          "type": "Type",
+          "_label": "Rights Statement",
+          "classified_as": [
+            {
+              "id": "http://vocab.getty.edu/aat/300418049",
+              "type": "Type",
+              "_label": "Statement"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "subject_of": [
+    {
+      "type": "LinguisticObject",
+      "_label": "scheda della fonte",
+      "digitally_carried_by": [
+        {
+          "type": "DigitalObject",
+          "access_point": [
+            {
+              "id": "http://www.wikidata.org/entity/Q126727006",
+              "type": "DigitalObject"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "attributed_by": [
+    {
+      "type": "AttributeAssignment",
+      "carried_out_by": [
+        {
+          "id": "https://danielemiradoli.github.io/armoni/id/gruppo/armoni",
+          "type": "Group",
+          "_label": "ArMoni"
+        }
+      ],
+      "referred_to_by": [
+        {
+          "type": "LinguisticObject",
+          "content": "dedotto: tipo di oggetto letto per parole chiave nel nome (atlante/src/tipi.py)"
+        }
+      ],
+      "assigned_property": "referred_to_by",
+      "assigned": {
+        "type": "LinguisticObject",
+        "content": "vaso"
+      }
+    }
+  ]
+}

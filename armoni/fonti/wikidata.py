@@ -64,5 +64,5 @@ def schede(ctx):
                    cultura=' | '.join(titoli[1:3]), data_testo=(r['data'][:4].lstrip('+') + f' ({prec})') if prec else '',
                    inizio=ini, fine=fin, tecnica=' | '.join(uniq('desc'))[:300],
                    url=w, licenza='CC0 (Wikidata)', wikidata=q(w), origine=orig, incerto=False,
-                   sede=sede, mercato=None, export_senza_meta=False,
+                   sede=sede, mercato=None, export_senza_meta=False, custode=r['colLab'] or None, custode_qid=q(r['col']) or None,
                    extra={'origine_anacronistica': q(r['orig']) == PRC and fin is not None and fin < 1949})

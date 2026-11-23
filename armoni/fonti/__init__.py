@@ -6,7 +6,7 @@ Ogni lettore espone `schede(ctx)` e restituisce, per ogni record, un dizionario 
 - i campi comuni: id, fonte, titolo, cultura, data_testo, inizio, fine, tecnica, classe, url, licenza, wikidata;
 - `centro` e `paese`: i testi in cui cercare il luogo d'origine con il gazzettiere del filo,
   oppure `origine` già risolta quando la fonte la dichiara in forma strutturata (Wikidata, eMuseum);
-- facoltativi: `incerto`, `sede`, `mercato`/`export_senza_meta`, `nota_data`, `extra` (campi propri della fonte).
+- facoltativi: `custode` (l'istituzione che conserva il pezzo, come la scrive la fonte) e `custode_qid`; `incerto`, `sede`, `mercato`/`export_senza_meta`, `nota_data`, `extra` (campi propri della fonte).
 
 Il lettore interpreta la fonte (date, epoche, luoghi strutturati), non decide che cosa entra in un filo.
 """

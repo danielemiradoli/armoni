@@ -19,6 +19,16 @@ ArMoni è il contenitore. Gli strumenti sono modi di leggerlo e di costruirlo:
 Rigenerare la base: `python3 -m armoni.asserzioni blu lacca` → `out/armoni.sqlite` e il riepilogo
 [`out/asserzioni.md`](out/asserzioni.md).
 
+**Il modello è uno standard, non una nostra invenzione.** Entità e relazioni della base seguono
+[CIDOC CRM](https://cidoc-crm.org/) (norma ISO 21127) nella forma pratica di [Linked Art](https://linked.art/),
+e sono definite una volta sola in [`armoni/modello.py`](armoni/modello.py), senza nominare nessuna fonte:
+sono le fonti ad adattarsi al modello, attraverso i loro lettori. Nella base ogni asserzione corrisponde a
+un *E13 Attribute Assignment* (chi afferma, che cosa, con quale metodo). Nell'esportazione
+(`python3 -m armoni.linkedart` → `out/linkedart.jsonl`, validata contro lo
+[schema ufficiale](armoni/dati/linkedart_schema/)) ciò che la fonte dichiara diventa la proprietà diretta,
+ciò che ArMoni deduce resta un'assegnazione esplicita di ArMoni con il metodo scritto. Un esempio per fonte
+in [`armoni/esempi/linkedart/`](armoni/esempi/linkedart/).
+
 ---
 
 # Il motore delle identità

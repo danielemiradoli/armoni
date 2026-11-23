@@ -1,0 +1,154 @@
+{
+  "@context": "https://linked.art/ns/v1/linked-art.json",
+  "id": "https://danielemiradoli.github.io/armoni/id/oggetto/cma:84460",
+  "type": "HumanMadeObject",
+  "_label": "Lobed vase with underglaze cobalt blue decoration",
+  "identified_by": [
+    {
+      "type": "Name",
+      "content": "Lobed vase with underglaze cobalt blue decoration",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300404670",
+          "type": "Type",
+          "_label": "Primary Name"
+        }
+      ]
+    }
+  ],
+  "classified_as": [
+    {
+      "id": "http://vocab.getty.edu/aat/300404024",
+      "type": "Type",
+      "_label": "Collection Item"
+    }
+  ],
+  "member_of": [
+    {
+      "id": "https://danielemiradoli.github.io/armoni/id/filo/blu",
+      "type": "Set",
+      "_label": "La porcellana blu e bianca nel mondo"
+    }
+  ],
+  "current_custodian": [
+    {
+      "id": "https://danielemiradoli.github.io/armoni/id/gruppo/Cleveland_Museum_of_Art",
+      "type": "Group",
+      "_label": "Cleveland Museum of Art"
+    }
+  ],
+  "produced_by": {
+    "type": "Production",
+    "took_place_at": [
+      {
+        "id": "https://danielemiradoli.github.io/armoni/id/luogo/Jingdezhen",
+        "type": "Place",
+        "_label": "Jingdezhen",
+        "equivalent": [
+          {
+            "id": "http://www.wikidata.org/entity/Q34405",
+            "type": "Place"
+          }
+        ]
+      }
+    ],
+    "timespan": {
+      "type": "TimeSpan",
+      "begin_of_the_begin": "1661-01-01T00:00:00Z",
+      "end_of_the_end": "1722-12-31T23:59:59Z",
+      "identified_by": [
+        {
+          "type": "Name",
+          "content": "1661–1722",
+          "classified_as": [
+            {
+              "id": "http://vocab.getty.edu/aat/300404669",
+              "type": "Type",
+              "_label": "Display Name"
+            }
+          ]
+        }
+      ]
+    },
+    "referred_to_by": [
+      {
+        "type": "LinguisticObject",
+        "content": "[]",
+        "classified_as": [
+          {
+            "id": "http://vocab.getty.edu/aat/300435436",
+            "type": "Type",
+            "_label": "produzione.artefice",
+            "classified_as": [
+              {
+                "id": "http://vocab.getty.edu/aat/300418049",
+                "type": "Type",
+                "_label": "Statement"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "referred_to_by": [
+    {
+      "type": "LinguisticObject",
+      "content": "cma: CC0",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300435434",
+          "type": "Type",
+          "_label": "Rights Statement",
+          "classified_as": [
+            {
+              "id": "http://vocab.getty.edu/aat/300418049",
+              "type": "Type",
+              "_label": "Statement"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "subject_of": [
+    {
+      "type": "LinguisticObject",
+      "_label": "scheda della fonte",
+      "digitally_carried_by": [
+        {
+          "type": "DigitalObject",
+          "access_point": [
+            {
+              "id": "https://clevelandart.org/art/2020.174",
+              "type": "DigitalObject"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "attributed_by": [
+    {
+      "type": "AttributeAssignment",
+      "carried_out_by": [
+        {
+          "id": "https://danielemiradoli.github.io/armoni/id/gruppo/armoni",
+          "type": "Group",
+          "_label": "ArMoni"
+        }
+      ],
+      "referred_to_by": [
+        {
+          "type": "LinguisticObject",
+          "content": "dedotto: tipo di oggetto letto per parole chiave nel nome (atlante/src/tipi.py)"
+        }
+      ],
+      "assigned_property": "referred_to_by",
+      "assigned": {
+        "type": "LinguisticObject",
+        "content": "vaso"
+      }
+    }
+  ]
+}

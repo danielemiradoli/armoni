@@ -3,3 +3,4 @@ __pycache__/
 *.pyc
 .venv/
 out/armoni.sqlite
+out/linkedart.jsonl
