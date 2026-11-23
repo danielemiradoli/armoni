@@ -6,7 +6,8 @@
 "lat": "33.0",
 "lon": "66.0",
 "precisione": "paese",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Asia meridionale"
 },
 {
 "id": "Art Institute of Chicago",
@@ -15,7 +16,8 @@
 "lat": "41.8794",
 "lon": "-87.6239",
 "precisione": "istituzione",
-"metodo": "etichetta, max sitelinks (filo lacca)"
+"metodo": "etichetta, max sitelinks (filo lacca)",
+"macroregione": "Nord America"
 },
 {
 "id": "Austria",
@@ -24,7 +26,8 @@
 "lat": "48.0",
 "lon": "14.0",
 "precisione": "paese",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Europa"
 },
 {
 "id": "Bagan",
@@ -33,7 +36,8 @@
 "lat": "21.1725",
 "lon": "94.86",
 "precisione": "citta",
-"metodo": "etichetta, max sitelinks (filo lacca)"
+"metodo": "etichetta, max sitelinks (filo lacca)",
+"macroregione": "Sud-Est asiatico"
 },
 {
 "id": "Bali",
@@ -42,7 +46,8 @@
 "lat": "-8.5",
 "lon": "115.0",
 "precisione": "regione",
-"metodo": "etichetta, max sitelinks (filo lacca)"
+"metodo": "etichetta, max sitelinks (filo lacca)",
+"macroregione": "Sud-Est asiatico"
 },
 {
 "id": "Beijing",
@@ -51,7 +56,8 @@
 "lat": "39.904",
 "lon": "116.4075",
 "precisione": "citta",
-"metodo": "etichetta, max sitelinks (filo lacca)"
+"metodo": "etichetta, max sitelinks (filo lacca)",
+"macroregione": "Asia orientale"
 },
 {
 "id": "Belgium",
@@ -60,7 +66,8 @@
 "lat": "50.6411",
 "lon": "4.6681",
 "precisione": "paese",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Europa"
 },
 {
 "id": "Birmingham",
@@ -69,7 +76,8 @@
 "lat": "52.48",
 "lon": "-1.9025",
 "precisione": "citta",
-"metodo": "etichetta, max sitelinks (filo lacca)"
+"metodo": "etichetta, max sitelinks (filo lacca)",
+"macroregione": "Europa"
 },
 {
 "id": "Cambodia",
@@ -78,7 +86,8 @@
 "lat": "12.5",
 "lon": "105.0",
 "precisione": "paese",
-"metodo": "etichetta, max sitelinks (filo lacca)"
+"metodo": "etichetta, max sitelinks (filo lacca)",
+"macroregione": "Sud-Est asiatico"
 },
 {
 "id": "China",
@@ -87,7 +96,8 @@
 "lat": "35.0",
 "lon": "105.0",
 "precisione": "paese",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Asia orientale"
 },
 {
 "id": "Cleveland Museum of Art",
@@ -96,7 +106,8 @@
 "lat": "41.5089",
 "lon": "-81.6117",
 "precisione": "istituzione",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Nord America"
 },
 {
 "id": "Czech Republic",
@@ -105,7 +116,8 @@
 "lat": "50.0",
 "lon": "15.0",
 "precisione": "paese",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Europa"
 },
 {
 "id": "Ecuador",
@@ -114,7 +126,8 @@
 "lat": "-1.0",
 "lon": "-78.0",
 "precisione": "paese",
-"metodo": "etichetta, max sitelinks (filo lacca)"
+"metodo": "etichetta, max sitelinks (filo lacca)",
+"macroregione": "Sud America"
 },
 {
 "id": "England",
@@ -123,7 +136,8 @@
 "lat": "53.0",
 "lon": "-1.0",
 "precisione": "paese",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Europa"
 },
 {
 "id": "Europe",
@@ -132,7 +146,8 @@
 "lat": "53.5",
 "lon": "15.5",
 "precisione": "zona",
-"metodo": "QID diretto (zone.rq)"
+"metodo": "QID diretto (zone.rq)",
+"macroregione": "Europa"
 },
 {
 "id": "France",
@@ -141,7 +156,8 @@
 "lat": "47.0",
 "lon": "2.0",
 "precisione": "paese",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Europa"
 },
 {
 "id": "Germany",
@@ -150,7 +166,8 @@
 "lat": "51.0",
 "lon": "10.0",
 "precisione": "paese",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Europa"
 },
 {
 "id": "Guangzhou",
@@ -159,7 +176,8 @@
 "lat": "23.13",
 "lon": "113.26",
 "precisione": "citta",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Asia orientale"
 },
 {
 "id": "India",
@@ -168,7 +186,8 @@
 "lat": "22.8",
 "lon": "83.0",
 "precisione": "paese",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Asia meridionale"
 },
 {
 "id": "Indonesia",
@@ -177,7 +196,8 @@
 "lat": "-2.0",
 "lon": "118.0",
 "precisione": "paese",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Sud-Est asiatico"
 },
 {
 "id": "Iran",
@@ -186,7 +206,8 @@
 "lat": "32.0",
 "lon": "53.0",
 "precisione": "paese",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Medio Oriente e Nord Africa"
 },
 {
 "id": "Isfahan",
@@ -195,7 +216,8 @@
 "lat": "32.6525",
 "lon": "51.6747",
 "precisione": "citta",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Medio Oriente e Nord Africa"
 },
 {
 "id": "Italy",
@@ -204,7 +226,8 @@
 "lat": "42.5",
 "lon": "12.5",
 "precisione": "paese",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Europa"
 },
 {
 "id": "Japan",
@@ -213,7 +236,8 @@
 "lat": "35.0",
 "lon": "136.0",
 "precisione": "paese",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Asia orientale"
 },
 {
 "id": "Kanazawa",
@@ -222,7 +246,8 @@
 "lat": "36.5611",
 "lon": "136.6565",
 "precisione": "citta",
-"metodo": "etichetta, max sitelinks (filo lacca)"
+"metodo": "etichetta, max sitelinks (filo lacca)",
+"macroregione": "Asia orientale"
 },
 {
 "id": "Korea",
@@ -231,7 +256,8 @@
 "lat": "38.3167",
 "lon": "127.2333",
 "precisione": "paese",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Asia orientale"
 },
 {
 "id": "Kyoto",
@@ -240,7 +266,8 @@
 "lat": "35.0116",
 "lon": "135.7681",
 "precisione": "citta",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Asia orientale"
 },
 {
 "id": "London",
@@ -249,7 +276,8 @@
 "lat": "51.5072",
 "lon": "-0.1275",
 "precisione": "citta",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Europa"
 },
 {
 "id": "Metropolitan Museum of Art",
@@ -258,7 +286,8 @@
 "lat": "40.7794",
 "lon": "-73.9633",
 "precisione": "istituzione",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Nord America"
 },
 {
 "id": "Mexico",
@@ -267,7 +296,8 @@
 "lat": "23.0",
 "lon": "-102.0",
 "precisione": "paese",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Mesoamerica e Caraibi"
 },
 {
 "id": "Myanmar",
@@ -276,7 +306,8 @@
 "lat": "22.0",
 "lon": "96.0",
 "precisione": "paese",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Sud-Est asiatico"
 },
 {
 "id": "Nara",
@@ -285,7 +316,8 @@
 "lat": "34.685",
 "lon": "135.8048",
 "precisione": "citta",
-"metodo": "etichetta, max sitelinks (filo lacca)"
+"metodo": "etichetta, max sitelinks (filo lacca)",
+"macroregione": "Asia orientale"
 },
 {
 "id": "National Museum of Korea",
@@ -294,7 +326,8 @@
 "lat": "37.5239",
 "lon": "126.9803",
 "precisione": "istituzione",
-"metodo": "etichetta (eMuseum)"
+"metodo": "etichetta (eMuseum)",
+"macroregione": "Asia orientale"
 },
 {
 "id": "Netherlands",
@@ -303,7 +336,8 @@
 "lat": "52.3167",
 "lon": "5.55",
 "precisione": "paese",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Europa"
 },
 {
 "id": "Okinawa",
@@ -312,7 +346,8 @@
 "lat": "26.2124",
 "lon": "127.6809",
 "precisione": "regione",
-"metodo": "etichetta (filo lacca, wikidata)"
+"metodo": "etichetta (filo lacca, wikidata)",
+"macroregione": "Asia orientale"
 },
 {
 "id": "Olinalá",
@@ -321,7 +356,8 @@
 "lat": "17.7789",
 "lon": "-98.7397",
 "precisione": "citta",
-"metodo": "etichetta, max sitelinks (filo lacca)"
+"metodo": "etichetta, max sitelinks (filo lacca)",
+"macroregione": "Mesoamerica e Caraibi"
 },
 {
 "id": "Paris",
@@ -330,7 +366,8 @@
 "lat": "48.8567",
 "lon": "2.3522",
 "precisione": "citta",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Europa"
 },
 {
 "id": "Russia",
@@ -339,7 +376,8 @@
 "lat": "66.4167",
 "lon": "94.25",
 "precisione": "paese",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Europa"
 },
 {
 "id": "Scotland",
@@ -348,7 +386,8 @@
 "lat": "57.0",
 "lon": "-5.0",
 "precisione": "paese",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Europa"
 },
 {
 "id": "Shiraz",
@@ -357,7 +396,8 @@
 "lat": "29.6103",
 "lon": "52.5311",
 "precisione": "citta",
-"metodo": "etichetta, max sitelinks (filo lacca)"
+"metodo": "etichetta, max sitelinks (filo lacca)",
+"macroregione": "Medio Oriente e Nord Africa"
 },
 {
 "id": "Spain",
@@ -366,7 +406,8 @@
 "lat": "40.2",
 "lon": "-3.5",
 "precisione": "paese",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Europa"
 },
 {
 "id": "Suzhou",
@@ -375,7 +416,8 @@
 "lat": "31.3",
 "lon": "120.6194",
 "precisione": "citta",
-"metodo": "etichetta, max sitelinks (filo lacca)"
+"metodo": "etichetta, max sitelinks (filo lacca)",
+"macroregione": "Asia orientale"
 },
 {
 "id": "Switzerland",
@@ -384,7 +426,8 @@
 "lat": "46.7986",
 "lon": "8.232",
 "precisione": "paese",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Europa"
 },
 {
 "id": "Tehran",
@@ -393,7 +436,8 @@
 "lat": "35.6889",
 "lon": "51.3897",
 "precisione": "citta",
-"metodo": "etichetta, max sitelinks (filo lacca)"
+"metodo": "etichetta, max sitelinks (filo lacca)",
+"macroregione": "Medio Oriente e Nord Africa"
 },
 {
 "id": "Thailand",
@@ -402,7 +446,8 @@
 "lat": "14.0",
 "lon": "101.0",
 "precisione": "paese",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Sud-Est asiatico"
 },
 {
 "id": "Tibet",
@@ -411,7 +456,8 @@
 "lat": "29.65",
 "lon": "91.1",
 "precisione": "regione",
-"metodo": "etichetta, max sitelinks (filo lacca)"
+"metodo": "etichetta, max sitelinks (filo lacca)",
+"macroregione": "Asia orientale"
 },
 {
 "id": "Tokyo",
@@ -420,7 +466,8 @@
 "lat": "35.6894",
 "lon": "139.6917",
 "precisione": "citta",
-"metodo": "etichetta, max sitelinks (filo lacca)"
+"metodo": "etichetta, max sitelinks (filo lacca)",
+"macroregione": "Asia orientale"
 },
 {
 "id": "Turkey",
@@ -429,7 +476,8 @@
 "lat": "39.0",
 "lon": "36.0",
 "precisione": "paese",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Medio Oriente e Nord Africa"
 },
 {
 "id": "United States",
@@ -438,7 +486,8 @@
 "lat": "39.8282",
 "lon": "-98.5795",
 "precisione": "paese",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Nord America"
 },
 {
 "id": "Venice",
@@ -447,7 +496,8 @@
 "lat": "45.4397",
 "lon": "12.3319",
 "precisione": "citta",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Europa"
 },
 {
 "id": "Vietnam",
@@ -456,7 +506,8 @@
 "lat": "16.0",
 "lon": "108.0",
 "precisione": "paese",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Sud-Est asiatico"
 },
 {
 "id": "Wales",
@@ -465,7 +516,8 @@
 "lat": "52.35",
 "lon": "-3.6333",
 "precisione": "paese",
-"metodo": "etichetta, max sitelinks (luoghi.rq)"
+"metodo": "etichetta, max sitelinks (luoghi.rq)",
+"macroregione": "Europa"
 },
 {
 "id": "Yangzhou",
@@ -474,6 +526,7 @@
 "lat": "32.3912",
 "lon": "119.4363",
 "precisione": "citta",
-"metodo": "etichetta, max sitelinks (filo lacca)"
+"metodo": "etichetta, max sitelinks (filo lacca)",
+"macroregione": "Asia orientale"
 }
 ]

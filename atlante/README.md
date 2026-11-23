@@ -29,13 +29,17 @@ Ogni pezzo porta il **grado d'inclusione** (`documentato`: il record nomina il b
 ```
 # scaricare i due CSV in data/raw/ (URL in MANIFEST.md)
 sh src/confini.sh          # richiede mapshaper
-python3 src/build.py       # scrive web/*.json e out/metrics.md
+python3 src/fetch_emuseum.py elenco && python3 src/fetch_emuseum.py dettagli 3000   # musei pubblici coreani; con FILO=lacca per il secondo filo
+python3 src/fetch_aic.py   # Art Institute of Chicago, filo lacca
+python3 src/build.py       # filo blu e bianco: scrive web/*.json e out/metrics.md
+python3 src/filo_lacca.py  # filo lacca: web/fili/lacca/*.json e out/filo_lacca.md
+cd src && python3 regioni_luoghi.py && cd ..   # macro-regione di ogni luogo, la stessa dei contesti
 python3 src/periodo.py && python3 src/letteratura.py && python3 src/qualita.py
 python3 src/fetch_vam.py && python3 src/densita_vam.py   # V&A: solo conteggi; cancellare data/raw/vam.csv entro 4 settimane
 # contesti: eseguire le query data/query/contesti_*.rq su query.wikidata.org, CSV in data/raw/contesti/
 python3 src/contesti.py    # richiede shapely; scrive web/contesti.json e out/contesti.md
 python3 src/aree.py        # aloni: superficie da Wikidata (data/query/aree.rq) o dai confini 2010; scrive web/aree.json
-python3 -m pytest tests    # 26 guardie
+python3 -m pytest tests    # 31 guardie
 cd web && python3 -m http.server
 ```
 

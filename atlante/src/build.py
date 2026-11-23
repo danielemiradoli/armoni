@@ -13,6 +13,9 @@ from pathlib import Path
 
 import pandas as pd
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import tipi  # noqa: E402
+
 ROOT = Path(__file__).resolve().parent.parent
 csv.field_size_limit(sys.maxsize)
 
@@ -376,6 +379,8 @@ def main():
             rec['inizio'] = rec['fine'] = None
         opere.append(rec)
 
+    for rec in opere:  # tipo di oggetto: lettura per parole chiave del nome (src/tipi.py), non dato della fonte
+        rec['tipo'], rec['tipo_parola'] = tipi.tipo(rec['titolo'], rec.get('classe'))
     web = ROOT / 'web'
     with open(web / 'opere.json', 'w', encoding='utf-8') as f:
         f.write('[\n' + ',\n'.join(json.dumps(o, ensure_ascii=False) for o in opere) + '\n]\n')

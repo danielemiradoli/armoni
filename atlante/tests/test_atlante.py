@@ -228,3 +228,22 @@ def test_filo_lacca_inclusione():
     import json, pathlib
     o = json.load(open(pathlib.Path(__file__).parent.parent / 'web/fili/lacca/opere.json'))
     assert all('KOGL tipo 1' in x['licenza'] for x in o if x['fonte'] == 'emuseum')
+
+
+def test_tipi_oggetto():
+    import sys, pathlib
+    sys.path.insert(0, str(pathlib.Path(__file__).parent.parent / 'src'))
+    import tipi
+    assert tipi.tipo('Plate with floral design')[0] == 'piatto'  # «design» non fa un disegno
+    assert tipi.tipo('청화백자 구연부편')[0] == 'frammento'
+    assert tipi.tipo('백자 청화 풀무늬 작은 항아리')[0] == 'vaso'
+    assert tipi.tipo('青花柘榴文皿')[0] == 'piatto'
+    assert tipi.tipo('Inrō')[0] == 'inrō'
+    assert tipi.tipo('Openwork fruit basket') == (None, None)
+
+
+def test_luoghi_hanno_macroregione():
+    import json, pathlib
+    w = pathlib.Path(__file__).parent.parent / 'web'
+    for p in [w / 'luoghi.json', *w.glob('fili/*/luoghi.json')]:
+        assert all(l.get('macroregione') for l in json.load(open(p))), p

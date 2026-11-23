@@ -85,10 +85,13 @@ def relazioni(nomi_voci):
 
 
 def confini():
-    anni = sorted(int(p.stem.split('_')[1]) for p in (ROOT / 'data/raw/confini').glob('world_*.geojson'))
+    # il repository scrive gli anni a.C. come world_bc500
+    file = {(-int(p.stem[9:]) if p.stem.startswith('world_bc') else int(p.stem[6:])): p
+            for p in (ROOT / 'data/raw/confini').glob('world_*.geojson')}
+    anni = sorted(file)
     snap = {}
     for a in anni:
-        fs = json.load(open(ROOT / f'data/raw/confini/world_{a}.geojson', encoding='utf-8'))['features']
+        fs = json.load(open(file[a], encoding='utf-8'))['features']
         geo = [(shape(f['geometry']), (f['properties'] or {}).get('NAME')) for f in fs if f.get('geometry')]
         snap[a] = (STRtree([g for g, _ in geo]), geo)
     return anni, snap
