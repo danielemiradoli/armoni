@@ -128,6 +128,9 @@ EPOCHE_KO = {**build.EPOCHE_KO, '낙랑': (-108, 313), '초기철기': (-300, -1
 LACCA_KO = re.compile(r'칠|漆|나전|螺鈿')
 
 
+ESCLUSI_EMU = Counter()
+
+
 def da_emuseum(cartella):
     if not (cartella / 'dettagli.jsonl').exists():
         return
@@ -159,7 +162,7 @@ def da_emuseum(cartella):
                    licenza=f'KOGL tipo 1 — fonte: {museo or "e뮤지엄"}, eMuseum (emuseum.go.kr)', wikidata='',
                    _origine=build.NAZIONI_KO.get(naz.strip()) or build.NAZIONI_KO.get(epoca.strip()),
                    _sede='National Museum of Korea' if museo == '국립중앙박물관' else 'Korea')
-    print('eMuseum (lacca):', dict(conta))
+    print('eMuseum (lacca):', dict(conta)); ESCLUSI_EMU.update(conta)
 
 
 def main():
@@ -182,6 +185,7 @@ def main():
     OUT.mkdir(parents=True, exist_ok=True)
     with open(OUT / 'opere.json', 'w', encoding='utf-8') as f:
         f.write('[\n' + ',\n'.join(json.dumps(o, ensure_ascii=False) for o in opere) + '\n]\n')
+    import copertura; copertura.scrivi(OUT, opere, ESCLUSI_EMU)
     usati = {o['origine'] for o in opere} | {o['sede'] for o in opere} | {o['mercato'] for o in opere}
     json.dump([luoghi[k] for k in sorted(x for x in usati if x)], open(OUT / 'luoghi.json', 'w', encoding='utf-8'),
               ensure_ascii=False, indent=0)

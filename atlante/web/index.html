@@ -169,7 +169,7 @@ header h1 .strumento{color:var(--strumento)}
 .strum{border-left:3px solid var(--strumento);background:var(--vetro);border-radius:0 6px 6px 0;padding:10px 10px 6px 12px;margin:0 0 12px}
 .strum.s-ctx{border-left-color:var(--cel)}
 .strum:has(.shead input:not(:checked)) > :not(.shead){opacity:.45}
-.shead{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.shead{display:flex;align-items:center;gap:8px;margin-bottom:6px}.shead>input{flex:none;width:16px;height:16px;accent-color:var(--co)}.s-ctx .shead>input{accent-color:var(--cel)}.shead h4{flex:1}
 .shead h4{margin:0;font:600 16px/1.2 Newsreader,Georgia,serif;color:var(--strumento)}
 .s-ctx .shead h4{color:var(--cel)}
 .shead h4 .sub{font:400 12.5px "Instrument Sans",system-ui,sans-serif;color:var(--mute)}
@@ -181,7 +181,34 @@ header h1 .strumento{color:var(--strumento)}
 .filtri{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
 .filtri button{font-size:12.5px;padding:2px 8px;border-radius:12px}
 .big.ctxn{color:var(--cel)}.bar.ctxbar{background:var(--cel)}
-.bar.lac{background:var(--lacca);margin-top:2px}.lacn{color:var(--lacca)}
+.bar.lac{background:var(--lacca);margin-top:2px}
+[hidden]{display:none!important}
+.chk{flex-wrap:wrap}.chk small.nota{flex-basis:100%;margin:2px 0 4px 24px}
+/* faccette: barre cliccabili con conteggio */
+.faccette{margin:2px 0 8px}.faccette>div{margin-bottom:8px}
+.fh{font-size:12.5px;color:var(--mute);margin:0 0 3px;display:flex;align-items:center;gap:6px}
+.fv{position:relative;display:flex;justify-content:space-between;gap:8px;width:100%;min-height:0;padding:3px 6px;margin:1px 0;border:0;border-radius:3px;background:none;font-size:13px;text-align:left;overflow:hidden}
+.fv .fb{position:absolute;left:0;bottom:0;height:2px;background:var(--co);opacity:.55}
+.s-ctx .fv .fb{background:var(--cel)}
+.fv:hover{background:var(--co2)}.fv.on{background:var(--co2);font-weight:600;box-shadow:inset 2px 0 0 var(--co)}
+.s-ctx .fv.on{box-shadow:inset 2px 0 0 var(--cel)}
+.fv .fl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.fv .fn{color:var(--mute);font-variant-numeric:tabular-nums}
+.lnk{border:0;background:none;padding:0 2px;min-height:0;color:var(--co);font-size:12.5px;text-decoration:underline;text-underline-offset:2px}
+/* «i» e conteggi dei livelli */
+.info{flex:none;width:18px;height:18px;min-height:0;padding:0;border-radius:50%;font:italic 600 11.5px/1 Newsreader,Georgia,serif;color:var(--mute);background:none}
+.info[aria-expanded=true]{color:var(--bg);background:var(--mute);border-color:var(--mute)}
+.chk{align-items:center}.chk>span:first-of-type{flex:1}
+.cnt{flex:none;font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums;margin-left:auto}
+.shead .info{margin-left:2px}
+.nota{display:block;font-size:12px;line-height:1.4;color:var(--mute);margin:2px 0 6px 24px}
+/* legenda sulla mappa */
+#leg{position:absolute;left:12px;top:12px;max-width:min(300px,70%)}
+#legbtn{min-height:32px;padding:4px 10px;font-size:13px;box-shadow:0 2px 10px rgb(16 28 70 / .08)}
+#legbody{margin-top:6px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;box-shadow:0 2px 10px rgb(16 28 70 / .08)}
+.lv{display:flex;gap:8px;align-items:center;font-size:12.5px;line-height:1.3;padding:2px 0}.lv svg{flex:none}
+/* copertura */
+#cop{font-size:12px;color:var(--mute);padding:6px 16px 8px;border-top:1px solid var(--line);line-height:1.45}
+#cop b{color:var(--ink);font-weight:600}#cop .manca{border-bottom:1px dotted var(--mute);cursor:help}.lacn{color:var(--lacca)}
 .conf{display:flex;gap:28px;margin:4px 0}.seg-blu,.seg-lac{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px;background:var(--co)}.seg-lac{background:none;border:2.5px solid var(--lacca);width:7px;height:7px}
 .ghead{display:flex;align-items:center;gap:8px}
 .ghead button{all:unset;cursor:pointer;flex:1;padding:4px 0}
@@ -232,10 +259,10 @@ header h1 .strumento{color:var(--strumento)}
   <section class="strum s-filo" aria-labelledby="t-filo">
    <div class="shead"><input type="checkbox" data-l="opere" checked aria-label="Mostra o nascondi gli oggetti del filo"><h4 id="t-filo">Filo <span class="sub">· oggetti</span></h4></div>
    <select id="filo" aria-label="Quale filo"><option value="blu">La porcellana blu e bianca nel mondo</option><option value="lacca">La lacca nel mondo</option><option value="confronto">Confronto: blu e bianco e lacca</option></select>
-   <div class="cat" aria-label="Cerca nel filo per categorie">
-    <label>Provenienza<select id="cat-reg"><option value="">tutte</option></select></label>
-    <label>Tipo di oggetto<select id="cat-tipo"><option value="">tutti</option></select></label>
-    <p class="sub" id="cat-nota">Il tipo è letto dal nome dell'oggetto nella scheda, non dichiarato dalla fonte.</p>
+   <div class="faccette" aria-label="Cerca nel filo per categorie">
+    <div id="fac-reg"></div>
+    <p class="sub nota" id="tipo-nota" hidden>Il tipo è letto dal nome dell'oggetto nella scheda (in inglese, coreano, giapponese, cinese), non dichiarato dalla fonte. «Non riconosciuto»: nessuna parola nota nel nome.</p>
+    <div id="fac-tipo"></div>
    </div>
   <div class="grp" data-grp="opere">
    <div class="ghead"><input type="checkbox" data-g="opere" checked aria-label="Accendi o spegni la cartella Segni e fonti"><button data-gt aria-expanded="false"><b>Segni e fonti</b> <span class="sub" data-gn="opere"></span></button></div>
@@ -265,10 +292,10 @@ header h1 .strumento{color:var(--strumento)}
   </div>
   </section>
   <section class="strum s-ctx" aria-labelledby="t-ctx">
-   <div class="shead"><input type="checkbox" data-l="contesti" aria-label="Mostra o nascondi i contesti"><h4 id="t-ctx">Contesti <span class="sub">· stili, movimenti, scuole, dinastie</span></h4></div>
-   <p class="sub" style="margin:2px 0 8px">Quadrati e nomi in corsivo, verdi. Dove e quando nascono, lo Stato di allora e il nome di oggi. Sovrapposti a un filo servono ad accostare: non legano nulla agli oggetti. Senza filo, sono una ricerca a sé.</p>
+   <div class="shead"><input type="checkbox" data-l="contesti" aria-label="Mostra o nascondi i contesti"><h4 id="t-ctx">Contesti <span class="sub">· fenomeni</span></h4><button class="info" data-infoper="ctx-nota" aria-expanded="false" aria-label="Che cosa sono i contesti">i</button></div>
+   <p class="sub nota" id="ctx-nota" hidden style="margin:2px 0 8px">Quadrati e nomi in corsivo, verdi. Dove e quando nascono, lo Stato di allora e il nome di oggi. Sovrapposti a un filo servono ad accostare: non legano nulla agli oggetti. Senza filo, sono una ricerca a sé.</p>
   <div class="sub" style="margin:0 0 8px;display:flex;flex-wrap:wrap;gap:2px 10px">tipi: <label><input type="checkbox" data-ct="movimento" checked> movimenti</label><label><input type="checkbox" data-ct="scuola" checked> scuole</label><label><input type="checkbox" data-ct="stile" checked> stili</label><label><input type="checkbox" data-ct="periodizzazione" checked> dinastie</label></div>
-   <div class="cat"><label>Provenienza<select id="ctx-reg"><option value="">tutte</option></select></label></div>
+   <div class="faccette"><div id="fac-ctx"></div></div>
   <label class="chk"><input type="checkbox" data-l="relazioni"><span>Relazioni dichiarate (puntini)<small>influenzato da, parte di, segue, sostituisce: solo quelle scritte su Wikidata, fra voci attive nella finestra. Mai dedotte dalla vicinanza</small></span></label>
   </section>
   <h3>Sfondo comune</h3>
@@ -279,7 +306,7 @@ header h1 .strumento{color:var(--strumento)}
   <p class="sub" style="margin-top:18px"><a href="fonti.html">Fonti e licenze</a> · <a href="https://github.com/danielemiradoli/armoni">Codice e dati</a></p>
  </aside>
 
- <div class="fig" id="fig"><canvas id="cv" aria-label="Mappa del mondo navigabile"></canvas><canvas id="alone" aria-hidden="true"></canvas><div id="tip"></div><div id="chip"></div>
+ <div class="fig" id="fig"><canvas id="cv" aria-label="Mappa del mondo navigabile"></canvas><canvas id="alone" aria-hidden="true"></canvas><div id="tip"></div><div id="chip"></div><div id="leg"><button id="legbtn" aria-expanded="false" aria-controls="legbody">Legenda</button><div id="legbody" hidden></div></div>
   <div id="mapctl"><button id="zin" aria-label="Avvicina">+</button><button id="zout" aria-label="Allontana">−</button></div></div>
 
  <aside id="ctx" aria-live="polite" tabindex="-1"><p class="sub">Carico opere, luoghi e confini…</p></aside>
@@ -295,6 +322,7 @@ header h1 .strumento{color:var(--strumento)}
    <span class="sub" id="tlinfo"></span>
   </div>
   <svg id="tls" role="slider" aria-label="Anno" tabindex="0"></svg>
+  <div id="cop" role="status" aria-label="Copertura dei dati"></div>
  </section>
 </div>
 

@@ -1,0 +1,27 @@
+{
+ "pezzi": 5226,
+ "senza_data": 176,
+ "fonti": {
+  "met": 2888,
+  "emuseum": 1603,
+  "aic": 373,
+  "cma": 362
+ },
+ "esclusi": [
+  {
+   "motivo": "schede coreane con licenza più restrittiva della KOGL tipo 1",
+   "n": 1850
+  },
+  {
+   "motivo": "fotografie e pellicole (ritraggono i pezzi, non sono pezzi)",
+   "n": 410
+  }
+ ],
+ "mancanti": [
+  {
+   "fonte": "Museo nazionale del Palazzo, Taipei (odapi.npm.gov.tw, dataset ceramiche)",
+   "esito": "connessione interrotta o scaduta, sia dal server di Armoni sia dal browser in Italia",
+   "prossimo": "richiesta scritta al referente del dataset"
+  }
+ ]
+}

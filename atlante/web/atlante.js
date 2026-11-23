@@ -79,7 +79,8 @@ Promise.all([dati('opere.json'), dati('luoghi.json'), j('periodi.json'), j('conf
   if (!VAM && !LET) $('[data-grp="quantita"]').hidden = true;
   if (!o.some(x => x.grado === 'ipotetico')) $('[data-l="ipotetici"]').closest('label').hidden = true;
   if (!PRIMO) { $('#m-percorso').disabled = true; $('#m-percorso').title = 'Il percorso in tappe per ora esiste solo per il filo blu e bianco'; }
-  categorie(); leggiVista(); for (const [id, k] of [['#cat-reg', 'reg'], ['#cat-tipo', 'tipo'], ['#ctx-reg', 'ctx']]) $(id).value = CAT[k]; route(); update();
+  Promise.all(FILI.map(f => j(baseDi(f) + 'copertura.json').catch(() => null))).then(v => { COP = v.filter(Boolean); renderCopertura(); });
+  infoLivelli(); leggiVista(); route(); update();
 }).catch(e => { $('#ctx').innerHTML = `<p>Non riesco a caricare i dati (${esc(e.message)}).</p>`; });
 
 /* Dettaglio secondo l'ingrandimento: confini e coste più fini si caricano solo quando servono.
@@ -513,8 +514,8 @@ new MutationObserver(() => document.querySelectorAll(`#ctx :is(${CLIC}), #nar :i
 document.addEventListener('keydown', e => { const el = e.target.closest?.(CLIC); if (el && !/^(BUTTON|A|INPUT|SELECT|TEXTAREA)$/.test(el.tagName) && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); el.click(); } });
 document.addEventListener('click', e => {
   if (e.target.closest('[data-svuota]')) { S.q = ''; $('#q').value = ''; update(); return; }
-  const tg = e.target.closest('[data-togli]'); if (tg) { const k = tg.dataset.togli; CAT[k] = ''; $({reg: '#cat-reg', tipo: '#cat-tipo', ctx: '#ctx-reg'}[k]).value = ''; update(); return; }
-  const cr = e.target.closest('[data-ctxreg]'); if (cr) { CAT.ctx = cr.dataset.ctxreg; $('#ctx-reg').value = CAT.ctx; update(); return; }
+  const tg = e.target.closest('[data-togli]'); if (tg) { const k = tg.dataset.togli; CAT[k] = ''; update(); return; }
+  const cr = e.target.closest('[data-ctxreg]'); if (cr) { CAT.ctx = cr.dataset.ctxreg; update(); return; }
   const an = e.target.closest('[data-anno]'); if (an) { S.year = +an.dataset.anno; update(); return; }
   const t = e.target.closest('[data-sel],[data-place],[data-back],[data-tav],[data-centra],[data-go]'); if (!t) return;
   if (t.dataset.sel) { S.sel = t.dataset.sel; }
@@ -559,14 +560,75 @@ function soloContesti() {
   <p class="sub">Ogni quadrato verde è un fenomeno nel luogo dove nasce, con le date dichiarate o dedotte dagli artisti (la scheda dice quale). Le relazioni compaiono solo dove Wikidata le scrive. Accendi un filo per accostarvi gli oggetti.</p>`;
 }
 const TIPO_PL = {movimento: 'movimenti', scuola: 'scuole', stile: 'stili', periodizzazione: 'dinastie'};
-function categorie() {  // opzioni con i conteggi sull'intero filo (tutto il tempo), per sapere prima cosa si troverà
-  const conta = (f, el, tutti, nomi = {}) => { const c = new Map(); for (const x of f) c.set(x, (c.get(x) || 0) + 1);
-    const v = el.value; el.innerHTML = `<option value="">${tutti}</option>` + [...c].sort((a, b) => (a[0] === '?') - (b[0] === '?') || b[1] - a[1])
-      .map(([k, n]) => `<option value="${esc(k)}">${esc(nomi[k] || k)} (${n.toLocaleString('it')})</option>`).join(''); el.value = v; };
-  const base = O.filter(x => S.F[x.fonte] && (S.L.ipotetici || x.grado === 'documentato'));
-  conta(base.map(regDi), $('#cat-reg'), 'tutte', {'?': 'senza luogo'});
-  conta(base.map(x => x.tipo || '?'), $('#cat-tipo'), 'tutti', {'?': 'non riconosciuto'});
-  conta(CX.filter(e => S.CT.has(e.tipo)).map(e => e.corsia), $('#ctx-reg'), 'tutte');
+function categorie() { }  // le categorie ora sono faccette (renderFacette), ridisegnate a ogni aggiornamento
+/* Faccette: per ogni categoria, barre con i conteggi nella finestra di tempo, contando con tutti gli altri
+   filtri ma non con il proprio (così si vede che cosa si otterrebbe scegliendo). Un clic filtra, un altro toglie. */
+const FAC_APERTA = {};
+const NOMI_CAT = {reg: {'?': 'senza luogo'}, tipo: {'?': 'non riconosciuto'}, ctx: {}};
+function contaFiltro(k) {
+  const q = S.q.toLowerCase(), c = new Map(), y0 = S.year - S.win, y1 = S.year + S.win;
+  if (k === 'ctx') { for (const e of CX) if (S.CT.has(e.tipo) && e.quando.da <= y1 && e.fv >= y0 && (!q || (e.nome + ' ' + (e.nome_en || '')).toLowerCase().includes(q))) c.set(e.corsia, (c.get(e.corsia) || 0) + 1); return c; }
+  const salva = CAT[k]; CAT[k] = '';
+  for (const x of O) if (x.inizio <= y1 && x.fine >= y0 && passa(x) && (!q || x.hay.includes(q))) { const v = k === 'reg' ? regDi(x) : (x.tipo || '?'); c.set(v, (c.get(v) || 0) + 1); }
+  CAT[k] = salva; return c;
+}
+function faccetta(k, titolo, el) {
+  const c = contaFiltro(k), voci = [...c].sort((a, b) => (a[0] === '?') - (b[0] === '?') || b[1] - a[1]);
+  if (CAT[k] && !c.has(CAT[k])) voci.unshift([CAT[k], 0]);
+  const mx = Math.max(1, ...voci.map(v => v[1])), apri = FAC_APERTA[k], vis = apri ? voci : voci.slice(0, 6);
+  el.innerHTML = `<div class="fh">${titolo}${CAT[k] ? ` <button class="lnk" data-fac="${k}" data-v="">tutte</button>` : ''}</div>` +
+    (vis.map(([v, n]) => `<button class="fv${CAT[k] === v ? ' on' : ''}" data-fac="${k}" data-v="${esc(v)}" aria-pressed="${CAT[k] === v}"><span class="fl">${esc(NOMI_CAT[k][v] || v)}</span><span class="fn">${n.toLocaleString('it')}</span><span class="fb" style="width:${100 * n / mx}%"></span></button>`).join('') || '<p class="sub">Niente in questa finestra.</p>') +
+    (voci.length > 6 ? `<button class="lnk" data-facapri="${k}">${apri ? 'meno' : `tutte le ${voci.length}`}</button>` : '');
+}
+function renderFacette() {
+  if (S.L.opere) { faccetta('reg', 'Provenienza', $('#fac-reg')); faccetta('tipo', 'Tipo di oggetto <button class="info" data-infoper="tipo-nota" aria-label="Come è ricavato il tipo" aria-expanded="false">i</button>', $('#fac-tipo')); }
+  if (S.L.contesti) faccetta('ctx', 'Provenienza', $('#fac-ctx'));
+}
+/* Conteggio accanto a ogni livello: quanto c'è di quel livello nella finestra (vuoto = trattino). */
+function renderConteggi() {
+  const n = {origini: act.filter(x => luogo(x)).length, sedi: new Set(act.map(x => x.sede).filter(Boolean)).size,
+    spostamenti: act.filter(x => x.o && x.s && x.o !== x.s).length, mercati: act.filter(x => x.m).length,
+    ipotetici: act.filter(x => x.grado === 'ipotetico').length, dedotti: act.filter(x => !x.o && x.origine_dedotta).length,
+    vam: Math.round(vagg.reduce((a, g) => a + g.n, 0)), letteratura: lagg.length,
+    contesti: cagg.length, relazioni: cagg.reduce((a, e) => a + e.relazioni.filter(r => r.verso === '>' && cagg.some(z => z.id === r.id)).length, 0)};
+  const f = new Map(); for (const x of act) f.set(x.fonte, (f.get(x.fonte) || 0) + 1);
+  document.querySelectorAll('[data-l],[data-f]').forEach(i => { const k = i.dataset.l || i.dataset.f, v = i.dataset.l ? n[k] : (f.get(k) || 0);
+    const cnt = i.closest('label,.shead')?.querySelector('.cnt'); if (cnt) cnt.textContent = v == null ? '' : v ? v.toLocaleString('it') : '–'; });
+}
+/* Legenda: solo i segni accesi che in questa finestra hanno qualcosa da mostrare. */
+let LEG_APERTA = false;
+function renderLegenda() {
+  const sv = (d, w = 22) => `<svg width="${w}" height="16" viewBox="0 0 ${w} 16" aria-hidden="true">${d}</svg>`, v = [];
+  if (S.L.opere && S.L.origini && agg.length) {
+    if (CONFRONTO) v.push([sv('<circle cx="11" cy="8" r="6" fill="var(--co)" opacity=".75"/>'), 'porcellana blu e bianca'], [sv('<circle cx="11" cy="8" r="5.5" fill="none" stroke="var(--lacca)" stroke-width="2.4"/>'), 'lacca']);
+    else v.push([sv('<circle cx="11" cy="8" r="6" fill="var(--co)" opacity=".75"/>'), 'luogo d\'origine: città (più pieno, più documentato)']);
+    v.push([sv('<circle cx="11" cy="8" r="6" fill="var(--co)" fill-opacity=".12" stroke="var(--co)" stroke-dasharray="3 3"/>'), 'solo paese o regione: il record non dice di più']);
+    if (agg.some(g => g.inc)) v.push([sv('<circle cx="11" cy="8" r="7" fill="none" stroke="var(--ink)" stroke-dasharray="1 3"/>'), 'attribuzione incerta']);
+    if (ALONI.length) v.push([sv('<circle cx="11" cy="8" r="7.5" fill="var(--alone)" opacity=".35"/>'), 'alone: estensione del paese o della regione']);
+  }
+  if (S.L.opere && S.L.sedi && act.some(x => x.sede)) v.push([sv('<rect x="7" y="4" width="8" height="8" fill="var(--ink)"/>'), 'dove si trovano oggi']);
+  if (S.L.opere && S.L.spostamenti && act.some(x => x.o && x.s)) v.push([sv('<path d="M2 12 Q11 0 20 12" fill="none" stroke="var(--co)" stroke-width="1.6" opacity=".6"/>'), 'spostamento: dall\'origine al museo']);
+  if (S.L.opere && S.L.mercati && act.some(x => x.m)) v.push([sv('<path d="M2 8 H20" stroke="var(--fe)" stroke-width="1.4" stroke-dasharray="4 3"/>'), 'mercato dichiarato']);
+  if (S.L.opere && S.L.vam && vagg.length) v.push([sv('<path d="M11 2 L17 8 L11 14 L5 8 Z" fill="none" stroke="var(--fe)"/>'), 'V&A: solo conteggi']);
+  if (S.L.opere && S.L.letteratura && lagg.length) v.push([sv('<path d="M11 2 L17 13 L5 13 Z" fill="none" stroke="var(--ink)"/>'), 'consumo, dalla letteratura']);
+  if (S.L.contesti && cagg.length) { v.push([sv('<rect x="6" y="3" width="10" height="10" fill="none" stroke="var(--cel)" stroke-width="1.4"/>'), 'contesto: dove nasce (tratteggio: solo paese)']);
+    if (S.L.relazioni) v.push([sv('<path d="M2 8 H20" stroke="var(--cel)" stroke-width="1.6" stroke-dasharray="1 3"/>'), 'relazione dichiarata da Wikidata']); }
+  if (S.place) v.push([sv('<circle cx="11" cy="8" r="6" fill="none" stroke="var(--fe)" stroke-width="2"/>'), 'selezione']);
+  $('#legbody').innerHTML = v.length ? v.map(([g, t]) => `<div class="lv">${g}<span>${t}</span></div>`).join('') : '<p class="sub">Nessun segno acceso in questa finestra.</p>';
+  $('#legbtn').textContent = `Legenda (${v.length})`;
+}
+/* Copertura: in fondo, sempre visibile. Cosa c'è, cosa manca e perché. */
+let COP = [];
+const NOMI_FONTE = {met: 'Met', cma: 'Cleveland', aic: 'Chicago', colbase: 'ColBase', emuseum: 'musei coreani', wd: 'Wikidata'};
+function renderCopertura() {
+  if (!COP.length) return;
+  const pezzi = COP.reduce((a, c) => a + c.pezzi, 0), sd = COP.reduce((a, c) => a + c.senza_data, 0), fonti = new Set(COP.flatMap(c => Object.keys(c.fonti)));
+  const escl = new Map(); for (const c of COP) for (const e of c.esclusi) escl.set(e.motivo, (escl.get(e.motivo) || 0) + e.n);
+  const manc = [...new Map(COP.flatMap(c => c.mancanti).map(m => [m.fonte, m])).values()];
+  $('#cop').innerHTML = `<b>${CONFRONTO ? 'Due fili' : 'Filo ' + NOMI_FILO[FILO]}:</b> ${pezzi.toLocaleString('it')} pezzi da ${fonti.size} fonti (${[...fonti].map(f => NOMI_FONTE[f] || f).join(', ')}) · ${sd.toLocaleString('it')} senza data, fuori dalla barra del tempo`
+    + [...escl].map(([m, n]) => ` · <span title="esclusi">esclusi ${n.toLocaleString('it')}: ${esc(m)}</span>`).join('')
+    + manc.map(m => ` · <span class="manca" title="${esc(m.esito)} — ${esc(m.prossimo)}">manca: ${esc(m.fonte.split(' (')[0])}</span>`).join('')
+    + ` · <a href="fonti.html">fonti e licenze</a>`;
 }
 function segnaposto() {
   $('#q').placeholder = S.L.opere && S.L.contesti ? 'Cerca nel filo e nei contesti' : S.L.opere ? 'Cerca nel filo: titolo, luogo, tecnica' : S.L.contesti ? 'Cerca nei contesti' : 'Accendi un filo o i contesti';
@@ -605,7 +667,7 @@ let Lr = null;
 function applyTappa() {
   const t = TAPPE[S.tappa]; if (!Lr) Lr = {...S.L};
   S.year = t.y; S.win = t.w; S.rot = [...t.rot]; S.k = 1; S.place = null; S.sel = null;
-  CAT.reg = CAT.tipo = CAT.ctx = ''; for (const id of ['#cat-reg', '#cat-tipo', '#ctx-reg']) $(id).value = '';  // il racconto vale sull'intero filo
+  CAT.reg = CAT.tipo = CAT.ctx = '';  // il racconto vale sull'intero filo
   S.L = {opere: 1, confini: 1, origini: 1, sedi: 0, spostamenti: 0, mercati: 0, silenzio: 0, ipotetici: 1, dedotti: 0, vam: 0, letteratura: 0, contesti: 0, relazioni: 0, ...t.L}; G.on = {}; G.mem = {};
   update();
   const inHi = act.filter(x => t.hi.includes(x.origine)), ipo = inHi.filter(x => x.grado === 'ipotetico').length;
@@ -672,12 +734,32 @@ document.querySelectorAll('[data-g]').forEach(i => i.onchange = () => { const g 
 document.querySelectorAll('[data-gt]').forEach(b => b.onclick = () => { const d = b.closest('.grp'), o = d.classList.toggle('open'); b.setAttribute('aria-expanded', o); });
 document.querySelectorAll('[data-ct]').forEach(i => i.onchange = () => { S.CT[i.checked ? 'add' : 'delete'](i.dataset.ct); categorie(); update(); });
 document.querySelectorAll('[data-f]').forEach(i => i.onchange = () => { S.F[i.dataset.f] = i.checked ? 1 : 0; categorie(); update(); });
-for (const [id, k] of [['#cat-reg', 'reg'], ['#cat-tipo', 'tipo'], ['#ctx-reg', 'ctx']]) $(id).onchange = e => { CAT[k] = e.target.value; update(); };
+/* faccette, «i» e legenda: un solo ascoltatore sul pannello e sulla mappa */
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-fac]'); if (b) { const k = b.dataset.fac, v = b.dataset.v; CAT[k] = CAT[k] === v ? '' : v; update(); return; }
+  const a = e.target.closest('[data-facapri]'); if (a) { FAC_APERTA[a.dataset.facapri] = !FAC_APERTA[a.dataset.facapri]; renderFacette(); return; }
+  const inf = e.target.closest('[data-infoper]'); if (inf) { e.preventDefault(); e.stopPropagation(); const n = document.getElementById(inf.dataset.infoper), o = n.hidden; n.hidden = !o; inf.setAttribute('aria-expanded', o); }
+}, true);
+$('#legbtn').onclick = () => { LEG_APERTA = !LEG_APERTA; $('#legbody').hidden = !LEG_APERTA; $('#legbtn').setAttribute('aria-expanded', LEG_APERTA); };
+/* «i» per livello: la riga resta nome + interruttore + conteggio; fonte, metodo e limiti si aprono a richiesta. */
+function infoLivelli() {
+  let n = 0;
+  document.querySelectorAll('#lay label.chk').forEach(l => {
+    const sm = l.querySelector('small'), sp = l.querySelector('span'); if (!sp) return;
+    const cnt = document.createElement('span'); cnt.className = 'cnt'; cnt.setAttribute('aria-label', 'quanti in questa finestra');
+    if (!sm) { sp.after(cnt); return; }
+    const id = 'nota-' + (++n); sm.id = id; sm.hidden = true; sm.classList.add('nota');
+    const b = document.createElement('button'); b.className = 'info'; b.textContent = 'i'; b.dataset.infoper = id; b.setAttribute('aria-expanded', 'false');
+    b.setAttribute('aria-label', 'Che cosa mostra: ' + sp.firstChild.textContent.trim());
+    sp.after(cnt, b); b.after(sm);
+  });
+  document.querySelectorAll('.shead').forEach(h => { if (!h.querySelector('.cnt')) { const c = document.createElement('span'); c.className = 'cnt'; h.append(c); } });
+}
 for (const p of ['globo', 'piano']) $('#p-' + p).onclick = () => { S.proj = p; S.k = 1; $('#p-globo').setAttribute('aria-pressed', p === 'globo'); $('#p-piano').setAttribute('aria-pressed', p === 'piano'); draw(); };
 let qt; $('#q').oninput = e => { clearTimeout(qt); qt = setTimeout(() => { S.q = e.target.value.trim(); update(); }, 180); };
 $('#win').value = String(S.win);
 $('#corsie').onchange = e => { S.corsie = e.target.value; drawTl(); };
-function update() { if (!O.length) return; const ws = $('#win'); if (![...ws.options].some(o => +o.value === S.win)) ws.add(new Option(String(S.win))); ws.value = String(S.win); filtra(); segnaposto(); draw(); drawTl(); if (S.mode === 'ricerca') renderCtx(); renderTavCount(); }
+function update() { if (!O.length) return; const ws = $('#win'); if (![...ws.options].some(o => +o.value === S.win)) ws.add(new Option(String(S.win))); ws.value = String(S.win); filtra(); segnaposto(); draw(); drawTl(); if (S.mode === 'ricerca') renderCtx(); renderTavCount(); renderFacette(); renderConteggi(); renderLegenda(); }
 const renderTavCount = () => { $('#tavn').textContent = S.tav.length; };
 new MutationObserver(() => { draw(); drawTl(); }).observe(document.documentElement, {attributes: true, attributeFilter: ['data-theme']});
 

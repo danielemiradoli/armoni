@@ -323,6 +323,9 @@ EPOCHE_KO = {'고려': (918, 1392), '조선': (1392, 1897), '대한제국': (189
              '광복이후': (1945, 2000), '명': (1368, 1644), '청': (1636, 1912), '원': (1271, 1368)}
 
 
+ESCLUSI_EMU = Counter()
+
+
 def da_emuseum(cartella):
     if not (cartella / 'dettagli.jsonl').exists():
         return
@@ -358,7 +361,7 @@ def da_emuseum(cartella):
                    origine=NAZIONI_KO.get(naz.strip()) or NAZIONI_KO.get(epoca.strip()), origine_incerta=False,
                    sede='National Museum of Korea' if museo == '국립중앙박물관' else 'Korea',
                    mercato=None, export_senza_meta=False, museo=museo)
-    print('eMuseum:', dict(conta))
+    print('eMuseum:', dict(conta)); ESCLUSI_EMU.update(conta)
 
 
 def main():
@@ -389,6 +392,7 @@ def main():
               ensure_ascii=False, indent=0)
     json.dump(list(csv.DictReader(open(ROOT / 'data/periodi.csv', encoding='utf-8'))),
               open(web / 'periodi.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=0)
+    import copertura; copertura.scrivi(ROOT / 'web', opere, ESCLUSI_EMU)
     scrivi_metriche(opere, luoghi, scarti)
 
 

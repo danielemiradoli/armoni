@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ArMoni · Relazioni (prototipo)</title>
+<link href="lib/fonts.css" rel="stylesheet">
+<style>
+/* Pagina autonoma: il grafo dei legami fra contesti (movimenti, scuole, stili, periodizzazioni)
+   dichiarati su Wikidata. Stessa voce dell'atlante; il celadon distingue i contesti, il rosso ferro solo la selezione. */
+:root{color-scheme:light dark;
+ --bg:light-dark(#fbfbf9,#0b1430);--panel:light-dark(#ffffff,#101b3d);--ink:light-dark(#121a33,#eef0f6);
+ --mute:light-dark(#5a6382,#a7b0cc);--line:light-dark(#dde1ec,#22305e);--cel:light-dark(#2b7660,#79c9b0);
+ --cel2:light-dark(#2b766022,#79c9b02e);--fe:light-dark(#b23a22,#ff8a6b);--edge:light-dark(#8a93ad,#5d6a99)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Instrument Sans",system-ui,sans-serif;overflow:hidden}
+h1,h2,h3{font-family:Newsreader,Georgia,serif;font-weight:600;line-height:1.1;margin:0;text-wrap:balance}
+h1{font-size:22px}h2{font-size:26px}h3{font-size:17px;margin:16px 0 6px}
+button,input,select{font:inherit;color:inherit}
+button,select,input[type=number],input[type=search]{background:var(--panel);border:1px solid var(--line);border-radius:6px;min-height:36px}
+button{padding:6px 12px;cursor:pointer}button:hover{border-color:var(--cel)}
+:focus-visible{outline:2px solid var(--fe);outline-offset:2px}
+a{color:var(--cel)}
+.app{display:grid;height:100vh;grid-template:"top top top" auto "nota nota nota" auto "fil fig pan" minmax(0,1fr)/250px minmax(0,1fr) 340px}
+header{grid-area:top;display:flex;gap:14px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+header .sub,.sub{color:var(--mute);font-size:13px}
+header .sp{flex:1}
+#q{padding:6px 10px;width:240px;font-size:16px}
+#nota{grid-area:nota;padding:8px 16px;border-bottom:1px solid var(--line);font-family:Newsreader,Georgia,serif;font-size:16px;line-height:1.4}
+#nota b{font-weight:600}#nota .sub{font-family:"Instrument Sans",system-ui,sans-serif}
+#fil{grid-area:fil;border-right:1px solid var(--line);padding:12px 14px;overflow:auto}
+#fil h3:first-child{margin-top:0}
+fieldset{border:0;margin:0;padding:0}legend{padding:0;font-family:Newsreader,Georgia,serif;font-weight:600;font-size:17px;margin:14px 0 4px}
+fieldset:first-of-type legend{margin-top:0}
+.chk{display:flex;gap:8px;align-items:center;padding:3px 0;cursor:pointer;font-size:14px}
+.chk input{width:16px;height:16px;flex:none;accent-color:var(--cel);margin:0}
+.chk svg{flex:none}.chk .n{margin-left:auto;color:var(--mute);font-variant-numeric:tabular-nums;font-size:12.5px}
+.anni{display:grid;grid-template-columns:1fr 1fr;gap:8px}.anni label{font-size:13px;color:var(--mute)}
+.anni input{width:100%;padding:4px 8px;font-variant-numeric:tabular-nums}
+select{width:100%;padding:4px 8px}
+.fila{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.fig{grid-area:fig;position:relative;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+#c{position:absolute;inset:0;width:100%;height:100%;cursor:grab;display:block}
+#c.su{cursor:pointer}
+#tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:5px 9px;font:14px/1.35 Newsreader,Georgia,serif;display:none;max-width:280px;box-shadow:0 4px 18px #0002}
+#tip .sub{font-family:"Instrument Sans",system-ui,sans-serif;font-size:12px}
+#leg{position:absolute;left:12px;bottom:12px;background:color-mix(in srgb,var(--panel) 92%,transparent);border:1px solid var(--line);border-radius:8px;padding:8px 11px;font-size:12.5px;max-width:calc(100% - 24px);display:flex;gap:18px;flex-wrap:wrap}
+#leg div{display:flex;flex-direction:column;gap:2px}#leg b{font-weight:600;font-size:12px;color:var(--mute)}
+#leg span{display:flex;gap:6px;align-items:center;white-space:nowrap}
+#ctl{position:absolute;right:12px;top:12px;display:flex;gap:6px}
+#ctl button{min-width:36px;padding:4px 10px}
+#vuoto{position:absolute;inset:0;display:none;align-items:center;justify-content:center;color:var(--mute);font-family:Newsreader,Georgia,serif;font-size:18px;text-align:center;padding:40px;pointer-events:none}
+#pan{grid-area:pan;border-left:1px solid var(--line);padding:16px;overflow:auto}
+#pan .k{color:var(--mute);font-size:12.5px;margin-top:12px}#pan .v{font-family:Newsreader,Georgia,serif;font-size:16px;margin-top:1px}
+#pan .tipo{color:var(--cel);font-size:13px;margin-top:4px}
+#pan .en{font-family:Newsreader,Georgia,serif;color:var(--mute);font-style:italic}
+.rel{display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:7px 0;min-height:0;font-family:Newsreader,Georgia,serif;font-size:15.5px;line-height:1.35}
+.rel:hover{color:var(--cel)}.rel .sub{font-family:"Instrument Sans",system-ui,sans-serif;font-size:12.5px}
+.rel.nc i{color:var(--mute)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.acts a{display:inline-flex;align-items:center;min-height:36px;padding:6px 12px;border:1px solid var(--line);border-radius:6px;text-decoration:none;background:var(--panel)}
+.acts a:hover{border-color:var(--cel)}
+.acts a.pri{background:var(--cel);color:var(--bg);border-color:var(--cel)}
+.chiudi{float:right;margin:-4px 0 6px 8px}
+.vis{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (max-width:980px){
+ body{overflow:auto}.app{height:auto;grid-template:"top" auto "nota" auto "fig" 70vh "pan" auto "fil" auto/1fr}
+ #fil,#pan{border:0;border-top:1px solid var(--line)}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <h1>ArMoni · <span>Relazioni</span></h1>
+  <span class="sub">prototipo</span>
+  <span class="sp"></span>
+  <label class="vis" for="q">Cerca un fenomeno per nome</label>
+  <input id="q" type="search" placeholder="Cerca per nome (Invio)" list="nomi" autocomplete="off">
+  <datalist id="nomi"></datalist>
+  <a href="index.html">Torna all'atlante</a>
+</header>
+<p id="nota">Il grafo mostra i legami fra movimenti, scuole, stili e periodizzazioni dell'atlante. <span id="conta">Caricamento…</span></p>
+<aside id="fil" aria-label="Filtri">
+  <fieldset id="f-rel"><legend>Tipo di relazione</legend></fieldset>
+  <fieldset id="f-tipo"><legend>Tipo di contesto</legend></fieldset>
+  <fieldset><legend>Macro-regione</legend>
+    <label class="vis" for="f-reg">Macro-regione (corsia del tempo)</label>
+    <select id="f-reg"><option value="">Tutte</option></select>
+  </fieldset>
+  <fieldset><legend>Finestra di anni</legend>
+    <div class="anni">
+      <div><label for="f-da">da</label><input id="f-da" type="number" step="1" inputmode="numeric" placeholder="nessun limite"></div>
+      <div><label for="f-a">a</label><input id="f-a" type="number" step="1" inputmode="numeric" placeholder="nessun limite"></div>
+    </div>
+    <p class="sub" style="margin:6px 0 0">Anni negativi = avanti Cristo. Resta un fenomeno se il suo intervallo tocca la finestra; se manca la fine, si contano 50 anni dall'inizio. I fenomeni non collocati restano finché sono legati a uno visibile.</p>
+  </fieldset>
+  <div class="fila"><button id="f-reset" type="button">Azzera i filtri</button></div>
+</aside>
+<main class="fig" id="fig">
+  <canvas id="c" tabindex="0" aria-label="Grafo delle relazioni fra contesti. Usa la ricerca per scegliere un fenomeno; frecce e più e meno per spostare e ingrandire."></canvas>
+  <div id="ctl"><button id="z-piu" type="button" aria-label="Ingrandisci">+</button><button id="z-meno" type="button" aria-label="Riduci">−</button><button id="z-adatta" type="button">Adatta</button></div>
+  <div id="vuoto">Nessuna relazione con questi filtri.</div>
+  <div id="tip" role="presentation"></div>
+  <div id="leg" aria-label="Legenda"></div>
+</main>
+<aside id="pan" aria-live="polite" aria-label="Scheda del fenomeno"></aside>
+</div>
+<script src="lib/d3.min.js"></script>
+<script src="relazioni.js"></script>
+</body>
+</html>
