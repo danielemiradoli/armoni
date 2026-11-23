@@ -1,0 +1,38 @@
+#  La natura di ogni luogo dei contesti, per dargli la precisione giusta.
+#
+#  Perche' serve. contesti.py assegnava a tutto cio' che sta dentro un paese la
+#  precisione generica «luogo»: un secchio unico per 380 collocazioni su 297
+#  luoghi distinti. Il protocollo di ingestione prevede cinque livelli
+#  (citta, zona, paese, regione, istituzione) e i fili dell'atlante li usano
+#  tutti e cinque da subito: era solo questo livello a restare grossolano.
+#
+#  Il secchio unico non e' neutrale. «Dentro un paese» comprende una citta
+#  (Jingdezhen), un'area culturale senza confini amministrativi (il Jiangnan),
+#  una provincia e un museo: distinzioni che contano molto fuori dall'Europa,
+#  dove il modello «citta' con confini amministrativi» copre una parte minore
+#  dei luoghi in cui nasce un fenomeno artistico.
+#
+#  La precisione non si deduce: la si legge da P31 di Wikidata, risalendo le
+#  sottoclassi con P279*. Metodo «dichiarato», fonte Wikidata.
+#
+#  Misurato il 23/11/2026 sui 297 luoghi del secchio: 288 ricevono almeno una
+#  classe, cioe' il 97%. I 9 che non ne ricevono nessuna restano «luogo» e si
+#  dichiarano: un residuo dichiarato vale piu' di una classificazione inventata.
+#
+#  Esportare in: data/raw/contesti/natura_luogo.csv
+#  Se il file manca, contesti.py tiene «luogo» per tutti e il build non si rompe.
+
+SELECT ?x ?classe WHERE {
+  {
+    SELECT DISTINCT ?x WHERE { ?c wdt:P31/wdt:P279* wd:Q968159 . ?c ?p ?x . ?x wdt:P17 ?paese }
+  }
+  ?x wdt:P31 ?t .
+  VALUES (?radice ?classe) {
+    (wd:Q33506  "museo")
+    (wd:Q31855  "istituto di ricerca")
+    (wd:Q486972 "insediamento")
+    (wd:Q56061  "ente amministrativo")
+    (wd:Q82794  "area geografica")
+  }
+  ?t wdt:P279* ?radice .
+}

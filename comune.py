@@ -76,12 +76,29 @@ RELAZIONI = {
     "differentFrom": "persone diverse, affermato e non dedotto da un silenzio",
 }
 
-# Precisione della collocazione di un luogo.
-# Nota: il protocollo §4 elenca «citta', paese, regione, zona, istituzione»;
-# i dati dell'atlante usano «luogo, paese, regione». Qui si registra cio' che il
-# codice emette davvero, non cio' che il documento dice. La differenza va
-# sanata nel protocollo, non nascosta qui.
-PRECISIONE_LUOGO = ("luogo", "paese", "regione")
+# Precisione della collocazione di un luogo: i cinque livelli del protocollo.
+#
+# ERRORE DICHIARATO (23/11/2026). La prima versione di questo file registrava
+# solo tre livelli — «luogo, paese, regione» — con un commento che diceva che i
+# cinque del protocollo erano un'aspirazione scritta e non la realta' del
+# codice. Era falso. I fili dell'atlante usavano tutti e cinque i livelli da
+# subito (`data/luoghi.csv`: citta 83, paese 45, regione 9, istituzione 8,
+# zona 2). Avevo campionato un solo file, `web/contesti.json`, e generalizzato
+# al progetto: lo stesso errore che questo progetto passa il tempo a cercare,
+# commesso dentro il file che dovrebbe impedirlo.
+#
+# Il test che avevo scritto non l'ha preso perche' controllava anch'esso solo i
+# contesti. Ora controlla anche `web/luoghi.json`.
+PRECISIONE_LUOGO = ("citta", "zona", "paese", "regione", "istituzione")
+
+# Transitorio, non canonico: il secchio unico che `atlante/src/contesti.py`
+# assegnava a tutto cio' che sta dentro un paese, senza distinguere una citta'
+# da un'area culturale da un museo. La suddivisione e' scritta e misurata
+# (query `contesti_natura_luogo.rq`, 97% di copertura su 297 luoghi), e i dati
+# prendono i valori fini al prossimo build dell'atlante. Fino a quel momento
+# `luogo` resta ammesso SOLO nei contesti: un test lo confina la', cosi' la
+# migrazione resta visibile invece di diventare permanente.
+PRECISIONE_TRANSITORIA = ("luogo",)
 
 TIPI_FENOMENO = ("movimento", "periodizzazione", "stile", "scuola")
 

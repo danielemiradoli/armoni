@@ -48,6 +48,57 @@ def leggi(nome):
     return list(csv.DictReader(open(RAW / nome, encoding='utf-8')))
 
 
+# Natura di ogni luogo da P31 di Wikidata, risalendo le sottoclassi con P279*.
+# Query in data/query/contesti_natura_luogo.rq, esportata in
+# data/raw/contesti/natura_luogo.csv. Se il file manca il build NON si rompe:
+# resta la precisione grossolana di prima, e la cosa si vede nel conteggio.
+_NATURA = None
+
+def natura():
+    global _NATURA
+    if _NATURA is None:
+        _NATURA = {}
+        f = RAW / 'natura_luogo.csv'
+        if f.exists():
+            for r in csv.DictReader(open(f, encoding='utf-8')):
+                _NATURA.setdefault(r['x'].rsplit('/', 1)[-1], set()).add(r['classe'])
+    return _NATURA
+
+
+def precisione(x, nazioni, paesi_di):
+    """Uno dei cinque livelli del protocollo, piu' il residuo dichiarato.
+
+    Prima questa funzione non esisteva e la riga era una sola: tutto cio' che
+    stava dentro un paese prendeva la precisione generica 'luogo'. Un secchio
+    unico per 380 collocazioni, che metteva insieme una citta' (Jingdezhen),
+    un'area culturale senza confini amministrativi (il Jiangnan), una provincia
+    e un museo. Non e' una perdita neutrale: fuori dall'Europa il modello
+    «citta' con confini amministrativi» copre una parte minore dei luoghi in cui
+    nasce un fenomeno artistico, quindi il secchio unico nasconde piu' li' che
+    qui.
+
+    L'ordine conta: 175 dei 297 luoghi sono insieme insediamento ED ente
+    amministrativo (una citta' che e' anche un comune), e per quelli 'citta' e'
+    la risposta giusta. Si scende quindi dal piu' specifico al piu' vago.
+
+    Il residuo si dichiara: i 9 luoghi su 297 (3%) che non ricevono nessuna
+    classe restano 'luogo'. Un residuo dichiarato vale piu' di una
+    classificazione inventata.
+    """
+    if x in nazioni:
+        return 'paese'
+    if not (paesi_di.get(x) and x not in CONTINENTI):
+        return 'regione'
+    cl = natura().get(x, set())
+    if cl & {'museo', 'istituto di ricerca'}:
+        return 'istituzione'
+    if 'insediamento' in cl:
+        return 'citta'
+    if cl & {'ente amministrativo', 'area geografica'}:
+        return 'zona'
+    return 'luogo'          # residuo dichiarato: nessuna classe su Wikidata
+
+
 def anno(t):
     m = re.match(r'([+-]?\d+)-', t or '')
     return int(m.group(1)) if m else None
@@ -249,8 +300,8 @@ def main():
                 continue
             visti.add(x)
             lr = luoghi.get(x, {})
-            # precisione dalla natura del luogo, non dalla proprieta': paese, luogo dentro un paese, o regione/continente
-            prec = 'paese' if x in nazioni else 'luogo' if paesi_di.get(x) and x not in CONTINENTI else 'regione'
+            # precisione dalla natura del luogo, non dalla proprieta'
+            prec = precisione(x, nazioni, paesi_di)
             paese = prec == 'paese'
             cx, cy = capitale.get(x, (lon, lat)) if paese else (lon, lat)
             st, sa = stato_allora(cx, cy, y, anni, snap) if prec != 'regione' else (None, None)

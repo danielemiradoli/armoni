@@ -287,9 +287,35 @@ def test_vocabolari_rispettano_l_accordo_comune():
     tipi = {x.get("tipo") for x in c}
     assert tipi <= set(comune.TIPI_FENOMENO), \
         "tipi non dichiarati: %s" % (tipi - set(comune.TIPI_FENOMENO))
+    # I luoghi dei FILI: solo i cinque livelli canonici, nessuna indulgenza.
+    # Questo controllo mancava, ed e' il motivo per cui comune.py ha registrato
+    # per qualche ora tre livelli invece di cinque: il test guardava solo i
+    # contesti, cioe' l'unico file che non li usa tutti.
+    for f in [ROOT / "web/luoghi.json", *ROOT.glob("web/fili/*/luoghi.json")]:
+        pr = {l.get("precisione") for l in json.load(open(f, encoding="utf-8"))}
+        fuori = pr - set(comune.PRECISIONE_LUOGO)
+        assert not fuori, "%s: precisioni non dichiarate %s" % (f, fuori)
+
+    # I CONTESTI: ammesso in piu' il solo valore transitorio, e confinato qui.
     prec = {l.get("precisione") for x in c for l in x.get("luoghi", [])}
-    assert prec <= set(comune.PRECISIONE_LUOGO), \
-        "precisioni non dichiarate: %s" % (prec - set(comune.PRECISIONE_LUOGO))
+    ammesse = set(comune.PRECISIONE_LUOGO) | set(comune.PRECISIONE_TRANSITORIA)
+    assert prec <= ammesse, "precisioni non dichiarate: %s" % (prec - ammesse)
+
+
+def test_il_valore_transitorio_resta_confinato_nei_contesti():
+    """'luogo' e' il secchio unico che contesti.py assegnava a tutto cio' che
+    sta dentro un paese. La regola che lo suddivide e' scritta e misurata
+    (query contesti_natura_luogo.rq, 97% su 297 luoghi) e i dati prendono i
+    valori fini al prossimo build. Questo test impedisce che il valore
+    transitorio si diffonda altrove nel frattempo, e quindi che la migrazione
+    diventi permanente per dimenticanza."""
+    import sys as _s
+    _s.path.insert(0, str(ROOT.parent))
+    import comune
+    for f in [ROOT / "web/luoghi.json", *ROOT.glob("web/fili/*/luoghi.json")]:
+        pr = {l.get("precisione") for l in json.load(open(f, encoding="utf-8"))}
+        assert not pr & set(comune.PRECISIONE_TRANSITORIA), \
+            "%s usa un valore transitorio: %s" % (f, pr & set(comune.PRECISIONE_TRANSITORIA))
 
 
 if __name__ == "__main__":
