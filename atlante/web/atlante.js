@@ -427,7 +427,7 @@ let NOM_ANNO = null;
 function sezNominato() {
   const el = $('#nominato'); if (!PO) { el.hidden = true; return; } if (NOM_ANNO === S.year) return; NOM_ANNO = S.year;
   const g = REG_PO.map(r => [r, PO.periodi.filter(p => p.r === r && p.a <= S.year && p.b >= S.year)]);
-  el.innerHTML = `<h3 id="nom-t">${articolo(S.year)}${fmtY(S.year)}, nominato da chi</h3>
+  el.innerHTML = `<div class="sezh"><h3 id="nom-t">${articolo(S.year)}${fmtY(S.year)}, nominato da chi</h3><button class="nasc" data-nascondi="nom" aria-label="Nascondi questa sezione">Nascondi</button></div>
   <p class="sub" style="max-width:80ch">I periodi di PeriodO che contengono l'anno scelto, per area: chi li ha definiti, in che lingua, con quali date. Più definizioni non vuol dire più storia, ma più studi. Una riga per fonte, prima le lingue diverse dall'inglese.</p>
   <div class="colonne">${g.map(([r, ps]) => { if (!ps.length) return `<div><h4>${esc(r)}</h4><p class="sub">Nessuna definizione in PeriodO per quest'anno: un silenzio delle fonti.</p></div>`;
     const lg = [...new Set(ps.map(p => LINGUE[p.lg] || p.lg))].join(', '), una = [...new Map(ps.map(p => [p.au, p])).values()].sort((p, q) => (p.lg === 'en') - (q.lg === 'en'));
@@ -450,7 +450,7 @@ function sezLeggi() {
     [sv('<rect x="6" y="3" width="10" height="10" fill="none" stroke="var(--cel)" stroke-width="1.4"/>'), 'contesto (stile, movimento, scuola, dinastia): dove nasce'],
     [sv('<path d="M2 8 H20" stroke="var(--cel)" stroke-width="1.6" stroke-dasharray="1 3"/>'), 'relazione fra contesti, solo se Wikidata la dichiara'],
     [sv('<circle cx="11" cy="8" r="6" fill="none" stroke="var(--fe)" stroke-width="2"/>'), 'il luogo o il pezzo selezionato']];
-  $('#leggi').innerHTML = `<h3 id="leggi-t">Come leggere l'atlante</h3>
+  $('#leggi').innerHTML = `<div class="sezh"><h3 id="leggi-t">Come leggere l'atlante</h3><button class="nasc" data-nascondi="leg" aria-label="Nascondi questa sezione">Nascondi</button></div>
   <p class="sub">Tutto quello che compare ha una fonte; dove la fonte tace, l'atlante lo dice invece di riempire il vuoto.</p>
   <div class="colonne">
    <div><h4>I segni sulla mappa</h4>${segni.map(([g, t]) => `<div class="lv">${g}<span>${t}</span></div>`).join('')}</div>
@@ -497,9 +497,24 @@ function pannelli() {
     b.setAttribute('aria-pressed', !!PANN[k]); b.setAttribute('aria-label', (PANN[k] ? 'Mostra' : 'Nascondi') + ' il pannello di ' + nome);
     b.textContent = (k === 'lay') === !PANN[k] ? '‹' : '›'; }
 
+  for (const [k] of RIQUADRI) if (k !== 'lay' && k !== 'ctx' && k !== 'per') document.body.classList.toggle('senza-' + k, !!PANN[k]);
+  document.querySelectorAll('[data-riq]').forEach(i => { i.checked = i.dataset.riq === 'per' ? !!S.L.periodi : !PANN[i.dataset.riq]; });
   try { localStorage.setItem('armoni-pannelli', JSON.stringify(PANN)); } catch (e) { }
   requestAnimationFrame(() => draw());
 }
+/* Riquadri: ogni parte dell'interfaccia si mostra o si nasconde, e l'atlante se lo ricorda. PANN[k] vero = nascosto. */
+const RIQUADRI = [['lay', 'Strumenti e livelli', 'il pannello di sinistra'], ['ctx', 'Risultati e schede', 'il pannello di destra'],
+  ['tl', 'Barra del tempo', 'anno, finestra, istogramma'], ['ov', 'Legenda e «Vai a…»', 'sopra la mappa'], ['chip', 'Riepilogo sulla mappa', 'pezzi attivi e confini'],
+  ['per', 'Periodi', 'sotto il tempo'], ['tav', 'Tavolo', 'sotto la mappa'], ['nom', 'L\'anno, nominato da chi', 'definizioni PeriodO'],
+  ['leg', 'Come leggere l\'atlante', 'segni e gradi del dato'], ['cop', 'Copertura dei dati', 'la riga in fondo']];
+$('#riqlista').innerHTML = RIQUADRI.map(([k, t, d]) => `<label class="chk"><input type="checkbox" data-riq="${k}"><span>${t}<small>${d}</small></span></label>`).join('');
+$('#riqlista').addEventListener('change', e => { const k = e.target.dataset.riq; if (!k) return;
+  if (k === 'per') { S.L.periodi = e.target.checked ? 1 : 0; syncChecks(); update(); } else PANN[k] = !e.target.checked; pannelli(); });
+document.addEventListener('click', e => { const d = $('details.riq'); if (d.open && !e.target.closest('details.riq')) d.open = false; });
+$('#riq-tutto').onclick = () => { for (const [k] of RIQUADRI) if (k !== 'per') PANN[k] = false; pannelli(); };
+$('#riq-globo').onclick = () => { for (const [k] of RIQUADRI) if (k !== 'per') PANN[k] = true; PANN.tl = false; S.L.periodi = 0; syncChecks(); update(); pannelli(); };
+document.addEventListener('click', e => { const n = e.target.closest('[data-nascondi]'); if (!n) return; const k = n.dataset.nascondi;
+  if (k === 'per') { S.L.periodi = 0; syncChecks(); update(); } else PANN[k] = true; pannelli(); });
 for (const [id, k] of [['#chiudi-lay', 'lay'], ['#chiudi-ctx', 'ctx']]) $(id).onclick = () => { PANN[k] = !PANN[k]; pannelli(); };
 $('#tlinfobtn').onclick = () => { const i = $('#tlinfo'), o = i.hidden; i.hidden = !o; $('#tlinfobtn').setAttribute('aria-expanded', o); };
 let timer = null;
@@ -964,7 +979,7 @@ const syncChecks = () => {
   document.querySelectorAll('[data-g]').forEach(i => { const g = i.dataset.g, f = figli(g), n = f.filter(k => S.L[k]).length;
     i.checked = G.on[g] !== false; i.indeterminate = false; $(`[data-gn="${g}"]`).textContent = G.on[g] === false ? 'spenta' : `${n}/${f.length}`; });
 };
-document.querySelectorAll('[data-l]').forEach(i => i.onchange = () => { S.L[i.dataset.l] = i.checked ? 1 : 0; if (i.dataset.l === 'ipotetici') categorie(); const g = i.closest('[data-grp]')?.dataset.grp; if (g && i.checked) G.on[g] = true; syncChecks(); update(); });
+document.querySelectorAll('[data-l]').forEach(i => i.onchange = () => { S.L[i.dataset.l] = i.checked ? 1 : 0; if (i.dataset.l === 'periodi') requestAnimationFrame(pannelli); if (i.dataset.l === 'ipotetici') categorie(); const g = i.closest('[data-grp]')?.dataset.grp; if (g && i.checked) G.on[g] = true; syncChecks(); update(); });
 document.querySelectorAll('[data-g]').forEach(i => i.onchange = () => { const g = i.dataset.g;
   if (i.checked) { G.on[g] = true; const m = G.mem[g]; if (m) for (const k of figli(g)) S.L[k] = m[k]; }
   else { G.on[g] = false; G.mem[g] = Object.fromEntries(figli(g).map(k => [k, S.L[k]])); for (const k of figli(g)) S.L[k] = 0; }

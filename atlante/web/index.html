@@ -350,6 +350,16 @@ body:not(.ricerca) #tavolo,body:not(.ricerca) #nominato,body:not(.ricerca) #legg
 .giu{display:inline-block;margin-top:14px;font-size:13px}
 #tavolo,#periodi,#nominato,#leggi,footer#cop{scroll-margin-top:calc(var(--hh,60px) + var(--th,118px) + 8px)}
 @media(max-width:900px){#periodi,#tavolo,#nominato,#leggi,footer#cop{grid-area:auto!important;grid-column:1/-1!important}}
+
+/* riquadri nascosti */
+body.senza-tl #tl,body.senza-ov #leg,body.senza-chip #chip,body.senza-tav #tavolo,body.senza-nom #nominato,body.senza-leg #leggi,body.senza-cop footer#cop{display:none!important}
+body.senza-tl{--th:0px!important}
+details.riq{position:relative}details.riq summary{list-style:none;cursor:pointer;color:var(--mute);padding:8px 4px}details.riq summary::-webkit-details-marker{display:none}
+details.riq[open] summary{color:var(--co)}
+.riqpop{position:absolute;right:0;top:calc(100% + 6px);width:300px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px;box-shadow:0 6px 24px rgb(16 28 70 / .14);z-index:40}
+.riqpop>p{margin:0 0 6px;font-size:12.5px}.riqpop .chk{padding:4px 0}.riqpop .acts{margin-top:10px}.riqpop .acts button{min-height:32px;font-size:13px;padding:4px 10px}
+.nasc{min-height:28px;padding:2px 9px;font-size:12.5px;color:var(--mute)}
+.sezh{display:flex;align-items:baseline;gap:10px}.sezh h3{flex:1}
 </style>
 </head>
 <body data-strumento="atlante">
@@ -365,6 +375,9 @@ body:not(.ricerca) #tavolo,body:not(.ricerca) #nominato,body:not(.ricerca) #legg
   </div>
   <div class="util">
   <button id="guidabtn">Guida</button>
+  <details class="riq"><summary>Riquadri</summary><div class="riqpop" role="group" aria-label="Riquadri da mostrare">
+   <p class="sub">Mostra o nascondi ogni parte dell'interfaccia; l'atlante se lo ricorda.</p><div id="riqlista"></div>
+   <div class="acts"><button id="riq-tutto">Mostra tutto</button><button id="riq-globo">Solo globo e tempo</button></div></div></details>
   <button id="incorporabtn" title="Inserisci questa vista in un'altra pagina">Incorpora</button>
   <button id="commentabtn" title="Commenta questa vista: apre un modulo breve, e la vista che stai guardando viene allegata da sola">Commenta</button>
   <button id="tavbtn">Tavolo <span id="tavn">0</span></button>
@@ -447,7 +460,7 @@ body:not(.ricerca) #tavolo,body:not(.ricerca) #nominato,body:not(.ricerca) #legg
   <svg id="tls" role="slider" aria-label="Anno" tabindex="0"></svg>
  </section>
  <section id="periodi" aria-labelledby="per-titolo" hidden>
-  <div class="perhd"><h3 id="per-titolo">Periodi</h3><span class="sub" id="per-fonte"></span><span class="sp" style="flex:1"></span><label class="sub">mostra <select id="corsie" aria-label="Quale periodizzazione"><option value="wikidata">dinastie e periodi (Wikidata)</option><option value="periodo">quanto è nominato il tempo (PeriodO)</option><option value="contesti">Wikidata: fenomeni artistici</option></select></label></div>
+  <div class="perhd"><h3 id="per-titolo">Periodi</h3><span class="sub" id="per-fonte"></span><span class="sp" style="flex:1"></span><button class="nasc" data-nascondi="per" aria-label="Nascondi i periodi">Nascondi</button><label class="sub">mostra <select id="corsie" aria-label="Quale periodizzazione"><option value="wikidata">dinastie e periodi (Wikidata)</option><option value="periodo">quanto è nominato il tempo (PeriodO)</option><option value="contesti">Wikidata: fenomeni artistici</option></select></label></div>
   <p class="sub" id="per-leg"></p>
   <div style="position:relative"><svg id="tlc" aria-hidden="true"></svg><div id="tlctip" hidden></div></div>
  </section>
@@ -456,7 +469,7 @@ body:not(.ricerca) #tavolo,body:not(.ricerca) #nominato,body:not(.ricerca) #legg
   <div class="tavgr" role="group" aria-label="I tuoi tavoli"><select id="tavsel" aria-label="Quale tavolo"></select><button id="tavnew">Nuovo</button><button id="tavren">Rinomina</button><button id="tavdel">Elimina</button></div>
   <span class="sp" style="flex:1"></span>
   <div class="tavgr" role="group" aria-label="Salvare e condividere"><button id="tavsave">Salva su file</button><button id="tavopen">Apri da file</button><input type="file" id="tavfile" accept=".json,application/json" hidden><button id="tavlink">Link del tavolo</button><button id="tavcopy">Copia elenco</button></div>
-  <button id="tavclear">Svuota</button><button id="tavclose">Torna al globo ↑</button>
+  <button id="tavclear">Svuota</button><button id="tavclose">Torna al globo ↑</button><button class="nasc" data-nascondi="tav" aria-label="Nascondi il tavolo">Nascondi</button>
   <p class="sub" id="tavstato" role="status" aria-live="polite"></p></div>
  <svg id="tavax"></svg>
  <div id="board"></div>
