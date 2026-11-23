@@ -332,6 +332,24 @@ footer#cop{grid-area:cop;border-top:1px solid var(--line)}
 body.qualita #periodi,body.percorso footer#cop,body.qualita footer#cop,body.incorpora #periodi{display:none!important}
 .ghead>input{flex:none;width:16px;height:16px}
 body.percorso .lato,body.qualita .lato{display:none}
+
+/* ---------- sotto la piega: tavolo, l'anno nominato da chi, come leggere ---------- */
+@media(min-width:901px){
+ body.ricerca .app{grid-template:"top top top" auto "lay map ctx" calc(100vh - var(--hh,60px) - var(--th,118px)) "tl tl tl" auto "per per per" auto "tav tav tav" auto "nom nom nom" auto "leg leg leg" auto "cop cop cop" auto/236px minmax(0,1fr) 340px}
+}
+body.ricerca #tavolo{grid-area:tav;position:static;transform:none;visibility:visible;height:auto;transition:none;z-index:auto;border-top:2px solid var(--co);display:grid;grid-template-rows:auto auto auto}
+body.ricerca #board{min-height:340px;overflow:visible}
+body:not(.ricerca) #tavolo,body:not(.ricerca) #nominato,body:not(.ricerca) #leggi{display:none}
+#nominato,#leggi{grid-area:nom;padding:20px 16px 24px;border-top:1px solid var(--line);background:var(--bg)}
+#leggi{grid-area:leg}
+#nominato h3,#leggi h3{font-size:19px;margin:0 0 4px}
+#nominato .colonne,#leggi .colonne{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px 28px;margin-top:14px}
+#nominato h4,#leggi h4{font:600 14.5px/1.3 Newsreader,Georgia,serif;margin:0 0 6px;padding-top:8px;border-top:1px solid var(--riga)}
+#nominato .def{font-size:13px;line-height:1.4;margin:0 0 5px}#nominato .def .sub{font-size:12px}
+#leggi .lv{font-size:13.5px;padding:3px 0}#leggi p{font-size:13.5px;line-height:1.5;margin:0 0 8px;max-width:70ch}
+.giu{display:inline-block;margin-top:14px;font-size:13px}
+#tavolo,#periodi,#nominato,#leggi,footer#cop{scroll-margin-top:calc(var(--hh,60px) + var(--th,118px) + 8px)}
+@media(max-width:900px){#periodi,#tavolo,#nominato,#leggi,footer#cop{grid-area:auto!important;grid-column:1/-1!important}}
 </style>
 </head>
 <body data-strumento="atlante">
@@ -433,19 +451,22 @@ body.percorso .lato,body.qualita .lato{display:none}
   <p class="sub" id="per-leg"></p>
   <div style="position:relative"><svg id="tlc" aria-hidden="true"></svg><div id="tlctip" hidden></div></div>
  </section>
- <footer id="cop" role="status" aria-label="Copertura dei dati"></footer>
-</div>
-
-<section id="tavolo" aria-label="Tavolo">
+ <section id="tavolo" aria-label="Tavolo">
  <div class="hd"><h3>Tavolo</h3>
   <div class="tavgr" role="group" aria-label="I tuoi tavoli"><select id="tavsel" aria-label="Quale tavolo"></select><button id="tavnew">Nuovo</button><button id="tavren">Rinomina</button><button id="tavdel">Elimina</button></div>
   <span class="sp" style="flex:1"></span>
   <div class="tavgr" role="group" aria-label="Salvare e condividere"><button id="tavsave">Salva su file</button><button id="tavopen">Apri da file</button><input type="file" id="tavfile" accept=".json,application/json" hidden><button id="tavlink">Link del tavolo</button><button id="tavcopy">Copia elenco</button></div>
-  <button id="tavclear">Svuota</button><button id="tavclose">Chiudi</button>
+  <button id="tavclear">Svuota</button><button id="tavclose">Torna al globo ↑</button>
   <p class="sub" id="tavstato" role="status" aria-live="polite"></p></div>
  <svg id="tavax"></svg>
  <div id="board"></div>
 </section>
+ <section id="nominato" aria-labelledby="nom-t"></section>
+ <section id="leggi" aria-labelledby="leggi-t"></section>
+ <footer id="cop" role="status" aria-label="Copertura dei dati"></footer>
+</div>
+
+
 
 <dialog id="inc-dlg" aria-labelledby="inc-t">
  <h2 id="inc-t">Incorpora questa vista</h2>

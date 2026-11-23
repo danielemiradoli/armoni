@@ -80,7 +80,7 @@ Promise.all([dati('opere.json'), dati('luoghi.json'), j('periodi.json'), j('conf
   if (!o.some(x => x.grado === 'ipotetico')) $('[data-l="ipotetici"]').closest('label').hidden = true;
   if (!PRIMO) { $('#m-percorso').disabled = true; $('#m-percorso').title = 'Il percorso in tappe per ora esiste solo per il filo blu e bianco'; }
   Promise.all(FILI.map(f => j(baseDi(f) + 'copertura.json').catch(() => null))).then(v => { COP = v.filter(Boolean); renderCopertura(); });
-  infoLivelli(); pannelli(); leggiVista(); route(); update();
+  infoLivelli(); pannelli(); sezLeggi(); leggiVista(); route(); update();
 }).catch(e => { $('#ctx').innerHTML = `<p>Non riesco a caricare i dati (${esc(e.message)}).</p>`; });
 
 /* Dettaglio secondo l'ingrandimento: confini e coste più fini si caricano solo quando servono.
@@ -418,14 +418,54 @@ const ORD_CX = ['Asia orientale', 'Sud-Est asiatico', 'Asia meridionale', 'Asia 
 const regCX = () => [...ORD_CX, ...[...new Set(CX.map(e => e.corsia))].filter(r => !ORD_CX.includes(r)).sort()].filter(r => CX.some(e => e.corsia === r && S.CT.has(e.tipo)));
 const corsieCX = () => ({reg: regCX(), periodi: CX.filter(e => S.CT.has(e.tipo)).map(e => ({r: e.corsia, a: e.quando.da, b: e.fv})), vuoto: '',
   info: `corsie: quanti fenomeni (${[...S.CT].join(', ')}; Wikidata) sono attivi in ogni anno, per macro-regione del luogo d'origine; il numero: quanti nell'anno scelto. Fine non dichiarata: ${APERTO} anni`});
-function nominato() {
+function nominato() {  // nel pannello: solo un rimando alla sezione sotto
   if (!PO) return '';
-  const g = REG_PO.map(r => [r, PO.periodi.filter(p => p.r === r && p.a <= S.year && p.b >= S.year)]).filter(([, ps]) => ps.length);
-  return `<details class="leggi"><summary>${articolo(S.year)}${fmtY(S.year)}, nominato da chi <span class="sub">${g.reduce((a, [, ps]) => a + ps.length, 0)} definizioni</span></summary><p class="sub">Periodi di PeriodO che contengono l'anno, con la fonte che li definisce e la lingua del nome.</p>` +
-    g.map(([r, ps]) => { const lg = [...new Set(ps.map(p => LINGUE[p.lg] || p.lg))].join(', ');
-      const una = [...new Map(ps.map(p => [p.au, p])).values()].sort((p, q) => (p.lg === 'en') - (q.lg === 'en'));  // una per autorità, prima le lingue non inglesi
-      return `<div class="k">${esc(r)} · ${ps.length} definizioni da ${una.length} fonti · in ${esc(lg)}</div>` + una.slice(0, 4).map(p => { const a = PO.autorita[p.au] || {};
-        return `<div class="v" style="font-size:14px">${esc(p.n)} <span class="sub">${p.a}–${p.b} · ${esc(((a.chi ? a.chi + ', ' : '') + a.titolo).slice(0, 70))}${a.anno ? ' (' + a.anno + ')' : ''}</span></div>`; }).join('') + (una.length > 4 ? `<div class="sub">e altre ${una.length - 4} fonti</div>` : ''); }).join('') + '</details>';
+  const n = PO.periodi.filter(p => p.a <= S.year && p.b >= S.year).length;
+  return `<a class="giu" href="#nominato" data-scorri="nominato">${articolo(S.year)}${fmtY(S.year)}, nominato da chi: ${n} definizioni ↓</a>`;
+}
+let NOM_ANNO = null;
+function sezNominato() {
+  const el = $('#nominato'); if (!PO) { el.hidden = true; return; } if (NOM_ANNO === S.year) return; NOM_ANNO = S.year;
+  const g = REG_PO.map(r => [r, PO.periodi.filter(p => p.r === r && p.a <= S.year && p.b >= S.year)]);
+  el.innerHTML = `<h3 id="nom-t">${articolo(S.year)}${fmtY(S.year)}, nominato da chi</h3>
+  <p class="sub" style="max-width:80ch">I periodi di PeriodO che contengono l'anno scelto, per area: chi li ha definiti, in che lingua, con quali date. Più definizioni non vuol dire più storia, ma più studi. Una riga per fonte, prima le lingue diverse dall'inglese.</p>
+  <div class="colonne">${g.map(([r, ps]) => { if (!ps.length) return `<div><h4>${esc(r)}</h4><p class="sub">Nessuna definizione in PeriodO per quest'anno: un silenzio delle fonti.</p></div>`;
+    const lg = [...new Set(ps.map(p => LINGUE[p.lg] || p.lg))].join(', '), una = [...new Map(ps.map(p => [p.au, p])).values()].sort((p, q) => (p.lg === 'en') - (q.lg === 'en'));
+    return `<div><h4>${esc(r)} <span class="sub" style="font:400 12px 'Instrument Sans',sans-serif">${ps.length} definizioni da ${una.length} fonti · ${esc(lg)}</span></h4>` + una.map(p => { const a = PO.autorita[p.au] || {};
+      return `<p class="def">${esc(p.n)} <span class="sub">${fmtY(p.a)}–${fmtY(p.b)} · ${esc((a.chi ? a.chi + ', ' : '') + (a.titolo || ''))}${a.anno ? ' (' + a.anno + ')' : ''}</span></p>`; }).reduce((h, d, i, t) => h + (i === 6 && t.length > 7 ? `<details><summary class="sub">le altre ${t.length - 6} fonti</summary>` : '') + d + (i === t.length - 1 && t.length > 7 ? '</details>' : ''), '') + '</div>'; }).join('')}</div>`;
+}
+/* Come leggere: per esteso, una volta per filo */
+function sezLeggi() {
+  const sv = d => `<svg width="22" height="16" viewBox="0 0 22 16" aria-hidden="true">${d}</svg>`;
+  const segni = [
+    ...(CONFRONTO ? [[sv('<circle cx="11" cy="8" r="6" fill="var(--co)" opacity=".75"/>'), 'porcellana blu e bianca: luogo d\'origine'], [sv('<circle cx="11" cy="8" r="5.5" fill="none" stroke="var(--lacca)" stroke-width="2.4"/>'), 'lacca: luogo d\'origine']]
+      : [[sv('<circle cx="11" cy="8" r="6" fill="var(--co)" opacity=".75"/>'), 'luogo d\'origine, una città: più pieno, più pezzi documentati']]),
+    [sv('<circle cx="11" cy="8" r="6" fill="var(--co)" fill-opacity=".12" stroke="var(--co)" stroke-dasharray="3 3"/>'), 'luogo noto solo come paese o regione: il catalogo non dice di più'],
+    [sv('<circle cx="11" cy="8" r="7" fill="none" stroke="var(--ink)" stroke-dasharray="1 3"/>'), 'attribuzione incerta, secondo il catalogo'],
+    [sv('<circle cx="11" cy="8" r="7.5" fill="var(--alone)" opacity=".35"/>'), 'alone: quanto è grande il paese o la regione (le città non ne hanno)'],
+    [sv('<rect x="7" y="4" width="8" height="8" fill="var(--ink)"/>'), 'dove i pezzi si trovano oggi'],
+    [sv('<path d="M2 12 Q11 0 20 12" fill="none" stroke="var(--co)" stroke-width="1.6" opacity=".6"/>'), 'spostamento: dall\'origine al museo di oggi'],
+    [sv('<path d="M2 8 H20" stroke="var(--fe)" stroke-width="1.4" stroke-dasharray="4 3"/>'), 'mercato di destinazione, solo dove il catalogo lo scrive'],
+    ...(PRIMO ? [[sv('<path d="M11 2 L17 8 L11 14 L5 8 Z" fill="none" stroke="var(--fe)"/>'), 'V&A: solo conteggi per luogo e decennio'], [sv('<path d="M11 2 L17 13 L5 13 Z" fill="none" stroke="var(--ink)"/>'), 'consumo documentato negli scavi, con autore e pagina']] : []),
+    [sv('<rect x="6" y="3" width="10" height="10" fill="none" stroke="var(--cel)" stroke-width="1.4"/>'), 'contesto (stile, movimento, scuola, dinastia): dove nasce'],
+    [sv('<path d="M2 8 H20" stroke="var(--cel)" stroke-width="1.6" stroke-dasharray="1 3"/>'), 'relazione fra contesti, solo se Wikidata la dichiara'],
+    [sv('<circle cx="11" cy="8" r="6" fill="none" stroke="var(--fe)" stroke-width="2"/>'), 'il luogo o il pezzo selezionato']];
+  $('#leggi').innerHTML = `<h3 id="leggi-t">Come leggere l'atlante</h3>
+  <p class="sub">Tutto quello che compare ha una fonte; dove la fonte tace, l'atlante lo dice invece di riempire il vuoto.</p>
+  <div class="colonne">
+   <div><h4>I segni sulla mappa</h4>${segni.map(([g, t]) => `<div class="lv">${g}<span>${t}</span></div>`).join('')}</div>
+   <div><h4>Quanto è sicuro un dato</h4>
+    <p><b>Documentato</b>: il catalogo del museo dice esplicitamente ciò che fa entrare il pezzo nel filo (il blu, la lacca).</p>
+    ${PRIMO ? '<p><b>Ipotetico</b>: la manifattura è nota per il blu e bianco, ma la scheda non nomina il colore. Si spegne con «Anche gli ipotetici».</p><p><b>Luogo dedotto</b>: per una parte delle schede del Museo nazionale di Tokyo il luogo è ricavato dalla categoria; è uno strato a parte, spento all\'inizio.</p>' : ''}
+    <p><b>Chi dice ogni dato</b>: nella scheda di un pezzo un\'etichetta accanto a ogni campo distingue il catalogo del museo, una nostra lettura (con la regola) e Wikidata.</p></div>
+   <div><h4>Accostare non è collegare</h4>
+    <p>Due cose nello stesso luogo e nello stesso tempo sono accostate, non legate. I legami compaiono solo dove una fonte li dichiara: i mercati scritti nel catalogo, le relazioni fra contesti su Wikidata.</p>
+    <p>«Cerca intorno» e il confronto fra fili sono strade per esplorare: ogni elenco dice con quale regola è stato fatto.</p></div>
+   <div><h4>Che cosa manca</h4>
+    <p>I numeri riflettono anche quanto ogni paese apre i suoi dati: la riga in fondo dice quali fonti mancano e quante schede sono state escluse, e perché.</p>
+    <p>Lo strato «Silenzio delle fonti» mostra dove il dato è vago. Le date senza anni (solo un'epoca) usano gli anni convenzionali, e la scheda lo segnala.</p>
+    <p><a href="fonti.html">Fonti e licenze</a> · <a href="relazioni.html">Le relazioni come grafo</a></p></div>
+  </div>`;
 }
 const setYear = v => { S.year = Math.round(Math.max(T0, Math.min(T1, v))); update(); };
 let tdrag = false;
@@ -599,7 +639,7 @@ function renderCtx() {
   ${VAM && S.L.vam && S.L.opere && vagg.length ? `<h3 class="sez">V&A, solo conteggi</h3>${vagg.slice(0, 8).map(g => `<div class="row" data-place="${g.id}"><span>${esc(g.l.nome)} <span class="sub">${g.l.precisione === 'citta' ? '' : '· ' + PREC[g.l.precisione]}</span></span><span class="n">~${Math.round(g.n)}</span></div>`).join('')}` : ''}
   ${S.L.contesti ? `<h3 class="sez">Fenomeni artistici in questa finestra</h3>${cagg.length ? cagg.slice(0, 12).map(e => `<div class="row" data-place="mov:${e.id}"><span><i>${esc(e.nome)}</i> <span class="sub">· ${e.tipo}, ${esc(e.luoghi[0].oggi)}</span></span><span class="n">${fmtY(e.quando.da)}</span></div>`).join('') + (cagg.length > 12 ? `<p class="sub">e altri ${cagg.length - 12}: li trovi sulla mappa</p>` : '') : '<p class="sub">Nessuno con data e luogo su Wikidata in questa finestra, per i tipi scelti.</p>'}` : ''}
   ${nominato()}
-  <details class="leggi"><summary>Come leggere</summary><p class="sub">Ogni punto è un luogo d'origine dichiarato dal catalogo. Il pieno indica una città; l'anello tratteggiato un paese, perché il record non dice di più. I pezzi «ipotetici» appartengono a una manifattura nota per il blu, ma il loro record non nomina il colore. Clicca un luogo per l'elenco, poi un pezzo per la scheda.</p></details>`;
+  <p class="sub" style="margin-top:14px">Ogni punto è un luogo d'origine dichiarato dal catalogo. Il pieno indica una città; l'anello tratteggiato un paese, perché il record non dice di più. I pezzi «ipotetici» appartengono a una manifattura nota per il blu, ma il loro record non nomina il colore. Clicca un luogo per l'elenco, poi un pezzo per la scheda.</p><a class="giu" href="#leggi" data-scorri="leggi">Come leggere tutti i segni ↓</a>`;
 }
 // collegamenti per saltare: spostano il fuoco senza toccare l'indirizzo, che porta la vista
 document.querySelectorAll('.salta').forEach(l => l.onclick = e => { e.preventDefault(); const t = $(l.getAttribute('href')); t.focus(); t.scrollIntoView({block: 'nearest'}); });
@@ -636,7 +676,7 @@ function pannelloConfronto() {
   ${comuni.length ? comuni.slice(0, 12).map(riga).join('') : '<p class="sub">In questa finestra nessun luogo ha pezzi di tutti e due i fili.</p>'}
   <h3 class="sez">Solo un filo</h3>
   ${[...per].filter(([, v]) => !(v.blu && v.lacca)).sort((a, b) => (b[1].blu + b[1].lacca) - (a[1].blu + a[1].lacca)).slice(0, 10).map(riga).join('') || '<p class="sub">Nessuno.</p>'}
-  <details class="leggi"><summary>Come leggere</summary><p class="sub">Dischi blu: porcellana blu e bianca. Anelli color lacca: lacca. Tratteggio: luogo noto solo come paese. Stesso luogo e stesso tempo vogliono dire che i due fili si incontrano lì nei cataloghi, non che siano legati: un legame compare solo dove una fonte lo dichiara. I numeri riflettono anche quanto ogni paese apre i suoi dati.</p></details>`;
+  <p class="sub" style="margin-top:14px">Dischi blu: porcellana blu e bianca. Anelli color lacca: lacca. Tratteggio: luogo noto solo come paese. Stesso luogo e stesso tempo vogliono dire che i due fili si incontrano lì nei cataloghi, non che siano legati: un legame compare solo dove una fonte lo dichiara. I numeri riflettono anche quanto ogni paese apre i suoi dati.</p><a class="giu" href="#leggi" data-scorri="leggi">Come leggere tutti i segni ↓</a>`;
 }
 function filtriAttivi() {
   const f = [S.L.opere && CAT.reg && ['reg', `provenienza: ${CAT.reg === '?' ? 'senza luogo' : CAT.reg}`], S.L.opere && CAT.tipo && ['tipo', `tipo: ${CAT.tipo === '?' ? 'non riconosciuto' : CAT.tipo}`],
@@ -653,7 +693,7 @@ function soloContesti() {
   <h3 class="sez">Fenomeni</h3>
   ${[...cagg].sort((a, b) => a.quando.da - b.quando.da).slice(0, 60).map(e => `<div class="row" data-place="mov:${e.id}"><span><i>${esc(e.nome)}</i> <span class="sub">· ${e.tipo}, ${esc(e.luoghi[0].oggi)}</span></span><span class="n">${fmtY(e.quando.da)}</span></div>`).join('')}
   ${cagg.length > 60 ? `<p class="sub">e altri ${cagg.length - 60}: restringi la finestra, la regione o i tipi, oppure cerca per nome.</p>` : ''}
-  <details class="leggi"><summary>Come leggere</summary><p class="sub">Ogni quadrato verde è un fenomeno nel luogo dove nasce, con le date dichiarate o dedotte dagli artisti (la scheda dice quale). Le relazioni compaiono solo dove Wikidata le scrive. Accendi un filo per accostarvi gli oggetti.</p></details>`;
+  <p class="sub" style="margin-top:14px">Ogni quadrato verde è un fenomeno nel luogo dove nasce, con le date dichiarate o dedotte dagli artisti (la scheda dice quale). Le relazioni compaiono solo dove Wikidata le scrive. Accendi un filo per accostarvi gli oggetti.</p><a class="giu" href="#leggi" data-scorri="leggi">Come leggere tutti i segni ↓</a>`;
 }
 const TIPO_PL = {movimento: 'movimenti', scuola: 'scuole', stile: 'stili', periodizzazione: 'dinastie'};
 function categorie() { }  // le categorie ora sono faccette (renderFacette), ridisegnate a ogni aggiornamento
@@ -782,7 +822,7 @@ function riceviTavolo(d, da) {
   const n0 = d.nome || 'Tavolo ricevuto', k = TAV.tavoli[n0] && !TAV.tavoli[n0].length ? n0 : nomeLibero(n0); TAV.tavoli[k] = schede; usaTavolo(k);  // un tavolo vuoto con lo stesso nome si riusa
   const mancano = schede.filter(c => !O.some(o => o.id === c.id)).length;
   statoTav(`Aperto «${k}» ${da}: ${schede.length} schede${mancano ? `, ${mancano} di pezzi che qui non ci sono (restano segnate)` : ''}.`);
-  $('#tavolo').classList.add('open');
+  mostraTavolo();
 }
 /* nel link: id, posizione e nota di ogni scheda, compressi; si apre ovunque e diventa un tavolo nuovo */
 const b64u = b => btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
@@ -798,7 +838,7 @@ $('#tavlink').onclick = async () => {
 async function tavoloDaLink() {
   const q = new URLSearchParams(location.search), z = q.get('tavolo'); if (!z) return;
   q.delete('tavolo'); history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash);
-  try { riceviTavolo(JSON.parse(await decomprimi(z)), 'da un link'); } catch (e) { statoTav('Il link del tavolo non si legge: forse è stato tagliato copiandolo.'); $('#tavolo').classList.add('open'); }
+  try { riceviTavolo(JSON.parse(await decomprimi(z)), 'da un link'); } catch (e) { statoTav('Il link del tavolo non si legge: forse è stato tagliato copiandolo.'); mostraTavolo(); }
 }
 /* Ogni scheda del tavolo ricorda da dove viene: il pezzo (si riapre nella sua scheda, sul suo luogo e nel suo
    tempo), la vista in cui l'hai trovato, e la scheda del museo. Così navigando non si perde nulla. */
@@ -809,7 +849,7 @@ function apriPezzo(id) {
   S.mode = 'ricerca'; S.intorno = null; S.sel = id; S.place = luogo(x);
   const mezzo = Math.round((x.inizio + x.fine) / 2); S.year = Math.max(T0, Math.min(T1, mezzo)); S.win = Math.max(S.win, Math.min(100, Math.ceil((x.fine - x.inizio) / 2)));
   const l = LU[luogo(x)]; if (l) S.rot = [-l.lon, -l.lat];
-  $('#tavolo').classList.remove('open'); if (location.hash.split('&')[0] !== '#ricerca') location.hash = '#ricerca'; update();
+  $('#tavolo').classList.remove('open'); if (location.hash.split('&')[0] !== '#ricerca') location.hash = '#ricerca'; update(); window.scrollTo({top: 0, behavior: RIDOTTO.matches ? 'auto' : 'smooth'});
   $('#ctx').scrollTop = 0; $('#ctx').focus?.();
 }
 function renderTav() {
@@ -825,7 +865,7 @@ function renderTav() {
      <div class="tags"><span class="tag ${x.grado === 'documentato' ? 'doc' : 'ipo'}">${x.grado}</span>${x.fl ? `<span class="tag">${NOMI_FILO[x.fl]}</span>` : ''}${x.tipo ? `<span class="tag">${esc(x.tipo)}</span>` : ''}</div>
      <dl>
       <dt>Da dove</dt><dd>${l ? `${esc(l.nome)} <span class="sub">· ${PREC[l.precisione]}</span>` : '<span class="sub">luogo non determinabile</span>'}</dd>
-      <dt>Quando</dt><dd>${esc(x.data_testo) || '—'} <span class="sub">· ${fmtY(x.inizio)}–${fmtY(x.fine)}</span></dd>
+      <dt>Quando</dt><dd>${esc(x.data_testo) || '—'}${`${fmtY(x.inizio)}–${fmtY(x.fine)}` === (x.data_testo || '').trim() ? '' : ` <span class="sub">· ${fmtY(x.inizio)}–${fmtY(x.fine)}</span>`}</dd>
       ${x.cultura && x.cultura !== x.data_testo ? `<dt>Cultura</dt><dd>${esc(x.cultura)}</dd>` : ''}
       ${x.tecnica ? `<dt>Tecnica</dt><dd class="lim">${esc(x.tecnica)}</dd>` : ''}
       <dt>Oggi</dt><dd>${esc(x.museo || (x.s ? x.s.nome : '—'))} <span class="sub">· ${esc(cat)}</span></dd>
@@ -834,6 +874,7 @@ function renderTav() {
      <div class="cacts"><button data-apri="${x.id}">Apri la scheda</button>${c.vista ? `<a href="${esc(c.vista)}" data-vista="${i}" title="La vista dell'atlante in cui l'hai messa sul tavolo${c.quando ? ', il ' + c.quando : ''}">Vista d'origine</a>` : ''}<a href="${esc(x.url)}" target="_blank" rel="noopener">Museo ↗</a></div>
     </div></article>`; }).join('')
     : '<p class="empty">Il tavolo è vuoto. Apri la scheda di un pezzo e scegli «Metti sul tavolo»: qui potrai accostare opere di luoghi ed epoche diverse, spostarle e annotarle. Ogni scheda riporta al pezzo, alla vista in cui l\'hai trovato e al museo. Il tavolo resta solo in questo browser.</p>';
+  requestAnimationFrame(() => { b.style.height = Math.max(340, ...[...b.querySelectorAll('.card')].map(c => c.offsetTop + c.offsetHeight + 24)) + 'px'; });  // la lavagna cresce con le schede
   const ax = $('#tavax'), w = ax.clientWidth || 600, xs = S.tav.map(c => O.find(o => o.id === c.id)).filter(Boolean);
   if (!xs.length) { ax.innerHTML = ''; return; }
   const lo = Math.min(...xs.map(x => x.inizio)) - 20, hi = Math.max(...xs.map(x => x.fine)) + 20, sc = d3.scaleLinear([lo, hi], [24, w - 24]);
@@ -843,15 +884,16 @@ function renderTav() {
 let cd = null;
 $('#board').addEventListener('pointerdown', e => { const h = e.target.closest('.ch'); if (!h || e.target.closest('button')) return; const card = h.parentElement, i = +card.dataset.i; cd = {i, card, x: e.clientX - S.tav[i].x, y: e.clientY - S.tav[i].y}; h.setPointerCapture(e.pointerId); });
 $('#board').addEventListener('pointermove', e => { if (!cd) return; const c = S.tav[cd.i]; c.x = Math.max(0, e.clientX - cd.x); c.y = Math.max(0, e.clientY - cd.y); cd.card.style.left = c.x + 'px'; cd.card.style.top = c.y + 'px'; });
-$('#board').addEventListener('pointerup', () => { if (cd) { cd = null; salva(); } });
+$('#board').addEventListener('pointerup', () => { if (cd) { cd = null; salva(); const b = $('#board'); b.style.height = Math.max(340, ...[...b.querySelectorAll('.card')].map(c => c.offsetTop + c.offsetHeight + 24)) + 'px'; } });
 $('#board').addEventListener('input', e => { if (e.target.dataset.nota) { S.tav[+e.target.dataset.nota].nota = e.target.value; salva(); } });
 $('#board').addEventListener('click', e => { const r = e.target.closest('[data-rm]'); if (r) { S.tav.splice(+r.dataset.rm, 1); salva(); renderTav(); renderCtx(); return; }
   const a = e.target.closest('[data-apri]'); if (a) { apriPezzo(a.dataset.apri); return; }
   const v = e.target.closest('[data-vista]'); if (v) { e.preventDefault(); const c = S.tav[+v.dataset.vista], u = new URL(c.vista, location.href);
-    if (u.pathname === location.pathname && u.search === location.search) { $('#tavolo').classList.remove('open'); location.hash = u.hash; } else location.href = u.href; } });
+    if (u.pathname === location.pathname && u.search === location.search) { location.hash = u.hash; window.scrollTo({top: 0}); } else location.href = u.href; } });
 $('#tavax').addEventListener('click', e => { const a = e.target.closest('[data-apri]'); if (a) apriPezzo(a.dataset.apri); });
-$('#tavbtn').onclick = () => { renderTav(); $('#tavolo').classList.toggle('open'); };
-$('#tavclose').onclick = () => $('#tavolo').classList.remove('open');
+$('#tavbtn').onclick = () => { renderTav(); mostraTavolo(); };
+$('#tavclose').onclick = () => window.scrollTo({top: 0, behavior: RIDOTTO.matches ? 'auto' : 'smooth'});
+function mostraTavolo() { $('#tavolo').classList.add('open'); $('#tavolo').scrollIntoView({behavior: RIDOTTO.matches ? 'auto' : 'smooth', block: 'start'}); }
 $('#tavclear').onclick = () => { if (S.tav.length && !confirm(`Togliere tutte le ${S.tav.length} schede dal tavolo «${TAV.attivo}»?`)) return; S.tav.length = 0; salva(); renderTav(); renderCtx(); };
 $('#tavcopy').onclick = async () => { const t = S.tav.map((c, i) => { const x = O.find(o => o.id === c.id); return `${i + 1}. ${x.titolo} — ${x.cultura}, ${x.data_testo} [${x.grado}]\n   museo: ${x.url}${c.vista ? '\n   in ArMoni: ' + c.vista : ''}${c.nota ? '\n   nota: ' + c.nota : ''}`; }).join('\n');
   const b = $('#tavcopy'); try { await navigator.clipboard.writeText(t); b.textContent = 'Copiato'; } catch (e) { b.textContent = 'Copia non consentita qui'; } setTimeout(() => { b.textContent = 'Copia elenco'; }, 1800); };
@@ -932,6 +974,7 @@ document.querySelectorAll('[data-ct]').forEach(i => i.onchange = () => { S.CT[i.
 document.querySelectorAll('[data-f]').forEach(i => i.onchange = () => { S.F[i.dataset.f] = i.checked ? 1 : 0; categorie(); update(); });
 /* faccette, «i» e legenda: un solo ascoltatore sul pannello e sulla mappa */
 document.addEventListener('click', e => {
+  const sc = e.target.closest('[data-scorri]'); if (sc) { e.preventDefault(); document.getElementById(sc.dataset.scorri).scrollIntoView({behavior: RIDOTTO.matches ? 'auto' : 'smooth', block: 'start'}); return; }
   const b = e.target.closest('[data-fac]'); if (b) { const k = b.dataset.fac, v = b.dataset.v; CAT[k] = CAT[k] === v ? '' : v; update(); return; }
   const a = e.target.closest('[data-facapri]'); if (a) { FAC_APERTA[a.dataset.facapri] = !FAC_APERTA[a.dataset.facapri]; renderFacette(); return; }
   const inf = e.target.closest('[data-infoper]'); if (inf) { e.preventDefault(); e.stopPropagation(); const n = document.getElementById(inf.dataset.infoper), o = n.hidden; n.hidden = !o; inf.setAttribute('aria-expanded', o); }
@@ -956,7 +999,7 @@ for (const p of ['globo', 'piano']) $('#p-' + p).onclick = () => { S.proj = p; S
 let qt; $('#q').oninput = e => { clearTimeout(qt); qt = setTimeout(() => { S.q = e.target.value.trim(); update(); }, 180); };
 $('#win').value = String(S.win);
 $('#corsie').onchange = e => { S.corsie = e.target.value; drawTl(); };
-function update() { if (!O.length) return; document.querySelectorAll('[data-win]').forEach(b => b.setAttribute('aria-pressed', b.dataset.win === 'tutto' ? S.win >= (T1 - T0) / 2 : +b.dataset.win === S.win)); const ws = $('#win'); if (![...ws.options].some(o => +o.value === S.win)) ws.add(new Option(String(S.win))); ws.value = String(S.win); filtra(); segnaposto(); draw(); drawTl(); if (S.mode === 'ricerca') renderCtx(); renderTavCount(); renderFacette(); renderConteggi(); renderLegenda(); }
+function update() { if (!O.length) return; document.querySelectorAll('[data-win]').forEach(b => b.setAttribute('aria-pressed', b.dataset.win === 'tutto' ? S.win >= (T1 - T0) / 2 : +b.dataset.win === S.win)); const ws = $('#win'); if (![...ws.options].some(o => +o.value === S.win)) ws.add(new Option(String(S.win))); ws.value = String(S.win); filtra(); segnaposto(); draw(); drawTl(); if (S.mode === 'ricerca') renderCtx(); renderTavCount(); renderFacette(); renderConteggi(); renderLegenda(); if (S.mode === 'ricerca') sezNominato(); }
 const renderTavCount = () => { $('#tavn').textContent = S.tav.length; };
 new MutationObserver(() => { draw(); drawTl(); }).observe(document.documentElement, {attributes: true, attributeFilter: ['data-theme']});
 
