@@ -106,6 +106,71 @@ def test_asserzioni_rispettano_l_accordo_comune():
     assert not guasti, "%d asserzioni fuori accordo: %s" % (len(guasti), guasti[:3])
 
 
+def test_il_blocco_non_assume_dove_sta_il_cognome():
+    """CRITERIO DI VERIFICA SCRITTO IN ANTICIPO. Oggi FALLISCE apposta.
+
+    `block_keys` sa dove sta il cognome perche' gliel'ha detto il formato: nella
+    forma con virgola e' prima della virgola, nella forma estesa e' l'ultimo
+    token. Sono le due convenzioni di MoMA e Tate, e nei loro roster funzionano.
+
+    Non sono convenzioni universali. Dove il cognome viene per primo senza
+    virgola — coreano, cinese, ungherese, e molti cataloghi che non traducono
+    l'ordine — l'ultimo token e' il nome di battesimo, e le due forme dello
+    stesso artista finiscono in blocchi che non si incontrano mai:
+
+        Kim Jeong-hui  -> blocco {'hui'}      Kim, Jeong-hui -> blocco {'kim'}
+        Qi Baishi      -> blocco {'baishi'}   Qi, Baishi     -> blocco {'qi'}
+
+    E' lo stesso guasto di «Willem de Kooning» contro «Kooning, Willem de»,
+    che e' stato risolto il 10/11 perche' era nei dati che avevamo. Questo non
+    e' stato risolto perche' non e' nei dati che avevamo: MoMA e Tate scrivono
+    i nomi dell'Asia orientale all'occidentale. Il difetto non e' meno reale,
+    e' solo invisibile alle nostre fonti — e l'atlante e' pieno di cataloghi
+    coreani e giapponesi.
+
+    Per questo il test resta rosso: non e' un lavoro da fare ora (il motore e'
+    in pausa), e' un limite da non dimenticare. La soluzione non e' un elenco
+    piu' lungo di eccezioni: e' non dedurre affatto la posizione del cognome,
+    e bloccare su tutti i token, pagando il costo in confronti. Da misurare
+    quando ci sara' un campione su cui misurare.
+
+    Nota: anche fra nomi europei l'inversione non regge
+    ('de Kooning Willem' da' blocco {'willem'}). L'assunzione non e' «i nomi
+    sono occidentali», e' «il formato dichiara dove sta il cognome».
+    """
+    coppie = [("Kim Jeong-hui", "Kim, Jeong-hui"),
+              ("Qi Baishi", "Qi, Baishi")]
+    for esteso, con_virgola in coppie:
+        a = r.block_keys(esteso, False)
+        b = r.block_keys(con_virgola, True)
+        assert a & b, (f"{esteso!r} e {con_virgola!r} non si incontrano mai: "
+                       f"{sorted(a)} contro {sorted(b)}")
+
+
+test_il_blocco_non_assume_dove_sta_il_cognome.atteso_fallire = True
+
+
+def test_le_particelle_dichiarate_sono_solo_europee():
+    """Guardia su un'assunzione, non su un guasto. Verde: constata e ricorda.
+
+    `PARTICLES` elenca 21 particelle, tutte europee, e `STOP` elenca onorifici
+    anglosassoni — 'om' e 'ch' sono due onorificenze britanniche. Non c'e'
+    nulla di arabo ('al', 'ibn', 'bin', 'abu'), di persiano, di indonesiano.
+
+    La conseguenza misurabile: 'al-Bawwab, Ibn' produce la chiave di blocco
+    'al', che non e' un cognome ma un articolo. Ogni nome arabo traslitterato
+    con 'al-' finirebbe nello stesso blocco, che diventerebbe enorme e inutile.
+
+    Il test non pretende di correggere: fissa l'elenco di oggi, cosi' chi lo
+    allunga lo fa deliberatamente e con una misura, invece di aggiungere la
+    particella che serve al caso che ha davanti — che e' il modo in cui una
+    regola nata da poche fonti si cristallizza senza che nessuno lo decida.
+    """
+    assert "al" not in r.PARTICLES, "se 'al' entra, serve la misura sul costo del blocco"
+    assert r.block_keys("al-Bawwab, Ibn", True) == frozenset({"al", "bawwab"})
+    assert {"om", "ch", "sir", "dame"} <= r.STOP
+
+
 def test_nome_in_cirillico_non_deve_sparire():
     """Era il criterio di verifica scritto prima della modifica, e restava rosso
     di proposito. Verde dal 23/11/2026.
