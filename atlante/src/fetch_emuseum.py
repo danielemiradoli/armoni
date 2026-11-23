@@ -11,14 +11,16 @@ Due passi, entrambi ripresi da dove si erano fermati:
   2. dettaglio: per ogni scheda, i campi della tabella (nazione/periodo, classificazione, materiale,
      misure, numero) e la licenza.
 Uscita: data/raw/emuseum/elenco.jsonl, data/raw/emuseum/dettagli.jsonl (fuori dal repository)."""
-import concurrent.futures as cf, html, json, re, sys, time, urllib.parse, urllib.request
+import os, concurrent.futures as cf, html, json, re, sys, time, urllib.parse, urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DIR = ROOT / 'data/raw/emuseum'
+# FILO=lacca nell'ambiente: secondo filo, parole 칠기 (lacca), 나전 (madreperla intarsiata), 옻칠 (lacca urushi)
+FILO = os.environ.get('FILO', 'blu')
+DIR = ROOT / ('data/raw/emuseum' if FILO == 'blu' else f'data/raw/emuseum_{FILO}')
+PAROLE = {'blu': ['청화백자'], 'lacca': ['칠기', '나전', '옻칠']}[FILO]
 UA = 'Mozilla/5.0 (compatible; armoni-atlante/0.1; +https://danielemiradoli.github.io/armoni/)'
 BASE = 'https://www.emuseum.go.kr'
-PAROLA = '청화백자'
 RIGHE = 36
 
 
@@ -38,6 +40,11 @@ def testo(s):
 
 
 def elenco():
+    for parola in PAROLE:
+        elenco_parola(parola, ripresa=len(PAROLE) == 1)
+
+
+def elenco_parola(PAROLA, ripresa):
     out = DIR / 'elenco.jsonl'
     visti = {json.loads(l)['id'] for l in out.open()} if out.exists() else set()
     prima = get(f'{BASE}/headerSearch?keyword={urllib.parse.quote(PAROLA)}&rows={RIGHE}&pageNum=1')
@@ -45,8 +52,8 @@ def elenco():
     pagine = -(-totale // RIGHE)
     print('schede annunciate', totale, 'pagine', pagine, 'già lette', len(visti))
     with out.open('a') as f:
-        for p in range(max(1, len(visti) // RIGHE), pagine + 1):  # si riparte dalla pagina dove ci si era fermati
-            if len(visti) >= totale:
+        for p in range(max(1, len(visti) // RIGHE) if ripresa else 1, pagine + 1):  # si riparte dalla pagina dove ci si era fermati
+            if ripresa and len(visti) >= totale:
                 break
             t = prima if p == 1 else get(f'{BASE}/headerSearch?keyword={urllib.parse.quote(PAROLA)}&rows={RIGHE}&pageNum={p}')
             for m in re.finditer(r'<div class="item">(.*?)id="linkI_(PS\w+)"', t, re.S):

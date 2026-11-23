@@ -224,3 +224,7 @@ def test_filo_lacca_inclusione():
     assert f.inclusione('Porcelain painted in underglaze blue')[0] is None
     assert f.origine('Edo period (1615–1868)', 'Japan') == 'Japan'  # «Edo» è un'epoca, non il centro
     assert f.origine('Ryūkyū Islands', 'Japan') == 'Okinawa'
+    assert f.inclusione('Cotton, silk, and silver-leaf-over-lacquered-paper-strip-wrapped bast fiber, plain weave')[0] is None
+    import json, pathlib
+    o = json.load(open(pathlib.Path(__file__).parent.parent / 'web/fili/lacca/opere.json'))
+    assert all('KOGL tipo 1' in x['licenza'] for x in o if x['fonte'] == 'emuseum')

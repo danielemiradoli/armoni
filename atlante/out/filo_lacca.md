@@ -1,39 +1,39 @@
 # Filo 2: la lacca — metriche
 
-Pezzi: **3251** — Met 2889, Cleveland 362; imitazioni europee dichiarate 29; senza date 0.
+Pezzi: **5226** — Met 2888, Cleveland 362, Chicago 373, eMuseum 1603; imitazioni europee dichiarate 31; senza date 176.
 
 | origine | pezzi |
 |---|---|
-| Japan | 2248 |
-| China | 420 |
-| Iran | 81 |
-| (senza luogo) | 54 |
-| France | 48 |
-| Korea | 46 |
-| Paris | 46 |
-| Myanmar | 41 |
-| India | 40 |
-| England | 34 |
-| Italy | 31 |
+| Japan | 2444 |
+| Korea | 1589 |
+| China | 543 |
+| (senza luogo) | 91 |
+| Iran | 87 |
+| France | 51 |
+| Paris | 47 |
+| Myanmar | 44 |
+| India | 43 |
+| England | 37 |
+| Italy | 32 |
 | Okinawa | 25 |
-| Germany | 18 |
-| United States | 13 |
-| Venice | 11 |
+| United States | 19 |
+| Germany | 19 |
+| Ecuador | 18 |
+| Thailand | 12 |
+| Venice | 12 |
+| Kyoto | 11 |
 | Tokyo | 9 |
 | Tibet | 9 |
-| Thailand | 8 |
+| London | 7 |
+| Vietnam | 7 |
 | Russia | 6 |
 | Isfahan | 6 |
 | Netherlands | 5 |
-| Kyoto | 5 |
+| Cambodia | 5 |
 | Afghanistan | 5 |
 | Turkey | 4 |
-| Cambodia | 4 |
 | Nara | 4 |
 | Switzerland | 4 |
-| London | 4 |
-| Bagan | 3 |
-| Tehran | 3 |
 
 | secolo d'inizio | pezzi |
 |---|---|
@@ -41,23 +41,25 @@ Pezzi: **3251** — Met 2889, Cleveland 362; imitazioni europee dichiarate 29; s
 | -7 | 1 |
 | -6 | 2 |
 | -4 | 1 |
-| -3 | 2 |
-| -2 | 10 |
-| -1 | 2 |
-| 1 | 22 |
+| -3 | 3 |
+| -2 | 48 |
+| -1 | 475 |
+| 0 | 147 |
+| 1 | 123 |
 | 2 | 3 |
-| 7 | 6 |
-| 8 | 9 |
+| 7 | 34 |
+| 8 | 10 |
 | 9 | 3 |
-| 10 | 7 |
-| 11 | 19 |
+| 10 | 30 |
+| 11 | 20 |
 | 12 | 26 |
-| 13 | 51 |
-| 14 | 115 |
-| 15 | 99 |
-| 16 | 475 |
-| 17 | 361 |
-| 18 | 798 |
-| 19 | 1087 |
-| 20 | 115 |
-| 21 | 36 |
+| 13 | 74 |
+| 14 | 289 |
+| 15 | 105 |
+| 16 | 483 |
+| 17 | 398 |
+| 18 | 981 |
+| 19 | 1136 |
+| 20 | 609 |
+| 21 | 48 |
+| — | 176 |
