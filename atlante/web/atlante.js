@@ -359,8 +359,10 @@ function drawTl() {
     const sub = [];
     for (const p of PER.filter(p => p.regione === r).sort((a, b) => a.inizio - b.inizio)) { let k = sub.findIndex(f => f <= p.inizio); if (k < 0) { k = sub.length; sub.push(0); } sub[k] = p.fine; righe.push({r, k, p}); }
   }
+  if (CORS !== 'estese') { for (const z of righe) z.k = 0; if (CORS === 'nascoste') righe.length = 0; }
+  const est = CORS === 'estese', lhv = est ? lh : 5, gp = est ? 2 : 1;
   const nr = new Map(); let acc = 0; for (const x of righe) { const key = x.r + x.k; if (!nr.has(key)) nr.set(key, acc++); }
-  const h = top + acc * (lh + 2) + 18;
+  const h = top + acc * (lhv + gp) + 18;
   tls.style.height = h + 'px';
   const x = d3.scaleLinear([T0, T1], [0, w]), c = dec(), mx = Math.max(...[...c.values()].map(v => v[0] + v[1]), 1), y = v => 40 * v / mx;
   let s = '';
@@ -368,11 +370,11 @@ function drawTl() {
   if (VAM && S.L.vam && S.L.opere) { const vd = new Map(); for (const c of VAM.celle) vd.set(c.d, (vd.get(c.d) || 0) + c.n); const vmx = Math.max(...vd.values(), 1);
     s += `<polyline fill="none" stroke="var(--fe)" stroke-width="1.4" points="${[...vd].filter(([d]) => d >= T0).sort((a, b) => a[0] - b[0]).map(([d, n]) => `${x(d + 5)},${42 - 40 * n / vmx}`).join(' ')}"/>`; }
   s += `<rect x="${x(S.year - S.win)}" y="0" width="${x(S.year + S.win) - x(S.year - S.win)}" height="${h - 16}" fill="var(--fe)" opacity=".08"/>`;
-  for (const {r, k, p} of righe) { const yy = top + nr.get(r + k) * (lh + 2);
-    if (w > 520 && k === 0 && righe.find(z => z.r === r).p === p) s += `<text x="2" y="${yy + 10}" font-size="10.5" fill="var(--mute)">${esc(r)}</text>`;
-    { const x0 = Math.max(x(p.inizio), w > 520 ? 120 : 0), x1 = x(Math.min(p.fine, T1)); if (x1 <= x0) continue;
-      s += `<g><title>${esc(p.nome)} ${p.inizio}–${p.fine} (Wikidata ${p.qid})</title><rect x="${x0}" y="${yy}" width="${x1 - x0}" height="${lh}" rx="2" fill="var(--co)" opacity=".16" stroke="var(--co)" stroke-opacity=".4"/>`;
-      if (x1 - x0 > p.nome.length * 5.6) s += `<text x="${x0 + 4}" y="${yy + 9.5}" font-size="10" fill="var(--ink)">${esc(p.nome)}</text>`; s += '</g>'; } }
+  for (const {r, k, p} of righe) { const yy = top + nr.get(r + k) * (lhv + gp);
+    if (est && w > 520 && k === 0 && righe.find(z => z.r === r).p === p) s += `<text x="2" y="${yy + 10}" font-size="10.5" fill="var(--mute)">${esc(r)}</text>`;
+    { const x0 = Math.max(x(p.inizio), est && w > 520 ? 120 : 0), x1 = x(Math.min(p.fine, T1)); if (x1 <= x0) continue;
+      s += `<g><title>${esc(p.nome)} ${p.inizio}–${p.fine} (Wikidata ${p.qid})</title><rect x="${x0}" y="${yy}" width="${x1 - x0}" height="${lhv}" rx="${est ? 2 : 0}" fill="var(--co)" opacity="${est ? .16 : .22}" stroke="var(--co)" stroke-opacity="${est ? .4 : 0}"/>`;
+      if (est && x1 - x0 > p.nome.length * 5.6) s += `<text x="${x0 + 4}" y="${yy + 9.5}" font-size="10" fill="var(--ink)">${esc(p.nome)}</text>`; s += '</g>'; } }
   for (let t = Math.ceil((T0 + 1) / PASSO) * PASSO; t < T1; t += w < 520 ? 4 * PASSO : PASSO) s += `<text x="${x(t)}" y="${h - 3}" font-size="10.5" fill="var(--mute)" text-anchor="middle">${fmtY(t)}</text>`;
   s += `<line x1="${x(S.year)}" x2="${x(S.year)}" y1="0" y2="${h - 14}" stroke="var(--fe)" stroke-width="2"/>`;
   tls.innerHTML = s;
@@ -388,8 +390,8 @@ const regCX = () => [...ORD_CX, ...[...new Set(CX.map(e => e.corsia))].filter(r 
 const corsieCX = () => ({reg: regCX(), periodi: CX.filter(e => S.CT.has(e.tipo)).map(e => ({r: e.corsia, a: e.quando.da, b: e.fv})), vuoto: '',
   info: `corsie: quanti fenomeni (${[...S.CT].join(', ')}; Wikidata) sono attivi in ogni anno, per macro-regione del luogo d'origine; il numero: quanti nell'anno scelto. Fine non dichiarata: ${APERTO} anni`});
 function drawTlPO(w, src) {
-  const REG_PO = src.reg, P = src.periodi;
-  const lh = 13, top = 46, h = top + REG_PO.length * (lh + 3) + 18, x = d3.scaleLinear([T0, T1], [0, w]), x0 = w > 520 ? 205 : 0;
+  const REG_PO = CORS === 'nascoste' ? [] : src.reg, P = src.periodi, est = CORS === 'estese';
+  const lh = est ? 13 : 5, gap = est ? 3 : 1, top = 46, h = top + REG_PO.length * (lh + gap) + 18, x = d3.scaleLinear([T0, T1], [0, w]), x0 = w > 520 ? 205 : 0;
   tls.style.height = h + 'px';
   const c = dec(), mx = Math.max(...[...c.values()].map(v => v[0] + v[1]), 1);
   let s = '';
@@ -397,10 +399,11 @@ function drawTlPO(w, src) {
   if (VAM && S.L.vam && S.L.opere) { const vd = new Map(); for (const k of VAM.celle) vd.set(k.d, (vd.get(k.d) || 0) + k.n); const vmx = Math.max(...vd.values(), 1);
     s += `<polyline fill="none" stroke="var(--fe)" stroke-width="1.4" points="${[...vd].filter(([d]) => d >= T0).sort((a, b) => a[0] - b[0]).map(([d, n]) => `${x(d + 5)},${42 - 40 * n / vmx}`).join(' ')}"/>`; }
   s += `<rect x="${x(S.year - S.win)}" y="0" width="${x(S.year + S.win) - x(S.year - S.win)}" height="${h - 16}" fill="var(--fe)" opacity=".08"/>`;
-  REG_PO.forEach((r, i) => { const yy = top + i * (lh + 3), ps = P.filter(p => p.r === r), qui = ps.filter(p => p.a <= S.year && p.b >= S.year);
-    if (w > 520) s += `<text x="2" y="${yy + 10}" font-size="10.5" fill="var(--mute)">${esc(r)} <tspan fill="var(--ink)">${qui.length}</tspan></text>`;
-    for (const p of ps) { const a = Math.max(x(Math.max(p.a, T0)), x0), b = x(Math.min(p.b, T1)); if (b > a) s += `<rect x="${a}" y="${yy}" width="${b - a}" height="${lh}" fill="var(--co)" opacity=".07"/>`; }
-    if (!ps.length && src.vuoto) s += `<text x="${x0 + 4}" y="${yy + 10}" font-size="10" fill="var(--mute)">${src.vuoto}</text>`; });
+  REG_PO.forEach((r, i) => { const yy = top + i * (lh + gap), ps = P.filter(p => p.r === r), qui = ps.filter(p => p.a <= S.year && p.b >= S.year);
+    if (w > 520 && est) s += `<text x="2" y="${yy + 10}" font-size="10.5" fill="var(--mute)">${esc(r)} <tspan fill="var(--ink)">${qui.length}</tspan></text>`;
+    if (!est) s += `<rect x="0" y="${yy}" width="${w}" height="${lh + gap}" fill="transparent"><title>${esc(r)}: ${qui.length} nell'anno scelto</title></rect>`;
+    for (const p of ps) { const a = Math.max(x(Math.max(p.a, T0)), est ? x0 : 0), b = x(Math.min(p.b, T1)); if (b > a) s += `<rect x="${a}" y="${yy}" width="${b - a}" height="${lh}" fill="var(--co)" opacity="${est ? .07 : .09}" pointer-events="none"/>`; }
+    if (!ps.length && src.vuoto && est) s += `<text x="${x0 + 4}" y="${yy + 10}" font-size="10" fill="var(--mute)">${src.vuoto}</text>`; });
   for (let t = Math.ceil((T0 + 1) / PASSO) * PASSO; t < T1; t += w < 520 ? 4 * PASSO : PASSO) s += `<text x="${x(t)}" y="${h - 3}" font-size="10.5" fill="var(--mute)" text-anchor="middle">${fmtY(t)}</text>`;
   s += `<line x1="${x(S.year)}" x2="${x(S.year)}" y1="0" y2="${h - 14}" stroke="var(--fe)" stroke-width="2"/>`;
   tls.innerHTML = s; $('#yr').textContent = fmtY(S.year);
@@ -411,11 +414,11 @@ function drawTlPO(w, src) {
 function nominato() {
   if (!PO) return '';
   const g = REG_PO.map(r => [r, PO.periodi.filter(p => p.r === r && p.a <= S.year && p.b >= S.year)]).filter(([, ps]) => ps.length);
-  return `<h3 style="margin:18px 0 6px">${articolo(S.year)}${fmtY(S.year)}, nominato da chi</h3><p class="sub">Periodi di PeriodO che contengono l'anno, con la fonte che li definisce e la lingua del nome.</p>` +
+  return `<details class="leggi"><summary>${articolo(S.year)}${fmtY(S.year)}, nominato da chi <span class="sub">${g.reduce((a, [, ps]) => a + ps.length, 0)} definizioni</span></summary><p class="sub">Periodi di PeriodO che contengono l'anno, con la fonte che li definisce e la lingua del nome.</p>` +
     g.map(([r, ps]) => { const lg = [...new Set(ps.map(p => LINGUE[p.lg] || p.lg))].join(', ');
       const una = [...new Map(ps.map(p => [p.au, p])).values()].sort((p, q) => (p.lg === 'en') - (q.lg === 'en'));  // una per autorità, prima le lingue non inglesi
       return `<div class="k">${esc(r)} · ${ps.length} definizioni da ${una.length} fonti · in ${esc(lg)}</div>` + una.slice(0, 4).map(p => { const a = PO.autorita[p.au] || {};
-        return `<div class="v" style="font-size:14px">${esc(p.n)} <span class="sub">${p.a}–${p.b} · ${esc(((a.chi ? a.chi + ', ' : '') + a.titolo).slice(0, 70))}${a.anno ? ' (' + a.anno + ')' : ''}</span></div>`; }).join('') + (una.length > 4 ? `<div class="sub">e altre ${una.length - 4} fonti</div>` : ''); }).join('');
+        return `<div class="v" style="font-size:14px">${esc(p.n)} <span class="sub">${p.a}–${p.b} · ${esc(((a.chi ? a.chi + ', ' : '') + a.titolo).slice(0, 70))}${a.anno ? ' (' + a.anno + ')' : ''}</span></div>`; }).join('') + (una.length > 4 ? `<div class="sub">e altre ${una.length - 4} fonti</div>` : ''); }).join('') + '</details>';
 }
 const setYear = v => { S.year = Math.round(Math.max(T0, Math.min(T1, v))); update(); };
 let tdrag = false;
@@ -440,17 +443,20 @@ $('#vaia').onchange = e => { const r = e.target.value; e.target.value = ''; if (
   if (r === 'mondo') { S.k = 1; } else { const [lon, lat, k] = CENTRI_REG[r]; S.rot = [-lon, -lat]; S.k = k; }
   draw(); };
 /* pannelli richiudibili, ricordati da una visita all'altra */
+let CORS = 'compatte';
 const PANN = (() => { try { return JSON.parse(localStorage.getItem('armoni-pannelli') || '{}'); } catch (e) { return {}; } })();
 function pannelli() {
   for (const [k, id, nome] of [['lay', '#chiudi-lay', 'sinistra'], ['ctx', '#chiudi-ctx', 'destra']]) {
     document.body.classList.toggle('senza-' + k, !!PANN[k]); const b = $(id);
     b.setAttribute('aria-pressed', !!PANN[k]); b.setAttribute('aria-label', (PANN[k] ? 'Mostra' : 'Nascondi') + ' il pannello di ' + nome);
     b.textContent = (k === 'lay') === !PANN[k] ? '‹' : '›'; }
-  document.body.classList.toggle('tl-ridotto', !!PANN.tl); $('#riduci-tl').textContent = PANN.tl ? 'mostra il tempo per esteso' : 'riduci il tempo'; $('#riduci-tl').setAttribute('aria-pressed', !!PANN.tl);
+  CORS = ['nascoste', 'compatte', 'estese'].includes(PANN.corsie) ? PANN.corsie : 'compatte'; document.querySelectorAll('[data-cors]').forEach(b => b.setAttribute('aria-pressed', b.dataset.cors === CORS));
   try { localStorage.setItem('armoni-pannelli', JSON.stringify(PANN)); } catch (e) { }
   requestAnimationFrame(() => draw());
 }
-for (const [id, k] of [['#chiudi-lay', 'lay'], ['#chiudi-ctx', 'ctx'], ['#riduci-tl', 'tl']]) $(id).onclick = () => { PANN[k] = !PANN[k]; pannelli(); };
+for (const [id, k] of [['#chiudi-lay', 'lay'], ['#chiudi-ctx', 'ctx']]) $(id).onclick = () => { PANN[k] = !PANN[k]; pannelli(); };
+document.querySelectorAll('[data-cors]').forEach(b => b.onclick = () => { PANN.corsie = b.dataset.cors; pannelli(); drawTl(); });
+$('#tlinfobtn').onclick = () => { const i = $('#tlinfo'), o = i.hidden; i.hidden = !o; $('#tlinfobtn').setAttribute('aria-expanded', o); };
 let timer = null;
 $('#play').onclick = () => { const b = $('#play'); if (timer) { clearInterval(timer); timer = null; b.setAttribute('aria-pressed', 'false'); b.textContent = '▶ Scorri'; return; }
   b.setAttribute('aria-pressed', 'true'); b.textContent = '❚❚ Ferma'; timer = setInterval(() => setYear(S.year >= T1 ? T0 : S.year + 5), 140); };
@@ -464,18 +470,22 @@ function scheda(x) {
   const o = x.o, inT = S.tav.some(c => c.id === x.id), cat = FONTE_LUNGA[x.fonte] || x.fonte;
   // l'intervallo è nostro quando la scheda dà solo un'epoca o un secolo (ColBase, eMuseum); è del catalogo quando dà gli anni
   const daEpoca = /\((?:epoca \(Wikidata\)|secolo|secolo ∩ epoca)\)$/.test(x.data_testo || '');
+  const uguale = `${fmtY(x.inizio)}–${fmtY(x.fine)}` === (x.data_testo || '').trim();  // se coincide con la data del catalogo, non ripeterlo
   const convenz = daEpoca || /convenzional/.test(x.criterio) || (x.fonte === 'emuseum' && !/dichiarat[oa] nella descrizione/.test(x.criterio));
   return `<h2>${esc(x.titolo)}</h2>
   <div style="margin-top:8px"><span class="tag ${x.grado === 'documentato' ? 'doc' : 'ipo'}">${x.grado}</span>${x.origine_incerta ? '<span class="tag ipo">attribuzione incerta</span>' : ''}${!x.origine && x.origine_dedotta ? `<span class="tag ipo" title="${esc(x.criterio_luogo)}">luogo dedotto</span>` : ''}${x.fl ? `<span class="tag">${NOMI_FILO[x.fl]}</span>` : ''}</div>
-  <p class="sub" style="margin:8px 0 0">Accanto a ogni dato: chi lo dice. ${src(cat)} il catalogo del museo · ${src('ArMoni')} una nostra lettura, con la regola.</p>
+  <p class="chi">Chi dice ogni dato: ${src(cat)} il catalogo del museo · ${src('ArMoni')} una nostra lettura, con la regola</p>
+  <h3 class="sez">Il pezzo</h3>
   <div class="k">Cultura, come la scrive il catalogo ${src(cat)}</div><div class="v">${esc(x.cultura) || '—'}</div>
   <div class="k">Data ${src(cat)}</div><div class="v">${esc(x.data_testo) || '—'}</div>
-  <div class="k">Intervallo usato sulla barra del tempo ${convenz ? src('ArMoni', 'anni convenzionali dell\'epoca nominata dalla scheda') : src(cat)}</div><div class="v">${fmtY(x.inizio)}–${fmtY(x.fine)}${convenz ? ` <span class="sub">· la scheda nomina solo ${daEpoca ? 'l\'epoca o il secolo: anni da Wikidata o dal secolo' : 'l\'epoca: anni convenzionali dei manuali'}</span>` : ''}</div>
+  <div class="k"${uguale ? ' hidden' : ''}>Intervallo usato sulla barra del tempo ${convenz ? src('ArMoni', 'anni convenzionali dell\'epoca nominata dalla scheda') : src(cat)}</div><div class="v"${uguale ? ' hidden' : ''}>${fmtY(x.inizio)}–${fmtY(x.fine)}${convenz ? ` <span class="sub">· la scheda nomina solo ${daEpoca ? 'l\'epoca o il secolo: anni da Wikidata o dal secolo' : 'l\'epoca: anni convenzionali dei manuali'}</span>` : ''}</div>
   <div class="k">Tecnica ${src(cat)}</div><div class="v">${esc(x.tecnica) || '—'}</div>
   <div class="k">Tipo di oggetto ${src('ArMoni', 'letto per parole chiave dal nome')}</div><div class="v">${x.tipo ? `${esc(x.tipo)} <span class="sub">· dalla parola «${esc(x.tipo_parola)}» nel nome</span>` : '<span class="sub">non riconosciuto dal nome</span>'}</div>
+  <h3 class="sez">Luoghi</h3>
   <div class="k">Luogo d'origine ${src('ArMoni', 'il nome di luogo letto nel testo del catalogo')} ${o ? src('Wikidata', 'identità e coordinate del luogo') : ''}</div><div class="v">${o ? `${esc(o.nome)} <span class="sub">· ${PREC[o.precisione]} · letto in «${esc(x.cultura || x.titolo)}» · <a href="https://www.wikidata.org/wiki/${o.qid}">${o.qid}</a></span>` : 'non determinabile dal record'}</div>
   ${x.m ? `<div class="k">Mercato di destinazione ${src(cat)}</div><div class="v">${esc(x.m.nome)} <span class="sub">· dichiarato dal catalogo</span></div>` : ''}
   <div class="k">Dove si trova oggi ${src(cat)}</div><div class="v">${x.s ? esc(x.s.nome) : 'sede senza coordinate'}</div>
+  <h3 class="sez">Perché è qui, e la fonte</h3>
   <div class="k">Perché è nell'atlante ${src('ArMoni', 'regola di inclusione del filo')}</div><div class="v">${esc(x.criterio)}</div>
   <div class="k">Fonte e licenza</div><div class="v"><a href="${esc(x.url)}">scheda del museo</a>${x.wikidata ? ` · <a href="https://www.wikidata.org/wiki/${esc(x.wikidata)}">${esc(x.wikidata)}</a>` : ''} · ${esc(x.licenza)}</div>
   ${intornoPezzo(x)}
@@ -502,7 +512,7 @@ const REGOLA_INT = {
   ctxvicini: e => `Altri contesti attivi negli stessi anni (±${MARGINE}) nella stessa macro-regione.`};
 const NOMI_INT = {tipo: 'Stesso tipo, stessa epoca, altrove', ctxdi: 'Contesti qui e allora', opere: 'Oggetti del filo qui e allora', ctxvicini: 'Contesti vicini, negli stessi anni'};
 function bottoniIntorno(voci) {
-  return `<h3>Cerca intorno</h3><p class="sub" style="margin:0 0 6px">Strade per esplorare: accostamenti nello spazio e nel tempo, non legami.</p><div class="intorno">${voci.map(([k, n, extra]) => `<button ${extra || `data-intorno="${k}"`} ${n === 0 ? 'disabled' : ''}>${NOMI_INT[k] || k}${n != null ? ` <span class="sub">${n}</span>` : ''}</button>`).join('')}</div>`;
+  return `<h3 class="sez">Cerca intorno</h3><p class="sub" style="margin:0 0 6px">Strade per esplorare: accostamenti nello spazio e nel tempo, non legami.</p><div class="intorno">${voci.map(([k, n, extra]) => `<button ${extra || `data-intorno="${k}"`} ${n === 0 ? 'disabled' : ''}>${NOMI_INT[k] || k}${n != null ? ` <span class="sub">${n}</span>` : ''}</button>`).join('')}</div>`;
 }
 function intornoPezzo(x) {
   const v = [['tipo', x.tipo ? trovaIntorno('tipo', x).length : 0], ['ctxdi', luogo(x) ? trovaIntorno('ctxdi', x).length : 0]];
@@ -579,13 +589,12 @@ function renderCtx() {
   const mx = agg[0]?.n || 1, n = act.length;
   c.innerHTML = cercaInfo() + filtriAttivi() + `<div class="sub">Fra ${fmtY(S.year - S.win)} e ${fmtY(S.year + S.win)}</div><div class="big" style="margin:4px 0">${n}</div>
   <div class="sub">pezzi da ${agg.length} luoghi · ${act.filter(x => x.grado === 'documentato').length} documentati</div>
-  <h3 style="margin:18px 0 6px">Da dove</h3>
+  <h3 class="sez">Da dove</h3>
   ${agg.slice(0, 14).map(g => `<div class="row" data-place="${g.id}"><span>${esc(g.l.nome)} <span class="sub">${g.l.precisione === 'citta' ? '' : '· ' + PREC[g.l.precisione]}</span><div class="bar" style="width:${100 * g.n / mx}%"></div></span><span class="n">${g.n}</span></div>`).join('') || '<p class="sub">Nessun pezzo in questa finestra.</p>'}
-  ${VAM && S.L.vam && S.L.opere && vagg.length ? `<h3 style="margin:18px 0 6px">V&A, solo conteggi</h3>${vagg.slice(0, 8).map(g => `<div class="row" data-place="${g.id}"><span>${esc(g.l.nome)} <span class="sub">${g.l.precisione === 'citta' ? '' : '· ' + PREC[g.l.precisione]}</span></span><span class="n">~${Math.round(g.n)}</span></div>`).join('')}` : ''}
-  ${S.L.contesti ? `<h3 style="margin:18px 0 6px">Fenomeni artistici in questa finestra</h3>${cagg.length ? cagg.slice(0, 12).map(e => `<div class="row" data-place="mov:${e.id}"><span><i>${esc(e.nome)}</i> <span class="sub">· ${e.tipo}, ${esc(e.luoghi[0].oggi)}</span></span><span class="n">${fmtY(e.quando.da)}</span></div>`).join('') + (cagg.length > 12 ? `<p class="sub">e altri ${cagg.length - 12}: li trovi sulla mappa</p>` : '') : '<p class="sub">Nessuno con data e luogo su Wikidata in questa finestra, per i tipi scelti.</p>'}` : ''}
+  ${VAM && S.L.vam && S.L.opere && vagg.length ? `<h3 class="sez">V&A, solo conteggi</h3>${vagg.slice(0, 8).map(g => `<div class="row" data-place="${g.id}"><span>${esc(g.l.nome)} <span class="sub">${g.l.precisione === 'citta' ? '' : '· ' + PREC[g.l.precisione]}</span></span><span class="n">~${Math.round(g.n)}</span></div>`).join('')}` : ''}
+  ${S.L.contesti ? `<h3 class="sez">Fenomeni artistici in questa finestra</h3>${cagg.length ? cagg.slice(0, 12).map(e => `<div class="row" data-place="mov:${e.id}"><span><i>${esc(e.nome)}</i> <span class="sub">· ${e.tipo}, ${esc(e.luoghi[0].oggi)}</span></span><span class="n">${fmtY(e.quando.da)}</span></div>`).join('') + (cagg.length > 12 ? `<p class="sub">e altri ${cagg.length - 12}: li trovi sulla mappa</p>` : '') : '<p class="sub">Nessuno con data e luogo su Wikidata in questa finestra, per i tipi scelti.</p>'}` : ''}
   ${nominato()}
-  <h3 style="margin:18px 0 6px">Come leggere</h3>
-  <p class="sub">Ogni punto è un luogo d'origine dichiarato dal catalogo. Il pieno indica una città; l'anello tratteggiato un paese, perché il record non dice di più. I pezzi «ipotetici» appartengono a una manifattura nota per il blu, ma il loro record non nomina il colore. Clicca un luogo per l'elenco, poi un pezzo per la scheda.</p>`;
+  <details class="leggi"><summary>Come leggere</summary><p class="sub">Ogni punto è un luogo d'origine dichiarato dal catalogo. Il pieno indica una città; l'anello tratteggiato un paese, perché il record non dice di più. I pezzi «ipotetici» appartengono a una manifattura nota per il blu, ma il loro record non nomina il colore. Clicca un luogo per l'elenco, poi un pezzo per la scheda.</p></details>`;
 }
 // collegamenti per saltare: spostano il fuoco senza toccare l'indirizzo, che porta la vista
 document.querySelectorAll('.salta').forEach(l => l.onclick = e => { e.preventDefault(); const t = $(l.getAttribute('href')); t.focus(); t.scrollIntoView({block: 'nearest'}); });
@@ -618,12 +627,11 @@ function pannelloConfronto() {
   const riga = ([id, v]) => `<div class="row" data-place="${id}"><span>${esc(v.l.nome)} <span class="sub">${v.l.precisione === 'citta' ? '' : '· ' + PREC[v.l.precisione]}</span><div class="bar" style="width:${100 * v.blu / mx}%"></div><div class="bar lac" style="width:${100 * v.lacca / mx}%"></div></span><span class="n">${v.blu} · <span class="lacn">${v.lacca}</span></span></div>`;
   return `<div class="sub">Confronto fra ${fmtY(S.year - S.win)} e ${fmtY(S.year + S.win)}</div>
   <div class="conf"><div><div class="big">${tot('blu')}</div><div class="sub"><span class="seg-blu"></span>blu e bianco</div></div><div><div class="big lacn">${tot('lacca')}</div><div class="sub"><span class="seg-lac"></span>lacca</div></div></div>
-  <h3 style="margin:18px 0 6px">Luoghi dove compaiono entrambi</h3>
+  <h3 class="sez">Luoghi dove compaiono entrambi</h3>
   ${comuni.length ? comuni.slice(0, 12).map(riga).join('') : '<p class="sub">In questa finestra nessun luogo ha pezzi di tutti e due i fili.</p>'}
-  <h3 style="margin:18px 0 6px">Solo un filo</h3>
+  <h3 class="sez">Solo un filo</h3>
   ${[...per].filter(([, v]) => !(v.blu && v.lacca)).sort((a, b) => (b[1].blu + b[1].lacca) - (a[1].blu + a[1].lacca)).slice(0, 10).map(riga).join('') || '<p class="sub">Nessuno.</p>'}
-  <h3 style="margin:18px 0 6px">Come leggere</h3>
-  <p class="sub">Dischi blu: porcellana blu e bianca. Anelli color lacca: lacca. Tratteggio: luogo noto solo come paese. Stesso luogo e stesso tempo vogliono dire che i due fili si incontrano lì nei cataloghi, non che siano legati: un legame compare solo dove una fonte lo dichiara. I numeri riflettono anche quanto ogni paese apre i suoi dati.</p>`;
+  <details class="leggi"><summary>Come leggere</summary><p class="sub">Dischi blu: porcellana blu e bianca. Anelli color lacca: lacca. Tratteggio: luogo noto solo come paese. Stesso luogo e stesso tempo vogliono dire che i due fili si incontrano lì nei cataloghi, non che siano legati: un legame compare solo dove una fonte lo dichiara. I numeri riflettono anche quanto ogni paese apre i suoi dati.</p></details>`;
 }
 function filtriAttivi() {
   const f = [S.L.opere && CAT.reg && ['reg', `provenienza: ${CAT.reg === '?' ? 'senza luogo' : CAT.reg}`], S.L.opere && CAT.tipo && ['tipo', `tipo: ${CAT.tipo === '?' ? 'non riconosciuto' : CAT.tipo}`],
@@ -635,13 +643,12 @@ function soloContesti() {
   const per = new Map(); for (const e of cagg) per.set(e.corsia, (per.get(e.corsia) || 0) + 1);
   return `<div class="sub">Contesti fra ${fmtY(S.year - S.win)} e ${fmtY(S.year + S.win)}</div><div class="big ctxn" style="margin:4px 0">${cagg.length}</div>
   <div class="sub">fenomeni artistici attivi: ${[...S.CT].map(t => TIPO_PL[t] || t).join(', ')}</div>
-  <h3 style="margin:18px 0 6px">Per regione</h3>
+  <h3 class="sez">Per regione</h3>
   ${[...per].sort((a, b) => b[1] - a[1]).map(([r, n]) => `<div class="row" data-ctxreg="${esc(r)}"><span>${esc(r)}<div class="bar ctxbar" style="width:${100 * n / cagg.length}%"></div></span><span class="n">${n}</span></div>`).join('') || '<p class="sub">Nessun fenomeno in questa finestra.</p>'}
-  <h3 style="margin:18px 0 6px">Fenomeni</h3>
+  <h3 class="sez">Fenomeni</h3>
   ${[...cagg].sort((a, b) => a.quando.da - b.quando.da).slice(0, 60).map(e => `<div class="row" data-place="mov:${e.id}"><span><i>${esc(e.nome)}</i> <span class="sub">· ${e.tipo}, ${esc(e.luoghi[0].oggi)}</span></span><span class="n">${fmtY(e.quando.da)}</span></div>`).join('')}
   ${cagg.length > 60 ? `<p class="sub">e altri ${cagg.length - 60}: restringi la finestra, la regione o i tipi, oppure cerca per nome.</p>` : ''}
-  <h3 style="margin:18px 0 6px">Come leggere</h3>
-  <p class="sub">Ogni quadrato verde è un fenomeno nel luogo dove nasce, con le date dichiarate o dedotte dagli artisti (la scheda dice quale). Le relazioni compaiono solo dove Wikidata le scrive. Accendi un filo per accostarvi gli oggetti.</p>`;
+  <details class="leggi"><summary>Come leggere</summary><p class="sub">Ogni quadrato verde è un fenomeno nel luogo dove nasce, con le date dichiarate o dedotte dagli artisti (la scheda dice quale). Le relazioni compaiono solo dove Wikidata le scrive. Accendi un filo per accostarvi gli oggetti.</p></details>`;
 }
 const TIPO_PL = {movimento: 'movimenti', scuola: 'scuole', stile: 'stili', periodizzazione: 'dinastie'};
 function categorie() { }  // le categorie ora sono faccette (renderFacette), ridisegnate a ogni aggiornamento
@@ -906,7 +913,7 @@ const figli = g => [...document.querySelectorAll(`[data-grp="${g}"] [data-l]:not
 const syncChecks = () => {
   document.querySelectorAll('[data-l]').forEach(i => { i.checked = !!S.L[i.dataset.l]; });
   document.querySelectorAll('[data-g]').forEach(i => { const g = i.dataset.g, f = figli(g), n = f.filter(k => S.L[k]).length;
-    i.checked = G.on[g] !== false; i.indeterminate = false; $(`[data-gn="${g}"]`).textContent = G.on[g] === false ? 'spenta' : `${n} di ${f.length} attivi`; });
+    i.checked = G.on[g] !== false; i.indeterminate = false; $(`[data-gn="${g}"]`).textContent = G.on[g] === false ? 'spenta' : `${n}/${f.length}`; });
 };
 document.querySelectorAll('[data-l]').forEach(i => i.onchange = () => { S.L[i.dataset.l] = i.checked ? 1 : 0; if (i.dataset.l === 'ipotetici') categorie(); const g = i.closest('[data-grp]')?.dataset.grp; if (g && i.checked) G.on[g] = true; syncChecks(); update(); });
 document.querySelectorAll('[data-g]').forEach(i => i.onchange = () => { const g = i.dataset.g;
@@ -922,6 +929,7 @@ document.addEventListener('click', e => {
   const a = e.target.closest('[data-facapri]'); if (a) { FAC_APERTA[a.dataset.facapri] = !FAC_APERTA[a.dataset.facapri]; renderFacette(); return; }
   const inf = e.target.closest('[data-infoper]'); if (inf) { e.preventDefault(); e.stopPropagation(); const n = document.getElementById(inf.dataset.infoper), o = n.hidden; n.hidden = !o; inf.setAttribute('aria-expanded', o); }
 }, true);
+$('#cop').onclick = e => { if (!e.target.closest('a')) { const c = $('#cop'); c.classList.toggle('aperta'); c.title = c.classList.contains('aperta') ? '' : 'clic per leggere tutto'; } };
 $('#legbtn').onclick = () => { LEG_APERTA = !LEG_APERTA; $('#legbody').hidden = !LEG_APERTA; $('#legbtn').setAttribute('aria-expanded', LEG_APERTA); };
 /* «i» per livello: la riga resta nome + interruttore + conteggio; fonte, metodo e limiti si aprono a richiesta. */
 function infoLivelli() {

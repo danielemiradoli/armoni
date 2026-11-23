@@ -269,6 +269,50 @@ body.incorpora #apri-intera{display:block!important;position:absolute;right:12px
 #guida .gd-dom button{text-align:left;padding:10px 12px}
 #guida .gd-dom button:hover{border-color:var(--co)}
 @media(prefers-reduced-motion:reduce){#guida .gd-luce{transition:none}}
+
+/* ---------- leggibilità dei pannelli: tre livelli visivi (titolo di strumento, titolo di sezione, voce) ---------- */
+#lay{padding:16px 14px 20px 16px}
+#lay>h3:first-child{font:600 18px/1.2 Newsreader,Georgia,serif;color:var(--ink);margin:0}
+#lay .intro{font-size:12.5px;margin:2px 0 14px;line-height:1.4}
+.strum{padding:12px 12px 8px 13px;margin:0 0 16px}
+.shead{margin-bottom:8px}.shead h4{font-size:18px}
+.faccette{margin:4px 0 6px}.faccette>div{margin-bottom:12px}
+.fh{font:600 12.5px/1.3 "Instrument Sans",system-ui,sans-serif;color:var(--ink);margin:0 0 4px;padding-top:6px;border-top:1px solid var(--riga)}
+.fv{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;padding:3px 6px;margin:0;min-height:26px;font-size:13px;line-height:1.25}
+.fv .fb{top:3px;bottom:3px;height:auto;left:0;opacity:.13;border-radius:2px;z-index:0}
+.fv .fl,.fv .fn{position:relative;z-index:1}
+.fv.on .fb{opacity:.28}
+.grp{border-top:1px solid var(--riga);padding:6px 0}
+.ghead b{font-size:13.5px;font-weight:600}.ghead button{white-space:nowrap}.ghead .sub{font-size:12px}
+.chk{font-size:13.5px;line-height:1.3;padding:3px 0}
+#lay>h3:not(:first-child){font:600 15px/1.2 Newsreader,Georgia,serif;color:var(--ink);margin:18px 0 6px;padding-top:12px;border-top:1px solid var(--line)}
+#lay .gbody h3{font:600 12px/1.3 "Instrument Sans",system-ui,sans-serif;color:var(--mute);margin:10px 0 2px;border:0;padding:0}
+/* pannello destro */
+#ctx{padding:18px 18px 28px;font-size:14px}
+#ctx h2{font-size:22px;line-height:1.15}
+#ctx h3.sez{font-size:15.5px;margin:22px 0 6px;padding-top:12px;border-top:1px solid var(--line)}
+#ctx .big{margin:2px 0 4px!important}
+#ctx>.sub,#ctx>div>.sub{line-height:1.4}
+.row{display:flex;align-items:center;gap:10px;padding:5px 0;min-height:30px;font-size:13.5px;line-height:1.25;position:relative}
+.row>span:first-child{position:relative;flex:1;min-width:0;z-index:0}
+.row .bar:not(.lac){position:absolute;left:-4px;top:-3px;bottom:-3px;height:auto;margin:0;border-radius:2px;opacity:.12;z-index:-1;max-width:calc(100% + 4px)}
+.row .bar.ctxbar{opacity:.18}
+.row .bar.lac{height:2px;margin-top:3px}
+.row .n{font-size:13px;color:var(--ink)}
+#ctx .k{font-size:12px;margin-top:12px;color:var(--mute)}#ctx .v{font-size:14.5px;line-height:1.4;margin-top:2px}
+#ctx .chi{font-size:12px;color:var(--mute);margin:10px 0 0;line-height:1.6}
+details.leggi{margin-top:20px;border-top:1px solid var(--line);padding-top:10px}
+details.leggi summary{cursor:pointer;font:600 14px/1.3 Newsreader,Georgia,serif;color:var(--ink)}
+details.leggi summary .sub{font:400 12px "Instrument Sans",sans-serif;margin-left:4px}
+details.leggi[open] summary{margin-bottom:6px}
+.cerca{font-size:13.5px;line-height:1.4}
+/* barra del tempo più bassa */
+.corsieh button{min-height:30px;padding:3px 8px;font-size:12.5px;border-radius:0;margin-left:-1px}
+.corsieh button:first-child{border-radius:6px 0 0 6px}.corsieh button:last-child{border-radius:0 6px 6px 0}
+#tlinfo{flex-basis:100%;font-size:12px}
+.tlbar{row-gap:6px}
+#cop{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;padding:5px 16px 6px}#cop.aperta{white-space:normal}
+.shead h4{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 </style>
 </head>
 <body data-strumento="atlante">
@@ -292,7 +336,7 @@ body.incorpora #apri-intera{display:block!important;position:absolute;right:12px
 
  <aside id="lay" aria-label="Strumenti e livelli">
   <h3>Cosa consulti</h3>
-  <p class="sub" style="margin:0 0 10px">Due strumenti: gli oggetti di un filo e i fenomeni dei contesti. Si usano da soli o sovrapposti; sotto, lo sfondo comune a entrambi.</p>
+  <p class="sub intro">Due strumenti, da soli o sovrapposti. Sotto, lo sfondo comune.</p>
   <section class="strum s-filo" aria-labelledby="t-filo">
    <div class="shead"><input type="checkbox" data-l="opere" checked aria-label="Mostra o nascondi gli oggetti del filo"><h4 id="t-filo">Filo <span class="sub">· oggetti</span></h4></div>
    <select id="filo" aria-label="Quale filo"><option value="blu">La porcellana blu e bianca nel mondo</option><option value="lacca">La lacca nel mondo</option><option value="confronto">Confronto: blu e bianco e lacca</option></select>
@@ -329,11 +373,11 @@ body.incorpora #apri-intera{display:block!important;position:absolute;right:12px
   </div>
   </section>
   <section class="strum s-ctx" aria-labelledby="t-ctx">
-   <div class="shead"><input type="checkbox" data-l="contesti" aria-label="Mostra o nascondi i contesti"><h4 id="t-ctx">Contesti <span class="sub">· fenomeni</span></h4><button class="info" data-infoper="ctx-nota" aria-expanded="false" aria-label="Che cosa sono i contesti">i</button></div>
+   <div class="shead"><input type="checkbox" data-l="contesti" aria-label="Mostra o nascondi i contesti"><h4 id="t-ctx">Contesti</h4><button class="info" data-infoper="ctx-nota" aria-expanded="false" aria-label="Che cosa sono i contesti">i</button></div>
    <p class="sub nota" id="ctx-nota" hidden style="margin:2px 0 8px">Quadrati e nomi in corsivo, verdi. Dove e quando nascono, lo Stato di allora e il nome di oggi. Sovrapposti a un filo servono ad accostare: non legano nulla agli oggetti. Senza filo, sono una ricerca a sé.</p>
   <div class="sub" style="margin:0 0 8px;display:flex;flex-wrap:wrap;gap:2px 10px">tipi: <label><input type="checkbox" data-ct="movimento" checked> movimenti</label><label><input type="checkbox" data-ct="scuola" checked> scuole</label><label><input type="checkbox" data-ct="stile" checked> stili</label><label><input type="checkbox" data-ct="periodizzazione" checked> dinastie</label></div>
    <div class="faccette"><div id="fac-ctx"></div></div>
-  <p class="sub" style="margin:4px 0 6px"><a href="relazioni.html">Le relazioni come grafo</a>: tutte quelle dichiarate da Wikidata, in una pagina a sé.</p>
+  <p class="sub" style="margin:4px 0 6px;font-size:12.5px;line-height:1.4"><a href="relazioni.html">Le relazioni come grafo</a>: tutte quelle dichiarate da Wikidata, in una pagina a sé.</p>
   <label class="chk"><input type="checkbox" data-l="relazioni"><span>Relazioni dichiarate (puntini)<small>influenzato da, parte di, segue, sostituisce: solo quelle scritte su Wikidata, fra voci attive nella finestra. Mai dedotte dalla vicinanza</small></span></label>
   </section>
   <h3>Sfondo comune</h3>
@@ -357,9 +401,10 @@ body.incorpora #apri-intera{display:block!important;position:absolute;right:12px
    <span class="yr" id="yr">1640</span>
    <button id="play" aria-pressed="false">▶ Scorri</button>
    <div class="seg finestra" role="group" aria-label="Finestra di tempo"><span class="sub">finestra</span><button data-win="10">±10</button><button data-win="25">±25</button><button data-win="50">±50</button><button data-win="100">±100</button><button data-win="tutto">tutto</button></div><select id="win" hidden aria-hidden="true"><option>10</option><option selected>25</option><option>50</option><option>100</option></select>
-   <button id="riduci-tl" class="lnk" aria-pressed="false">riduci il tempo</button>
+
    <label>corsie <select id="corsie"><option value="periodo">PeriodO: chi definisce</option><option value="wikidata">Wikidata: dinastie</option><option value="contesti">Wikidata: fenomeni artistici</option></select></label>
-   <span class="sub" id="tlinfo"></span>
+   <div class="seg corsieh" role="group" aria-label="Altezza delle corsie"><button data-cors="nascoste">nascoste</button><button data-cors="compatte">compatte</button><button data-cors="estese">estese</button></div><button class="info" id="tlinfobtn" aria-expanded="false" aria-controls="tlinfo" aria-label="Come leggere la barra del tempo">i</button>
+   <span class="sub" id="tlinfo" hidden></span>
   </div>
   <svg id="tls" role="slider" aria-label="Anno" tabindex="0"></svg>
   <div id="cop" role="status" aria-label="Copertura dei dati"></div>
