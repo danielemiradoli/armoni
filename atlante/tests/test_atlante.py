@@ -318,6 +318,68 @@ def test_il_valore_transitorio_resta_confinato_nei_contesti():
             "%s usa un valore transitorio: %s" % (f, pr & set(comune.PRECISIONE_TRANSITORIA))
 
 
+def test_interfaccia_e_comune_concordano_sugli_aloni():
+    """L'interfaccia non puo' importare comune.py, quindi la costante e'
+    ripetuta in atlante.js. Questo test la tiene allineata, cosi' la
+    ripetizione e' guardata invece di essere un rischio.
+    """
+    import re, sys as _s
+    _s.path.insert(0, str(ROOT.parent))
+    import comune
+    js = (ROOT / 'web/atlante.js').read_text(encoding='utf-8')
+    m = re.search(r"const CON_ESTENSIONE = \[([^\]]*)\]", js)
+    assert m, "CON_ESTENSIONE non dichiarata in atlante.js"
+    nel_js = tuple(x.strip().strip("'\"") for x in m.group(1).split(','))
+    assert nel_js == comune.PRECISIONE_CON_ESTENSIONE, \
+        f"atlante.js dice {nel_js}, comune.py dice {comune.PRECISIONE_CON_ESTENSIONE}"
+
+
+# Quanti aloni, nei dati pubblicati, poggiano ancora sul poligono del paese
+# contenitore pur non essendo paesi. La regola in aree.py non li produce piu':
+# questi sono residui di aree.json, che si rigenera solo con data/raw/. Il
+# numero puo' solo SCENDERE, e la prossima ricostruzione lo porta a 0.
+ALONI_RIPIEGATI_RESIDUI = 23
+
+
+def test_gli_aloni_ripiegati_possono_solo_diminuire():
+    """Il ripiego sul poligono del paese contenitore vale solo per i paesi.
+
+    Misurato il 23/11/2026: era attivo su 23 luoghi che non sono paesi, tutti
+    stati storici senza corrispondenza con uno Stato di oggi — il regno di
+    Gandhara con l'area del Pakistan (871.410 km2), il Regno Ahom con quella
+    dell'India (3.151.482). Non e' un'approssimazione: e' l'estensione di
+    un'altra cosa, e sbaglia piu' spesso fuori dall'Europa, dove i confini di
+    oggi somigliano meno a quelli di allora.
+
+    Il test e' una cricca, non un rosso atteso: misura i dati pubblicati, che
+    si rigenerano solo con data/raw/, e passa finche' il numero non sale. Alla
+    prossima ricostruzione scende a 0 e la costante si abbassa. Un rosso
+    atteso, qui, sarebbe diventato verde da solo e avrebbe richiesto a qualcuno
+    di ricordarsi di togliere il marcatore: una cricca non chiede di ricordare
+    niente.
+    """
+    import json as _j, sys as _s
+    _s.path.insert(0, str(ROOT.parent))
+    import comune
+    aree = _j.load(open(ROOT / 'web/aree.json', encoding='utf-8'))
+    prec = {}
+    for l in _j.load(open(ROOT / 'web/luoghi.json', encoding='utf-8')):
+        if l.get('qid'):
+            prec.setdefault(l['qid'], l['precisione'])
+    for e in _j.load(open(ROOT / 'web/contesti.json', encoding='utf-8'))['elementi']:
+        for l in e['luoghi']:
+            prec.setdefault(l['id'], l['precisione'])
+    residui = [q for q, v in aree.items()
+               if v['fonte'] != 'wikidata'
+               and prec.get(q) not in comune.PRECISIONE_CON_RIPIEGO_PAESE]
+    assert len(residui) <= ALONI_RIPIEGATI_RESIDUI, (
+        f"gli aloni ripiegati sono saliti a {len(residui)} (soglia "
+        f"{ALONI_RIPIEGATI_RESIDUI}): {residui[:5]}")
+    if len(residui) < ALONI_RIPIEGATI_RESIDUI:
+        print(f"    [la cricca puo' scendere: {len(residui)} residui, "
+              f"abbassare ALONI_RIPIEGATI_RESIDUI]")
+
+
 if __name__ == "__main__":
     # Senza questo blocco il file, lanciato direttamente, definiva i test e non
     # ne eseguiva nessuno, uscendo 0.

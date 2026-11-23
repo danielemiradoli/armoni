@@ -100,6 +100,31 @@ PRECISIONE_LUOGO = ("citta", "zona", "paese", "regione", "istituzione")
 # migrazione resta visibile invece di diventare permanente.
 PRECISIONE_TRANSITORIA = ("luogo",)
 
+# I livelli di precisione che possono portare un'ESTENSIONE, cioe' un alone
+# sulla mappa. Una citta' e un'istituzione sono punti: la loro superficie
+# amministrativa su Wikidata e' fuorviante (Zhangzhou 12.880 km2, Parigi 105).
+#
+# Prima questa idea non aveva un nome e stava scritta a mano in quattro posti,
+# con tre risposte diverse alla stessa domanda: aree.py la chiedeva in un modo
+# per i fili e in un altro per i contesti, e atlante.js in un terzo modo. Da qui
+# veniva il fatto che una 'zona' dei contesti non avesse mai un alone. Un'idea
+# sola con un nome solo e' piu' leggibile di quattro elenchi da tenere allineati
+# a memoria.
+PRECISIONE_CON_ESTENSIONE = ("paese", "regione", "zona")
+
+# L'estensione si prende da una fonte che la dichiara (su Wikidata, P2046).
+# Dove non e' dichiarata, l'unico ripiego legittimo e' il poligono del paese che
+# contiene il punto, e SOLO quando il luogo e' esso stesso un paese: altrimenti
+# non e' una stima imprecisa, e' l'estensione di un'altra cosa.
+#
+# Misurato il 23/11/2026 su aree.json: il ripiego era attivo su 23 luoghi di
+# precisione 'regione', e sono tutti stati storici senza corrispondenza con uno
+# Stato di oggi. Il regno di Gandhara prendeva l'area del Pakistan (871.410
+# km2), il Regno Ahom quella dell'India (3.151.482). Un alone cosi' non e'
+# approssimato: dice una cosa falsa, e la dice piu' spesso fuori dall'Europa,
+# dove i confini di oggi somigliano meno a quelli di allora.
+PRECISIONE_CON_RIPIEGO_PAESE = ("paese",)
+
 TIPI_FENOMENO = ("movimento", "periodizzazione", "stile", "scuola")
 
 

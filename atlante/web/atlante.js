@@ -5,6 +5,12 @@ const css = v => { probe.style.color = `var(${v})`; return getComputedStyle(prob
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fmtY = y => y < 0 ? `${-y} a.C.` : String(y);
 const PREC = {citta: 'città', paese: 'solo paese', regione: 'regione', zona: 'zona', istituzione: 'istituzione'};
+// I livelli di precisione che portano un alone, cioè un'estensione sulla mappa.
+// Deve restare uguale a comune.PRECISIONE_CON_ESTENSIONE: un test lo verifica.
+// Prima la stessa domanda era scritta in due modi diversi dentro prepAloni —
+// un elenco per i fili e un «diverso da luogo» per i contesti — ed è da lì che
+// veniva il fatto che una zona dei contesti non avesse mai un alone.
+const CON_ESTENSIONE = ['paese', 'regione', 'zona'];
 const FILO = /^[a-z]+$/.test(new URLSearchParams(location.search).get('filo') || '') ? new URLSearchParams(location.search).get('filo') : 'blu';
 // la lacca ha pezzi di scavo dal I millennio a.C. (Lelang, Han): il suo filo parte prima
 const T0 = FILO === 'lacca' || FILO === 'confronto' ? -500 : 700, T1 = 2000, PASSO = T1 - T0 > 1600 ? 250 : 100;
@@ -141,8 +147,8 @@ function prepAloni(co, cel) {
   const v = new Map(), add = (id, c, col) => { const a = AREE[id]; if (a && !v.has(id + col)) { const h = [...id].reduce((n, ch) => (n * 31 + ch.charCodeAt(0)) >>> 0, 7);
     // ogni alone ha fase e ritmo suoi (2,4–3,6 s), ricavati dal nome: diversi fra loro, uguali da una visita all'altra
     v.set(id + col, {g: d3.geoCircle().center(c).radius(Math.sqrt(a.km2 / Math.PI) / 111.195)(), col, fase: (h % 628) / 100, ritmo: 2400 + (h >>> 10) % 1200}); } };
-  if (S.L.origini) for (const g of agg) if (['paese', 'regione', 'zona'].includes(g.l.precisione)) add(g.l.qid, [g.l.lon, g.l.lat], co);
-  if (S.L.contesti) for (const e of cagg) for (const l of e.luoghi) if (l.precisione !== 'luogo') add(l.id, [l.lon, l.lat], cel);
+  if (S.L.origini) for (const g of agg) if (CON_ESTENSIONE.includes(g.l.precisione)) add(g.l.qid, [g.l.lon, g.l.lat], co);
+  if (S.L.contesti) for (const e of cagg) for (const l of e.luoghi) if (CON_ESTENSIONE.includes(l.precisione)) add(l.id, [l.lon, l.lat], cel);
   ALONI = [...v.values()];
   if (!rafAlone) rafAlone = requestAnimationFrame(anima);
 }
