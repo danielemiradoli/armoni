@@ -221,6 +221,12 @@ body.tl-ridotto #tls,body.tl-ridotto #tlinfo{display:none}
 .src{display:inline-block;font:500 10.5px/1.5 "Instrument Sans",system-ui,sans-serif;color:var(--co);border:1px solid var(--co2);background:var(--co2);border-radius:3px;padding:0 5px;margin-left:4px;vertical-align:1px;letter-spacing:0}
 .src.nostra{color:var(--mute);background:none;border-color:var(--line)}
 .intorno{display:flex;flex-direction:column;gap:5px}.intorno button{text-align:left;min-height:34px;padding:5px 10px;font-size:13.5px;display:flex;justify-content:space-between;gap:8px}
+/* incorpora */
+#inc-dlg{max-width:560px;width:calc(100% - 32px);border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);padding:18px 20px}
+#inc-dlg::backdrop{background:rgb(16 28 70 / .35)}#inc-codice{width:100%;font:12.5px/1.4 ui-monospace,monospace;margin:10px 0;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);resize:vertical}
+body.incorpora header,body.incorpora #lay,body.incorpora #ctx,body.incorpora .lato,body.incorpora #cop,body.incorpora #tlinfo,body.incorpora #riduci-tl{display:none!important}
+body.incorpora .app{height:100vh!important;grid-template:"map" minmax(0,1fr) "tl" auto/minmax(0,1fr)!important}body.incorpora{overflow:hidden}body.incorpora #tls{display:none}
+body.incorpora #apri-intera{display:block!important;position:absolute;right:12px;bottom:12px;z-index:4;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-size:13px;text-decoration:none}
 /* legenda sulla mappa */
 #leg{position:absolute;left:12px;top:12px;max-width:min(300px,70%)}
 #legbtn{min-height:32px;padding:4px 10px;font-size:13px;box-shadow:0 2px 10px rgb(16 28 70 / .08)}
@@ -268,6 +274,7 @@ body.tl-ridotto #tls,body.tl-ridotto #tlinfo{display:none}
   </div>
   <div class="util">
   <button id="guidabtn">Guida</button>
+  <button id="incorporabtn" title="Inserisci questa vista in un'altra pagina">Incorpora</button>
   <button id="commentabtn" title="Commenta questa vista: apre un modulo breve, e la vista che stai guardando viene allegata da sola">Commenta</button>
   <button id="tavbtn">Tavolo <span id="tavn">0</span></button>
   </div>
@@ -316,6 +323,7 @@ body.tl-ridotto #tls,body.tl-ridotto #tlinfo{display:none}
    <p class="sub nota" id="ctx-nota" hidden style="margin:2px 0 8px">Quadrati e nomi in corsivo, verdi. Dove e quando nascono, lo Stato di allora e il nome di oggi. Sovrapposti a un filo servono ad accostare: non legano nulla agli oggetti. Senza filo, sono una ricerca a sé.</p>
   <div class="sub" style="margin:0 0 8px;display:flex;flex-wrap:wrap;gap:2px 10px">tipi: <label><input type="checkbox" data-ct="movimento" checked> movimenti</label><label><input type="checkbox" data-ct="scuola" checked> scuole</label><label><input type="checkbox" data-ct="stile" checked> stili</label><label><input type="checkbox" data-ct="periodizzazione" checked> dinastie</label></div>
    <div class="faccette"><div id="fac-ctx"></div></div>
+  <p class="sub" style="margin:4px 0 6px"><a href="relazioni.html">Le relazioni come grafo</a>: tutte quelle dichiarate da Wikidata, in una pagina a sé.</p>
   <label class="chk"><input type="checkbox" data-l="relazioni"><span>Relazioni dichiarate (puntini)<small>influenzato da, parte di, segue, sostituisce: solo quelle scritte su Wikidata, fra voci attive nella finestra. Mai dedotte dalla vicinanza</small></span></label>
   </section>
   <h3>Sfondo comune</h3>
@@ -326,7 +334,7 @@ body.tl-ridotto #tls,body.tl-ridotto #tlinfo{display:none}
   <p class="sub" style="margin-top:18px"><a href="fonti.html">Fonti e licenze</a> · <a href="https://github.com/danielemiradoli/armoni">Codice e dati</a></p>
  </aside>
 
- <div class="fig" id="fig"><canvas id="cv" aria-label="Mappa del mondo navigabile"></canvas><canvas id="alone" aria-hidden="true"></canvas><div id="tip"></div><div id="chip"></div><div id="leg"><div class="legrow"><button id="legbtn" aria-expanded="false" aria-controls="legbody">Legenda</button><label class="vaia"><span class="sr">Vai a una regione</span><select id="vaia"><option value="">Vai a…</option></select></label></div><div id="legbody" hidden></div></div>
+ <div class="fig" id="fig"><canvas id="cv" aria-label="Mappa del mondo navigabile"></canvas><canvas id="alone" aria-hidden="true"></canvas><div id="tip"></div><div id="chip"></div><a id="apri-intera" href="#" hidden>ArMoni · apri la vista completa</a><div id="leg"><div class="legrow"><button id="legbtn" aria-expanded="false" aria-controls="legbody">Legenda</button><label class="vaia"><span class="sr">Vai a una regione</span><select id="vaia"><option value="">Vai a…</option></select></label></div><div id="legbody" hidden></div></div>
   <button class="lato" id="chiudi-lay" aria-label="Nascondi il pannello di sinistra" aria-pressed="false">‹</button><button class="lato" id="chiudi-ctx" aria-label="Nascondi il pannello di destra" aria-pressed="false">›</button>
   <div id="mapctl"><button id="zin" aria-label="Avvicina">+</button><button id="zout" aria-label="Allontana">−</button></div></div>
 
@@ -355,6 +363,12 @@ body.tl-ridotto #tls,body.tl-ridotto #tlinfo{display:none}
  <div id="board"></div>
 </section>
 
+<dialog id="inc-dlg" aria-labelledby="inc-t">
+ <h2 id="inc-t">Incorpora questa vista</h2>
+ <p class="sub">Copia il codice nella pagina dove vuoi mostrarla. Si vedono il globo e il tempo, con i filtri e l'anno di adesso; un link porta alla vista completa su ArMoni.</p>
+ <textarea id="inc-codice" rows="5" readonly aria-label="Codice da incorporare"></textarea>
+ <div class="acts"><button id="inc-copia">Copia il codice</button><form method="dialog" style="display:inline"><button>Chiudi</button></form></div>
+</dialog>
 <script src="lib/d3.min.js"></script>
 <script src="lib/topojson-client.min.js"></script>
 <script src="atlante.js"></script>

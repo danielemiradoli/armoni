@@ -153,13 +153,14 @@ function avvia() {
     .force('charge', d3.forceManyBody().strength(n => n.coll ? -70 - 10 * n.grado : -28).distanceMax(420).theta(0.9))
     .force('collide', d3.forceCollide(n => n.r + 2))
     .force('x', d3.forceX(0).strength(0.045)).force('y', d3.forceY(0).strength(0.045))
-    .alphaDecay(0.035).on('tick', disegna);
+    .alphaDecay(0.035).on('tick', disegna).on('end', () => { if (daAdattare) { daAdattare = false; adatta(); } });
   assesta(true);
   const z = d3.zoom().scaleExtent([0.15, 8]).on('zoom', e => { tr = e.transform; disegna(); });
   const drag = d3.drag().subject(e => { return trova(e.sourceEvent); })
     .on('start', e => { if (!RIDOTTO.matches) sim.alphaTarget(0.15).restart(); e.subject.fx = e.subject.x; e.subject.fy = e.subject.y; })
     .on('drag', e => { const [x, y] = tr.invert(d3.pointer(e.sourceEvent, canvas)); e.subject.fx = x; e.subject.fy = y; if (RIDOTTO.matches) { sim.tick(); disegna(); } })
     .on('end', e => { sim.alphaTarget(0); e.subject.fx = e.subject.fy = null; });
+  z.on('start.utente', e => { if (e.sourceEvent) daAdattare = false; });
   d3.select(canvas).call(drag).call(z).on('dblclick.zoom', null);
   window._zoom = z;
   canvas.addEventListener('pointermove', e => {
@@ -216,11 +217,14 @@ function assesta(primo) {
   else if (primo) { sim.stop(); for (let i = 0; i < 300; i++) sim.tick(); sim.alpha(0.04).restart(); }
   else sim.alpha(0.5).restart();
 }
+let daAdattare = false;  // dopo un cambio di filtri, si reinquadra quando il grafo si ferma
 function aggiorna() {
   filtra();
   trovati = new Set([...trovati].filter(n => visSet.has(n)));
   assesta(false);
   disegna();
+  if (sel) return;
+  if (RIDOTTO.matches) adatta(true); else daAdattare = true;
 }
 
 function ridimensiona() {
@@ -288,14 +292,14 @@ function disegna() {
   if (sel && visSet.has(sel)) { forma(ctx, sel.coll ? TIPI[sel.tipo] : 'cerchio', sel.x, sel.y, R(sel) + 4 / k); ctx.lineWidth = 2.5 / k; ctx.strokeStyle = C.fe; ctx.stroke(); }
   // etichette: i più legati, sempre; tutti quando si ingrandisce; vicini della selezione
   ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-  const fs = 12.5 / k, soglia = k > 2.2 ? 0 : k > 1.3 ? 4 : 9;
+  const fs = 12.5 / k, pochi = visN.length < 80, soglia = pochi || k > 2.2 ? 0 : k > 1.3 ? 4 : 9;
   ctx.font = `500 ${fs}px Newsreader, Georgia, serif`;
   ctx.lineJoin = 'round';
   // candidati in ordine di importanza; un'etichetta che si sovrappone a una già scritta si omette
   const cand = [];
   for (const n of visN) {
     const forte = vic.has(n) || trovati.has(n);
-    if (fuoco ? !forte && !(n.grado >= soglia && k > 1.3) : !(n.grado >= soglia && (n.coll || k > 2.2)) && !trovati.has(n)) continue;
+    if (fuoco ? !forte && !(n.grado >= soglia && k > 1.3) : !(n.grado >= soglia && (n.coll || pochi || k > 2.2)) && !trovati.has(n)) continue;
     cand.push([n === sel ? 3 : n === hover ? 2.5 : trovati.has(n) ? 2 : forte ? 1 : 0, n, forte]);
   }
   cand.sort((a, b) => b[0] - a[0] || b[1].grado - a[1].grado);

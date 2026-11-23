@@ -860,6 +860,16 @@ function vistaURL() {
   if (S.mode === 'percorso') h += '&t=' + S.tappa;
   return location.origin + location.pathname + (PRIMO ? '' : '?filo=' + FILO) + '#' + h;
 }
+/* Incorpora: la vista attuale dentro un'altra pagina (un museo, un partner). Solo globo e tempo,
+   con il link alla vista completa: chi incorpora mostra, ArMoni resta la fonte. */
+const INCORPORATA = new URLSearchParams(location.search).get('incorpora') === '1';
+if (INCORPORATA) { document.body.classList.add('incorpora'); $('#apri-intera').onclick = e => { e.preventDefault(); window.open(vistaURL().replace(/[?&]incorpora=1/, ''), '_blank', 'noopener'); }; }
+function codiceIncorpora() {
+  const u = new URL(vistaURL()); u.searchParams.set('incorpora', '1');
+  return `<iframe src="${u.href}" title="ArMoni · Atlante" width="100%" height="560" style="border:1px solid #dde1ec;border-radius:8px" loading="lazy"></iframe>`;
+}
+$('#incorporabtn').onclick = () => { $('#inc-codice').value = codiceIncorpora(); $('#inc-dlg').showModal(); $('#inc-codice').select(); };
+$('#inc-copia').onclick = async () => { try { await navigator.clipboard.writeText($('#inc-codice').value); $('#inc-copia').textContent = 'Copiato'; } catch (e) { $('#inc-codice').select(); document.execCommand('copy'); $('#inc-copia').textContent = 'Copiato'; } setTimeout(() => { $('#inc-copia').textContent = 'Copia il codice'; }, 1800); };
 function leggiVista() {
   const q = new URLSearchParams(location.hash.slice(1).split('&').slice(1).join('&'));
   if (!q.has('y')) return;
