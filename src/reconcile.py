@@ -68,9 +68,82 @@ def tokens(s: str) -> list[str]:
     if not isinstance(s, str):
         return []
     s = PAREN.sub(" ", s)
-    s = unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode()
-    s = re.sub(r"[^a-z ]", " ", s.lower())
-    return [t for t in s.split() if t not in STOP and t]
+    return [t for t in "".join(_carattere(c) for c in s).split()
+            if t not in STOP and t]
+
+
+_CACHE_CAR: dict[str, str] = {}
+
+
+def _carattere(c: str) -> str:
+    """Normalizza un carattere. Il punto in cui i nomi non latini sparivano.
+
+    Prima questa funzione non esisteva e la riga era una sola:
+
+        unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode()
+
+    Su un nome in cirillico, in han, in hangul o in arabo quella riga non
+    restituisce una versione imprecisa del nome: restituisce la stringa VUOTA.
+    `name_key` dava "" e i due caricatori eliminavano la riga con
+    `.query("key != ''")`. L'artista non compariva ne' fra le asserzioni ne'
+    fra gli errori, e mancava anche dal denominatore del richiamo: nessuna
+    misura poteva accorgersene. Il protocollo di ingestione lo vieta
+    espressamente — «nessuno scarto per lingua».
+
+    Tre casi, in questo ordine:
+
+    1. non e' una lettera -> spazio. Come prima: cifre e punteggiatura
+       separano i token.
+    2. e' una lettera che si ripiega su ASCII -> si usa il ripiegamento.
+       Come prima: 'e' con accento diventa 'e', e i nomi latini non cambiano
+       di un carattere.
+    3. e' una lettera che NON si ripiega su ASCII -> si tiene com'e',
+       minuscola. E' la correzione.
+
+    Dentro il caso 3 c'e' un'eccezione deliberata: le lettere di scrittura
+    LATINA che non si ripiegano — 'o' barrata, 'l' barrata, 'eszett' — restano
+    scartate come prima. Non perche' contino meno, ma perche' cambiarle
+    sposterebbe le chiavi dei nomi latini e quindi le misure pubblicate, e
+    quella e' una decisione separata con una sua verifica. Questa correzione
+    riguarda i record che sparivano interi, non la precisione del
+    ripiegamento latino.
+
+    NON si traslittera. Tradurre 'Малевич' in 'Malevich' per farlo incontrare
+    con la forma latina sarebbe una deduzione, e il protocollo (§5) ammette
+    deduzioni solo con una regola misurata sui casi in cui la risposta e'
+    nota. Qui quei casi non esistono: MoMA e Tate traslitterano alla fonte e
+    nei due roster non c'e' un solo nome non latino, quindi non c'e' nulla su
+    cui misurare. Un nome in cirillico entra, partecipa al blocco con i propri
+    token e si incontra con un altro nome solo se lo dice un identificativo
+    esterno. Quando ci sara' un campione, la traslitterazione potra' diventare
+    uno strato in piu', misurato e dichiarato.
+    """
+    if c in _CACHE_CAR:
+        return _CACHE_CAR[c]
+    if unicodedata.category(c).startswith("M"):
+        # Segni combinanti: si ELIMINANO, non separano. La riga di prima li
+        # perdeva dentro l'encode ASCII senza spezzare il token, e un nome in
+        # forma decomposta non deve comportarsi diversamente da uno composto.
+        out = ""
+    elif not c.isalpha():
+        out = " "
+    else:
+        ascii_fold = unicodedata.normalize("NFKD", c).encode("ascii", "ignore").decode()
+        if ascii_fold:
+            out = ascii_fold.lower()
+            if not out.isalpha():          # p.es. apici modificatori
+                out = " "
+        elif unicodedata.name(c, "").startswith("LATIN"):
+            # 'o' barrata, 'l' barrata, 'eszett': si ELIMINANO senza separare,
+            # esattamente come prima. La prima stesura di questa funzione le
+            # sostituiva con uno spazio e spezzava in due 11 nomi scandinavi
+            # ('Molgaard' diventava 'm' + 'lgaard'): l'ha preso la verifica di
+            # non-regressione, non la lettura del codice.
+            out = ""
+        else:
+            out = c.lower()                # la correzione
+    _CACHE_CAR[c] = out
+    return out
 
 def name_key(s: str) -> str:
     return " ".join(sorted(tokens(s)))
@@ -108,17 +181,21 @@ def block_keys(s: str, comma_form: bool) -> frozenset[str]:
 # Oggi il contatore e' a zero perche' MoMA e Tate traslitterano gia'. Il difetto
 # e' latente e si aprirebbe al primo catalogo che non lo fa; il contatore serve a
 # farlo vedere quel giorno invece di lasciarlo scoprire a valle.
-DROPPED = {"moma": {"non_latino": [], "senza_nome": []},
-           "tate": {"non_latino": [], "senza_nome": []}}
+DROPPED = {"moma": {"illeggibile": [], "senza_nome": []},
+           "tate": {"illeggibile": [], "senza_nome": []}}
 
 
 def _record_dropped(src: str, names) -> None:
-    DROPPED[src] = {"non_latino": [], "senza_nome": []}
+    DROPPED[src] = {"illeggibile": [], "senza_nome": []}
     for n in names:
         s = "" if n is None else str(n)
         if name_key(s):
             continue
-        key = "non_latino" if s.strip() and s.strip().lower() != "nan" else "senza_nome"
+        # 'illeggibile': un nome non vuoto che la normalizzazione azzera
+        # comunque, cioe' senza nemmeno una lettera (solo cifre, segni, simboli).
+        # Dal 23/11/2026 le scritture non latine non finiscono piu' qui.
+        key = ("illeggibile" if s.strip() and s.strip().lower() != "nan"
+               else "senza_nome")
         DROPPED[src][key].append(s)
 
 def load_moma() -> pd.DataFrame:
@@ -476,32 +553,52 @@ def to_assertion(i, m):
     }
 
 def _dropped_section() -> str:
-    """Nomi scartati in silenzio dai caricatori, dichiarati come il troncamento."""
-    nl = sum(len(DROPPED[s]["non_latino"]) for s in DROPPED)
+    """Nomi scartati dai caricatori. La cifra si dichiara anche quando e' zero."""
+    il = sum(len(DROPPED[s]["illeggibile"]) for s in DROPPED)
     sn = sum(len(DROPPED[s]["senza_nome"]) for s in DROPPED)
     righe = [
         "## Nomi scartati prima della riconciliazione\n",
-        f"| roster | scrittura non latina | nome assente |",
+        "| roster | senza nessuna lettera | nome assente |",
         "| --- | ---: | ---: |",
     ]
     for s in ("moma", "tate"):
-        righe.append(f"| {s} | {len(DROPPED[s]['non_latino'])} "
+        righe.append(f"| {s} | {len(DROPPED[s]['illeggibile'])} "
                      f"| {len(DROPPED[s]['senza_nome'])} |")
     righe += [
         "",
-        f"**Oggi: {nl} nomi persi per la scrittura, {sn} per assenza di nome.**",
+        f"**Oggi: {il} nomi senza nessuna lettera, {sn} senza nome.**",
         "",
-        "La cifra e' dichiarata anche quando e' zero, perche' il modo di fallire e'",
-        "silenzioso. `tokens()` passa per `encode(\"ascii\", \"ignore\")` e poi filtra",
-        "`[^a-z ]`: un nome in scrittura non latina si riduce a stringa vuota, e i due",
-        "caricatori eliminano la riga con `.query(\"key != ''\")`. L'artista non compare",
-        "ne' fra le asserzioni ne' fra gli errori: per la pipeline non e' mai esistito,",
-        "e nessuna misura di richiamo lo nota, perche' manca anche dal denominatore.",
+        "Un record si scarta solo se il nome non contiene **nessuna lettera di",
+        "nessuna scrittura** (solo cifre o segni), oppure se il nome manca.",
         "",
-        "Zero perche' MoMA e Tate traslitterano gia' alla fonte, non perche' il",
-        "problema sia risolto: `name_key('Казимир Малевич')` restituisce stringa vuota.",
-        "Il difetto si aprirebbe al primo catalogo che non traslittera. Il criterio di",
-        "verifica e' scritto in `tests/test_casi.py` e oggi fallisce apposta.\n",
+        "### La scrittura non e' piu' un motivo di scarto *(corretto il 23/11/2026)*",
+        "",
+        "Fino a quella data `tokens()` passava per `encode(\"ascii\", \"ignore\")` e poi",
+        "filtrava `[^a-z ]`. Su un nome in cirillico, in han, in hangul o in arabo quella",
+        "riga non restituiva una versione imprecisa del nome: restituiva la stringa",
+        "**vuota**. I due caricatori eliminavano la riga con `.query(\"key != \'\'\")` e",
+        "l'artista non compariva ne' fra le asserzioni ne' fra gli errori. Mancava anche",
+        "dal **denominatore** del richiamo, quindi nessuna misura poteva accorgersene:",
+        "non era un abbinamento mancato, era un record che per la pipeline non era mai",
+        "esistito.",
+        "",
+        "Il contatore segnava 0 soltanto perche' MoMA e Tate traslitterano alla fonte.",
+        "Il difetto si sarebbe aperto al primo catalogo che non traslittera, e l'atlante",
+        "mostra i titoli coreani e giapponesi in lingua originale.",
+        "",
+        "Ora ogni lettera di ogni scrittura entra: `name_key('Казимир Малевич')` da'",
+        "`казимир малевич`. Le chiavi dei nomi latini **non sono cambiate di un",
+        "carattere** — verificato su tutti i 12.921 record dei due roster, zero",
+        "differenze, e le asserzioni emesse sono identiche a prima.",
+        "",
+        "**Non si traslittera.** Far incontrare `Малевич` con `Malevich` sarebbe una",
+        "deduzione, e il protocollo di ingestione ammette deduzioni solo con una regola",
+        "misurata sui casi in cui la risposta e' nota. Qui quei casi non esistono: nei",
+        "due roster non c'e' un solo nome non latino su cui misurare. Un nome in",
+        "cirillico entra, partecipa al blocco con i propri token, e si incontra con una",
+        "forma latina solo se lo dice un identificativo esterno. Quando ci sara' un",
+        "campione, la traslitterazione potra' diventare uno strato in piu', misurato e",
+        "dichiarato come tutti gli altri.\n",
     ]
     return "\n".join(righe)
 

@@ -9,24 +9,44 @@ Generato il 2026-11-23 da `armoni-reconcile` 0.1.0 sulle fonti fissate in `data/
 
 ## Nomi scartati prima della riconciliazione
 
-| roster | scrittura non latina | nome assente |
+| roster | senza nessuna lettera | nome assente |
 | --- | ---: | ---: |
 | moma | 0 | 0 |
 | tate | 0 | 0 |
 
-**Oggi: 0 nomi persi per la scrittura, 0 per assenza di nome.**
+**Oggi: 0 nomi senza nessuna lettera, 0 senza nome.**
 
-La cifra e' dichiarata anche quando e' zero, perche' il modo di fallire e'
-silenzioso. `tokens()` passa per `encode("ascii", "ignore")` e poi filtra
-`[^a-z ]`: un nome in scrittura non latina si riduce a stringa vuota, e i due
-caricatori eliminano la riga con `.query("key != ''")`. L'artista non compare
-ne' fra le asserzioni ne' fra gli errori: per la pipeline non e' mai esistito,
-e nessuna misura di richiamo lo nota, perche' manca anche dal denominatore.
+Un record si scarta solo se il nome non contiene **nessuna lettera di
+nessuna scrittura** (solo cifre o segni), oppure se il nome manca.
 
-Zero perche' MoMA e Tate traslitterano gia' alla fonte, non perche' il
-problema sia risolto: `name_key('Казимир Малевич')` restituisce stringa vuota.
-Il difetto si aprirebbe al primo catalogo che non traslittera. Il criterio di
-verifica e' scritto in `tests/test_casi.py` e oggi fallisce apposta.
+### La scrittura non e' piu' un motivo di scarto *(corretto il 23/11/2026)*
+
+Fino a quella data `tokens()` passava per `encode("ascii", "ignore")` e poi
+filtrava `[^a-z ]`. Su un nome in cirillico, in han, in hangul o in arabo quella
+riga non restituiva una versione imprecisa del nome: restituiva la stringa
+**vuota**. I due caricatori eliminavano la riga con `.query("key != ''")` e
+l'artista non compariva ne' fra le asserzioni ne' fra gli errori. Mancava anche
+dal **denominatore** del richiamo, quindi nessuna misura poteva accorgersene:
+non era un abbinamento mancato, era un record che per la pipeline non era mai
+esistito.
+
+Il contatore segnava 0 soltanto perche' MoMA e Tate traslitterano alla fonte.
+Il difetto si sarebbe aperto al primo catalogo che non traslittera, e l'atlante
+mostra i titoli coreani e giapponesi in lingua originale.
+
+Ora ogni lettera di ogni scrittura entra: `name_key('Казимир Малевич')` da'
+`казимир малевич`. Le chiavi dei nomi latini **non sono cambiate di un
+carattere** — verificato su tutti i 12.921 record dei due roster, zero
+differenze, e le asserzioni emesse sono identiche a prima.
+
+**Non si traslittera.** Far incontrare `Малевич` con `Malevich` sarebbe una
+deduzione, e il protocollo di ingestione ammette deduzioni solo con una regola
+misurata sui casi in cui la risposta e' nota. Qui quei casi non esistono: nei
+due roster non c'e' un solo nome non latino su cui misurare. Un nome in
+cirillico entra, partecipa al blocco con i propri token, e si incontra con una
+forma latina solo se lo dice un identificativo esterno. Quando ci sara' un
+campione, la traslitterazione potra' diventare uno strato in piu', misurato e
+dichiarato come tutti gli altri.
 
 ## Grado di certezza delle `sameAs`
 

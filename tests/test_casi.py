@@ -107,30 +107,53 @@ def test_asserzioni_rispettano_l_accordo_comune():
 
 
 def test_nome_in_cirillico_non_deve_sparire():
-    """CRITERIO DI VERIFICA SCRITTO PRIMA DELLA MODIFICA. Oggi FALLISCE apposta.
+    """Era il criterio di verifica scritto prima della modifica, e restava rosso
+    di proposito. Verde dal 23/11/2026.
 
-    `tokens()` passa per `encode("ascii", "ignore")` e poi filtra `[^a-z ]`.
-    Un nome in scrittura non latina si riduce a stringa vuota, `name_key`
-    restituisce "", e `load_moma`/`load_tate` eliminano la riga con
-    `.query("key != '\'')`. L'artista sparisce dal roster: non compare fra le
-    asserzioni, non compare fra gli errori, e non entra nemmeno nel
-    denominatore del richiamo. Non e' un abbinamento mancato, e' un record che
-    per la pipeline non e' mai esistito.
-
-    Oggi non si manifesta perche' MoMA e Tate traslitterano gia' alla fonte.
-    Il contatore in `out/metrics.md` segna zero. Si aprirebbe al primo catalogo
-    che non traslittera.
-
-    Il test resta rosso di proposito: il multilingua non e' il collo di
-    bottiglia attuale, che e' il campione sui casi difficili. Quando si
-    affrontera', questo e' il criterio da soddisfare, e la riga sotto deve
-    diventare verde senza essere riscritta.
+    Prima `tokens()` passava per `encode("ascii", "ignore")`: su una scrittura
+    non latina non restituiva una versione imprecisa del nome, restituiva la
+    stringa vuota, e il caricatore eliminava la riga. Il record non compariva
+    ne' fra le asserzioni ne' fra gli errori, e mancava anche dal denominatore
+    del richiamo: nessuna misura poteva accorgersene.
     """
-    assert r.name_key("Казимир Малевич"), \
-        "name_key perde i nomi in cirillico e il record sparisce dal roster"
+    assert r.name_key("Казимир Малевич") == "казимир малевич"
+    for nome in ("葛飾 北斎", "김정희", "محمد", "Θεοτοκόπουλος"):
+        assert r.name_key(nome), f"{nome} si riduce a chiave vuota"
+        assert r.block_keys(nome, False), f"{nome} non ha chiavi di blocco"
 
 
-test_nome_in_cirillico_non_deve_sparire.atteso_fallire = True
+def test_un_record_non_latino_resta_nel_roster():
+    """Piu' forte del precedente: non basta che la chiave non sia vuota, il
+    record deve sopravvivere al caricatore. E' il punto esatto in cui spariva.
+    """
+    r._record_dropped("moma", ["Казимир Малевич", "葛飾 北斎", "Pablo Picasso"])
+    assert r.DROPPED["moma"]["illeggibile"] == []
+    assert r.DROPPED["moma"]["senza_nome"] == []
+    # cio' che si scarta ancora, e deve restare scartato
+    r._record_dropped("moma", ["1234 ---", "", None])
+    assert len(r.DROPPED["moma"]["illeggibile"]) == 1
+    assert len(r.DROPPED["moma"]["senza_nome"]) == 2
+
+
+def test_le_chiavi_latine_non_cambiano():
+    """Guardia di non-regressione sul ripiegamento latino.
+
+    La prima stesura della correzione sostituiva con uno spazio le lettere
+    latine che non si ripiegano su ASCII, invece di eliminarle: 'Molgaard'
+    diventava due token, e 11 nomi scandinavi cambiavano chiave. L'ha preso il
+    confronto con la linea di base, non la lettura del codice. Questi valori
+    bloccano quel comportamento.
+    """
+    atteso = {
+        "Nicolas de Staël":           "de nicolas stael",
+        "Jean (Hans) Arp":            "arp jean",
+        "L. S. Lowry":                "l lowry s",
+        "Mølgaard-Nielsen":           "mlgaard nielsen",   # 'o' barrata eliminata
+        "Jørgen Ditzel":              "ditzel jrgen",
+        "Willem de Kooning":          "de kooning willem",
+    }
+    for nome, chiave in atteso.items():
+        assert r.name_key(nome) == chiave, f"{nome}: {r.name_key(nome)!r} != {chiave!r}"
 
 
 if __name__ == "__main__":
